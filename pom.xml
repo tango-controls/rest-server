@@ -72,14 +72,6 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/default.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 </project>
