@@ -9,23 +9,23 @@ import java.lang.reflect.Method;
  * @since 11.10.12
  */
 public class CommandFactory {
-    public Command createCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException{
+    public Command createCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
         CommandType type = CommandType.valueOf(info.type.toUpperCase());
-        switch(type){
+        switch (type) {
             case READ:
-                return createReadCommand(info,proxy);
+                return createReadCommand(info, proxy);
             case WRITE:
                 return createWriteCommand(info, proxy);
             case EXECUTE:
-                return createExecCommand(info,proxy);
+                return createExecCommand(info, proxy);
             default:
                 throw new CommandCreationException(new IllegalStateException());
         }
     }
 
-    public Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException{
+    public Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
         try {
-            Method method = proxy.getClass().getMethod("readAttribute",String.class);
+            Method method = proxy.getClass().getMethod("readAttributeValueAndTime", String.class);
             String attributeName = info.target;
 
             return new CommandImpl(proxy, method, attributeName);
@@ -34,9 +34,9 @@ public class CommandFactory {
         }
     }
 
-    public Command createWriteCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException{
+    public Command createWriteCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
         try {
-            Method method = proxy.getClass().getMethod("writeAttribute",String.class, Object.class);
+            Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
             Object arg = info.convertArgin(proxy.getAttributeInfo(attributeName).getType().getDataType());
 
@@ -46,9 +46,9 @@ public class CommandFactory {
         }
     }
 
-    public Command createExecCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException{
+    public Command createExecCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
         try {
-            Method method = proxy.getClass().getMethod("executeCommand",String.class,Object.class);
+            Method method = proxy.getClass().getMethod("executeCommand", String.class, Object.class);
             String cmdName = info.target;
             Object arg = info.convertArgin(proxy.getCommandInfo(cmdName).getArginType());
 
