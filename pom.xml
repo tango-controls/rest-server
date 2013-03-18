@@ -52,8 +52,6 @@
             <groupId>hzg.wpn</groupId>
             <artifactId>TangoAPI</artifactId>
             <version>1.9</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/TangoAPI-1.9.jar</systemPath>
         </dependency>
     </dependencies>
 
