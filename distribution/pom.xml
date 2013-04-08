@@ -57,7 +57,7 @@
         <dependency>
             <groupId>hzg.wpn</groupId>
             <artifactId>mtango.frontend.classes</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <!-- add your own dependencies below -->
     </dependencies>
