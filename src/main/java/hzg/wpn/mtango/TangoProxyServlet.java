@@ -80,9 +80,9 @@ public class TangoProxyServlet extends HttpServlet {
 
             Object result = cmd.execute();
 
-            sendResponse(new Result(result,null),req,resp);
+            sendResponse(Result.createSuccessResult(result),req,resp);
         } catch (Exception e) {
-            Result error = new Result(null,e.getMessage());
+            Result error = Result.createFailureResult(e.getMessage());
 
             sendResponse(error,req,resp);
         }

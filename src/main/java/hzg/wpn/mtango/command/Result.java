@@ -1,6 +1,7 @@
 package hzg.wpn.mtango.command;
 
-import java.util.Map;
+import org.javatuples.Triplet;
+import wpn.hdri.tango.attribute.Quality;
 
 /**
  * Matches to mTango/CommandOut.js
@@ -11,20 +12,26 @@ import java.util.Map;
 public class Result {
     private final Object argout;
     private final String error;
+    private final Quality quality;
     private final long timestamp;
 
-    public Result(Object argout, String error) {
-        //TODO avoid this if
-        if (Map.Entry.class.isAssignableFrom(argout.getClass())) {
-            Map.Entry<Object, Long> entry = (Map.Entry<Object, Long>) argout;
-            this.argout = entry.getKey();
-            this.timestamp = entry.getValue();
-        } else {
-            this.argout = argout;
-            this.timestamp = System.currentTimeMillis();
-        }
+    private Result(Object argout, String error, Quality quality, long timestamp) {
+        this.argout = argout;
         this.error = error;
+        this.quality = quality;
+        this.timestamp = timestamp;
     }
 
-    //TODO ...
+    public static Result createSuccessResult(Object argout){
+        if (Triplet.class.isAssignableFrom(argout.getClass())) {
+            Triplet<Object, Long, Quality> triplet = (Triplet<Object, Long, Quality>) argout;
+            return new Result(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
+        } else {
+            return new Result(argout,null,Quality.VALID,System.currentTimeMillis());
+        }
+    }
+
+    public static Result createFailureResult(String message){
+        return new Result(null, message, Quality.INVALID, System.currentTimeMillis());
+    }
 }
