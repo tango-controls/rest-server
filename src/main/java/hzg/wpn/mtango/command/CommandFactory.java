@@ -25,7 +25,7 @@ public class CommandFactory {
 
     public Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
         try {
-            Method method = proxy.getClass().getMethod("readAttributeValueAndTime", String.class);
+            Method method = proxy.getClass().getMethod("readAttributeValueTimeQuality", String.class);
             String attributeName = info.target;
 
             return new CommandImpl(proxy, method, attributeName);
