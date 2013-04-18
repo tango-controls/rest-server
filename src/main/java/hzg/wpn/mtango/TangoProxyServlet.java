@@ -18,6 +18,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Subclasses are generated
@@ -81,11 +84,27 @@ public class TangoProxyServlet extends HttpServlet {
             Object result = cmd.execute();
 
             sendResponse(Result.createSuccessResult(result),req,resp);
-        } catch (Exception e) {
-            Result error = Result.createFailureResult(e.getMessage());
+        } catch (Throwable e) {
+            LOG.error("Request processing failed!", e);
+
+            Result error = Result.createFailureResult(createExceptionMessage(e));
 
             sendResponse(error,req,resp);
         }
+    }
+
+    private String[] createExceptionMessage(Throwable e) {
+        //TODO avoid temporary collection creation
+        Set<String> result = new LinkedHashSet<String>();
+        //skip upper exception because it is always TargetInvocationException
+        //due to based on reflection implementation. See CommandImpl
+        e = e.getCause();
+        do{
+            if(e.getMessage() != null)
+                result.add(e.getMessage());
+        }
+        while((e = e.getCause()) != null);
+        return result.toArray(new String[result.size()]);
     }
 
     private CommandInfo transformRequest(HttpServletRequest req) {

@@ -11,11 +11,11 @@ import wpn.hdri.tango.attribute.Quality;
  */
 public class Result {
     private final Object argout;
-    private final String error;
+    private final String[] error;
     private final Quality quality;
     private final long timestamp;
 
-    private Result(Object argout, String error, Quality quality, long timestamp) {
+    private Result(Object argout, String[] error, Quality quality, long timestamp) {
         this.argout = argout;
         this.error = error;
         this.quality = quality;
@@ -31,7 +31,9 @@ public class Result {
         }
     }
 
-    public static Result createFailureResult(String message){
+    public static Result createFailureResult(String[] message){
+        if(message == null || message.length == 0)
+            message = new String[]{"Unexpected server side error! See server log for details."};
         return new Result(null, message, Quality.INVALID, System.currentTimeMillis());
     }
 }
