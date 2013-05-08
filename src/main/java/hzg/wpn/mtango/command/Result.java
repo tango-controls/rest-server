@@ -23,7 +23,7 @@ public class Result {
     }
 
     public static Result createSuccessResult(Object argout){
-        if (Triplet.class.isAssignableFrom(argout.getClass())) {
+        if (argout != null && Triplet.class.isAssignableFrom(argout.getClass())) {
             Triplet<Object, Long, Quality> triplet = (Triplet<Object, Long, Quality>) argout;
             return new Result(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
         } else {
