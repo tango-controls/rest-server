@@ -52,7 +52,7 @@
         <dependency>
             <groupId>hzg.wpn</groupId>
             <artifactId>TangoAPI</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>
