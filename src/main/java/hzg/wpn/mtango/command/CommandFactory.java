@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
  * @since 11.10.12
  */
 public class CommandFactory {
-    public Command createCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
+    public Command createCommand(CommandInfo info, TangoProxyWrapper proxy) {
         CommandType type = CommandType.valueOf(info.type.toUpperCase());
         switch (type) {
             case READ:
@@ -19,22 +19,22 @@ public class CommandFactory {
             case EXECUTE:
                 return createExecCommand(info, proxy);
             default:
-                throw new CommandCreationException(new IllegalStateException());
+                throw new IllegalArgumentException("Unknown action type[" + type + "]");
         }
     }
 
-    public Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
+    public Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) {
         try {
             Method method = proxy.getClass().getMethod("readAttributeValueTimeQuality", String.class);
             String attributeName = info.target;
 
             return new CommandImpl(proxy, method, attributeName);
         } catch (NoSuchMethodException e) {
-            throw new CommandCreationException(e);
+            throw new AssertionError(e);
         }
     }
 
-    public Command createWriteCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
+    public Command createWriteCommand(CommandInfo info, TangoProxyWrapper proxy) {
         try {
             Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
@@ -42,11 +42,11 @@ public class CommandFactory {
 
             return new CommandImpl(proxy, method, attributeName, arg);
         } catch (NoSuchMethodException e) {
-            throw new CommandCreationException(e);
+            throw new AssertionError(e);
         }
     }
 
-    public Command createExecCommand(CommandInfo info, TangoProxyWrapper proxy) throws CommandCreationException {
+    public Command createExecCommand(CommandInfo info, TangoProxyWrapper proxy) {
         try {
             Method method = proxy.getClass().getMethod("executeCommand", String.class, Object.class);
             String cmdName = info.target;
@@ -54,7 +54,7 @@ public class CommandFactory {
 
             return new CommandImpl(proxy, method, cmdName, arg);
         } catch (NoSuchMethodException e) {
-            throw new CommandCreationException(e);
+            throw new AssertionError(e);
         }
     }
 }
