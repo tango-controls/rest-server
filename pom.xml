@@ -120,7 +120,7 @@
                         </goals>
                         <configuration>
                             <files>
-                                <file>${basedir}/../resources/mtango.properties</file>
+                                <file>${basedir}/../.mtango/mtango.properties</file>
                             </files>
                         </configuration>
                     </execution>
