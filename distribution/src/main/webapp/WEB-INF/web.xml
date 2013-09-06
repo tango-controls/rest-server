@@ -18,6 +18,10 @@
             <param-name>tango-device</param-name>
             <param-value>sys/tg_test/1</param-value>
         </init-param>
+        <init-param>
+            <param-name>keep-result</param-name>
+            <param-value>120</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>
