@@ -4,7 +4,7 @@ import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import hzg.wpn.mtango.command.Command;
-import hzg.wpn.mtango.command.CommandFactory;
+import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.CommandInfo;
 import hzg.wpn.mtango.command.Result;
 import hzg.wpn.util.base64.Base64InputStream;
@@ -37,24 +37,11 @@ public class TangoProxyServlet extends HttpServlet {
     private String tangoUrl;
 
     private TangoProxyWrapper proxy;
-    private CommandExecutionStrategy commandExecutionStrategy;
-
-    private final CommandFactory cmdFactory;
-    private final CommandExecutionStrategyFactory commandExecutionStrategyFactory;
 
     private final Gson gson = new GsonBuilder()
             .serializeNulls()
             .registerTypeAdapter(CommandInfo.class, CommandInfo.jsonDeserializer())
             .create();
-
-    public TangoProxyServlet(CommandFactory cmdFactory, CommandExecutionStrategyFactory commandExecutionStrategyFactory) {
-        this.cmdFactory = cmdFactory;
-        this.commandExecutionStrategyFactory = commandExecutionStrategyFactory;
-    }
-
-    public TangoProxyServlet() {
-        this(new CommandFactory(), new CommandExecutionStrategyFactory());
-    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -71,8 +58,6 @@ public class TangoProxyServlet extends HttpServlet {
             LOG.error("Can not create TangoProxyServlet.", e);
             throw new ServletException("Can not create TangoProxyServlet.", e);
         }
-
-        commandExecutionStrategy = commandExecutionStrategyFactory.createCommandExecutionStrategy(config.getInitParameter("keep-result"));
     }
 
 
@@ -80,9 +65,9 @@ public class TangoProxyServlet extends HttpServlet {
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         CommandInfo commandInfo = extractCommandInfo(req);
         LOG.info("message received:" + commandInfo.toString());
-        final Command cmd = cmdFactory.createCommand(commandInfo, proxy);
+        final Command cmd = Commands.createCommand(commandInfo, proxy);
         try {
-            Object result = commandExecutionStrategy.execute(cmd);
+            Object result = Commands.execute(cmd);
 
             sendResponse(Result.createSuccessResult(result), req, resp);
         } catch (Exception e) {
