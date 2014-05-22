@@ -29,7 +29,7 @@ public class Commands {
             Method method = proxy.getClass().getMethod("readAttributeValueTimeQuality", String.class);
             String attributeName = info.target;
 
-            return new CommandImpl(proxy, method, attributeName);
+            return new Command(proxy, method, attributeName);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }
@@ -41,7 +41,7 @@ public class Commands {
             String attributeName = info.target;
             Object arg = info.convertArgin(proxy.getAttributeInfo(attributeName).getType().getDataType());
 
-            return new CommandImpl(proxy, method, attributeName, arg);
+            return new Command(proxy, method, attributeName, arg);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }
@@ -53,7 +53,7 @@ public class Commands {
             String cmdName = info.target;
             Object arg = info.convertArgin(proxy.getCommandInfo(cmdName).getArginType());
 
-            return new CommandImpl(proxy, method, cmdName, arg);
+            return new Command(proxy, method, cmdName, arg);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }
@@ -65,7 +65,7 @@ public class Commands {
 
     private static final ConcurrentMap<Command, FutureTask<Object>> currentTasks = new ConcurrentHashMap<Command, FutureTask<Object>>();
 
-    public static Object execute(final Command cmd) throws CommandExecutionException{
+    public static Object execute(final Command cmd) throws CommandExecutionException {
         FutureTask<Object> task = currentTasks.get(cmd);
         if (task == null) {
             FutureTask<Object> ft = new FutureTask<Object>(new Callable<Object>() {
