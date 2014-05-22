@@ -24,6 +24,10 @@
         </init-param>
     </servlet>
 
+    <welcome-file-list>
+        <welcome-file>www/apps/mTangoTest/index.html</welcome-file>
+    </welcome-file-list>
+
     <servlet-mapping>
         <servlet-name>TangoTestProxyServlet</servlet-name>
         <url-pattern>/sys/tg_test/1</url-pattern>
