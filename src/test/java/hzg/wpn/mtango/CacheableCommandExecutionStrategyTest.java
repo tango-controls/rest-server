@@ -1,7 +1,6 @@
 package hzg.wpn.mtango;
 
 import hzg.wpn.mtango.command.Command;
-import hzg.wpn.mtango.command.CommandImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -52,9 +51,9 @@ public class CacheableCommandExecutionStrategyTest {
     public void testExecute_sameCmds() throws Exception {
         final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
 
-        final Command cmd1 = new CommandImpl(mockProxy, readAttrMtd, "someAttr");
+        final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
-        final Command cmd2 = new CommandImpl(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
+        final Command cmd2 = new Command(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
 
         final CyclicBarrier startStop = new CyclicBarrier(3);
         Future<Object> fCmd1 = executorService.submit(new Callable<Object>() {
@@ -93,9 +92,9 @@ public class CacheableCommandExecutionStrategyTest {
     public void testExecute_differentCmds() throws Exception {
         final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
 
-        final Command cmd1 = new CommandImpl(mockProxy, readAttrMtd, "someAttr");
+        final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
-        final Command cmd2 = new CommandImpl(mockProxy, readAttrMtd, "someOtherAttr");
+        final Command cmd2 = new Command(mockProxy, readAttrMtd, "someOtherAttr");
 
         final CyclicBarrier startStop = new CyclicBarrier(3);
         Future<Object> fCmd1 = executorService.submit(new Callable<Object>() {
@@ -134,9 +133,9 @@ public class CacheableCommandExecutionStrategyTest {
     public void testExecute_invalidatedCache() throws Exception {
         final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
 
-        final Command cmd1 = new CommandImpl(mockProxy, readAttrMtd, "someAttr");
+        final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
-        final Command cmd2 = new CommandImpl(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
+        final Command cmd2 = new Command(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
 
         long start = System.nanoTime();
         instance.execute(cmd1);

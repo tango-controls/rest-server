@@ -4,8 +4,8 @@ import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import hzg.wpn.mtango.command.Command;
-import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.CommandInfo;
+import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.Result;
 import hzg.wpn.util.base64.Base64InputStream;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public class TangoProxyServlet extends HttpServlet {
         //TODO avoid temporary collection creation
         Set<String> result = new LinkedHashSet<String>();
         //skip upper exception because it is always TargetInvocationException
-        //due to based on reflection implementation. See CommandImpl
+        //due to based on reflection implementation. See Command
         e = e.getCause();
         do {
             if (e.getMessage() != null)
