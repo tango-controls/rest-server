@@ -1,6 +1,6 @@
 package hzg.wpn.mtango.command;
 
-import wpn.hdri.tango.proxy.TangoProxyWrapper;
+import hzg.wpn.tango.client.proxy.TangoProxy;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
@@ -11,12 +11,12 @@ import java.util.Arrays;
  * @since 15.10.12
  */
 public class Command {
-    private final TangoProxyWrapper proxy;
+    private final TangoProxy proxy;
     private final Method method;
     private final Object[] args;
 
 
-    public Command(@Nonnull TangoProxyWrapper proxy, @Nonnull Method method, Object... args) {
+    public Command(@Nonnull TangoProxy proxy, @Nonnull Method method, Object... args) {
         this.proxy = proxy;
         this.method = method;
         this.args = args;

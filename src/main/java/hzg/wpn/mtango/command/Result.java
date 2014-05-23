@@ -1,7 +1,7 @@
 package hzg.wpn.mtango.command;
 
+import hzg.wpn.tango.client.attribute.Quality;
 import org.javatuples.Triplet;
-import wpn.hdri.tango.attribute.Quality;
 
 /**
  * Matches to mTango/CommandOut.js

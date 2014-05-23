@@ -1,6 +1,6 @@
 package hzg.wpn.mtango.command;
 
-import wpn.hdri.tango.proxy.TangoProxyWrapper;
+import hzg.wpn.tango.client.proxy.TangoProxy;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.*;
@@ -10,7 +10,7 @@ import java.util.concurrent.*;
  * @since 11.10.12
  */
 public class Commands {
-    public static Command createCommand(CommandInfo info, TangoProxyWrapper proxy) {
+    public static Command createCommand(CommandInfo info, TangoProxy proxy) {
         CommandType type = CommandType.valueOf(info.type.toUpperCase());
         switch (type) {
             case READ:
@@ -24,7 +24,7 @@ public class Commands {
         }
     }
 
-    public static Command createReadCommand(CommandInfo info, TangoProxyWrapper proxy) {
+    public static Command createReadCommand(CommandInfo info, TangoProxy proxy) {
         try {
             Method method = proxy.getClass().getMethod("readAttributeValueTimeQuality", String.class);
             String attributeName = info.target;
@@ -35,7 +35,7 @@ public class Commands {
         }
     }
 
-    public static Command createWriteCommand(CommandInfo info, TangoProxyWrapper proxy) {
+    public static Command createWriteCommand(CommandInfo info, TangoProxy proxy) {
         try {
             Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
@@ -47,7 +47,7 @@ public class Commands {
         }
     }
 
-    public static Command createExecCommand(CommandInfo info, TangoProxyWrapper proxy) {
+    public static Command createExecCommand(CommandInfo info, TangoProxy proxy) {
         try {
             Method method = proxy.getClass().getMethod("executeCommand", String.class, Object.class);
             String cmdName = info.target;
