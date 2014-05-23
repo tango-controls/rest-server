@@ -22,13 +22,13 @@ public class DatabaseDs {
         this(tangoHost,DEFAULT_ID);
     }
 
-    public DatabaseDs(String tangoHost, String deviceId) throws TangoProxyException {
+    public DatabaseDs(String tangoHost, String devname) throws TangoProxyException {
         this.tangoHost = tangoHost;
-        this.proxy = TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + deviceId);
+        this.proxy = TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + devname);
     }
 
-    public String getDeviceAddress(String deviceId) throws TangoProxyException {
-            DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo",deviceId);
+    public String getDeviceAddress(String devname) throws TangoProxyException {
+            DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo",devname);
             return "tango://" + tangoHost + "/" + info.svalue[0];
     }
 }
