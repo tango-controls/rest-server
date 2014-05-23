@@ -32,39 +32,16 @@ import java.util.Set;
 public class TangoProxyServlet extends HttpServlet {
     private static Logger LOG = LoggerFactory.getLogger(TangoProxyServlet.class);
 
-    private String tangoDevice;
-    private String tangoHost;
-    private String tangoUrl;
-
-    private TangoProxy proxy;
-
     private final Gson gson = new GsonBuilder()
             .serializeNulls()
             .registerTypeAdapter(CommandInfo.class, CommandInfo.jsonDeserializer())
             .create();
 
     @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-
-        this.tangoHost = config.getInitParameter("tango-host");
-        this.tangoDevice = config.getInitParameter("tango-device");
-
-        this.tangoUrl = "tango://" + this.tangoHost + "/" + this.tangoDevice;
-
-        try {
-            this.proxy = TangoProxies.newDeviceProxyWrapper(this.tangoUrl);
-        } catch (TangoProxyException e) {
-            LOG.error("Can not create TangoProxyServlet.", e);
-            throw new ServletException("Can not create TangoProxyServlet.", e);
-        }
-    }
-
-
-    @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         CommandInfo commandInfo = extractCommandInfo(req);
         LOG.info("message received:" + commandInfo.toString());
+        TangoProxy proxy = (TangoProxy)req.getAttribute(TangoDeviceMapper.ATTR_TANGO_PROXY);
         final Command cmd = Commands.createCommand(commandInfo, proxy);
         try {
             Object result = Commands.execute(cmd);
@@ -121,25 +98,4 @@ public class TangoProxyServlet extends HttpServlet {
     }
 
     //TODO do other verbs
-
-    public String getTangoDevice() {
-        return tangoDevice;
-    }
-
-    public String getTangoHost() {
-        return tangoHost;
-    }
-
-    public String getTangoUrl() {
-        return tangoUrl;
-    }
-
-    protected TangoProxy getProxy() {
-        return proxy;
-    }
-
-    @Override
-    public final String toString() {
-        return Objects.toStringHelper(this).addValue(tangoUrl).toString();
-    }
 }

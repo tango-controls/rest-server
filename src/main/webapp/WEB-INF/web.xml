@@ -8,20 +8,22 @@
     <listener>
         <listener-class>hzg.wpn.mtango.TangoProxyLauncher</listener-class>
     </listener>
+
+    <filter>
+        <filter-name>TangoMapper</filter-name>
+        <filter-class>hzg.wpn.mtango.TangoDeviceMapper</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>TangoMapper</filter-name>
+        <servlet-name>TangoProxyServlet</servlet-name>
+    </filter-mapping>
     
     <servlet>
         <description>Servlet stub for TangoTest</description>
-        <display-name>TangoTest</display-name>
-        <servlet-name>TangoTestProxyServlet</servlet-name>
+        <display-name>TangoProxyServlet</display-name>
+        <servlet-name>TangoProxyServlet</servlet-name>
         <servlet-class>hzg.wpn.mtango.TangoProxyServlet</servlet-class>
-        <init-param>
-            <param-name>tango-host</param-name>
-            <param-value>hzgharwi3:10000</param-value>
-        </init-param>
-        <init-param>
-            <param-name>tango-device</param-name>
-            <param-value>sys/tg_test/1</param-value>
-        </init-param>
     </servlet>
 
     <welcome-file-list>
@@ -29,7 +31,7 @@
     </welcome-file-list>
 
     <servlet-mapping>
-        <servlet-name>TangoTestProxyServlet</servlet-name>
-        <url-pattern>/sys/tg_test/1</url-pattern>
+        <servlet-name>TangoProxyServlet</servlet-name>
+        <url-pattern>/tango</url-pattern>
     </servlet-mapping>
 </web-app>
