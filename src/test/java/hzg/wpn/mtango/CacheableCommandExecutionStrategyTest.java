@@ -1,11 +1,12 @@
 package hzg.wpn.mtango;
 
 import hzg.wpn.mtango.command.Command;
+import hzg.wpn.mtango.command.Commands;
+import hzg.wpn.tango.client.proxy.TangoProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import wpn.hdri.tango.proxy.TangoProxyWrapper;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.*;
@@ -22,12 +23,12 @@ import static org.mockito.Mockito.when;
 public class CacheableCommandExecutionStrategyTest {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-    private TangoProxyWrapper mockProxy;
+    private TangoProxy mockProxy;
     private Method readAttrMtd;
 
     @Before
     public void before() throws Exception {
-        mockProxy = mock(TangoProxyWrapper.class);
+        mockProxy = mock(TangoProxy.class);
 
         when(mockProxy.readAttribute("someAttr")).then(new Answer<Object>() {
             @Override
@@ -44,13 +45,11 @@ public class CacheableCommandExecutionStrategyTest {
             }
         });
 
-        readAttrMtd = TangoProxyWrapper.class.getDeclaredMethod("readAttribute", String.class);
+        readAttrMtd = TangoProxy.class.getDeclaredMethod("readAttribute", String.class);
     }
 
     @Test
     public void testExecute_sameCmds() throws Exception {
-        final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
-
         final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
         final Command cmd2 = new Command(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
@@ -60,7 +59,7 @@ public class CacheableCommandExecutionStrategyTest {
             @Override
             public Object call() throws Exception {
                 startStop.await();
-                return instance.execute(cmd1);
+                return Commands.execute(cmd1);
             }
         });
 
@@ -68,7 +67,7 @@ public class CacheableCommandExecutionStrategyTest {
             @Override
             public Object call() throws Exception {
                 startStop.await();
-                return instance.execute(cmd2);
+                return Commands.execute(cmd2);
             }
         });
 
@@ -90,8 +89,6 @@ public class CacheableCommandExecutionStrategyTest {
 
     @Test
     public void testExecute_differentCmds() throws Exception {
-        final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
-
         final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
         final Command cmd2 = new Command(mockProxy, readAttrMtd, "someOtherAttr");
@@ -101,7 +98,7 @@ public class CacheableCommandExecutionStrategyTest {
             @Override
             public Object call() throws Exception {
                 startStop.await();
-                return instance.execute(cmd1);
+                return Commands.execute(cmd1);
             }
         });
 
@@ -109,7 +106,7 @@ public class CacheableCommandExecutionStrategyTest {
             @Override
             public Object call() throws Exception {
                 startStop.await();
-                return instance.execute(cmd2);
+                return Commands.execute(cmd2);
             }
         });
 
@@ -131,18 +128,16 @@ public class CacheableCommandExecutionStrategyTest {
 
     @Test
     public void testExecute_invalidatedCache() throws Exception {
-        final CacheableCommandExecutionStrategy instance = new CacheableCommandExecutionStrategy(200);
-
         final Command cmd1 = new Command(mockProxy, readAttrMtd, "someAttr");
 
         final Command cmd2 = new Command(mockProxy, readAttrMtd, new String("someAttr"));//force different objects
 
         long start = System.nanoTime();
-        instance.execute(cmd1);
+        Commands.execute(cmd1);
 
         Thread.sleep(500);
 
-        instance.execute(cmd2);
+        Commands.execute(cmd2);
         long end = System.nanoTime();
         long delta = end - start;
 

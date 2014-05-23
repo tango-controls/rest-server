@@ -7,12 +7,12 @@ import hzg.wpn.mtango.command.Command;
 import hzg.wpn.mtango.command.CommandInfo;
 import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.Result;
+import hzg.wpn.tango.client.proxy.TangoProxies;
+import hzg.wpn.tango.client.proxy.TangoProxy;
+import hzg.wpn.tango.client.proxy.TangoProxyException;
 import hzg.wpn.util.base64.Base64InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import wpn.hdri.tango.proxy.TangoProxyException;
-import wpn.hdri.tango.proxy.TangoProxyWrapper;
-import wpn.hdri.tango.proxy.TangoProxyWrappers;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -36,7 +36,7 @@ public class TangoProxyServlet extends HttpServlet {
     private String tangoHost;
     private String tangoUrl;
 
-    private TangoProxyWrapper proxy;
+    private TangoProxy proxy;
 
     private final Gson gson = new GsonBuilder()
             .serializeNulls()
@@ -53,7 +53,7 @@ public class TangoProxyServlet extends HttpServlet {
         this.tangoUrl = "tango://" + this.tangoHost + "/" + this.tangoDevice;
 
         try {
-            this.proxy = TangoProxyWrappers.newInstance(this.tangoUrl);
+            this.proxy = TangoProxies.newDeviceProxyWrapper(this.tangoUrl);
         } catch (TangoProxyException e) {
             LOG.error("Can not create TangoProxyServlet.", e);
             throw new ServletException("Can not create TangoProxyServlet.", e);
@@ -134,7 +134,7 @@ public class TangoProxyServlet extends HttpServlet {
         return tangoUrl;
     }
 
-    protected TangoProxyWrapper getProxy() {
+    protected TangoProxy getProxy() {
         return proxy;
     }
 
