@@ -1,20 +1,16 @@
 package hzg.wpn.mtango;
 
-import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import hzg.wpn.mtango.command.Command;
 import hzg.wpn.mtango.command.CommandInfo;
 import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.Result;
-import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
-import hzg.wpn.tango.client.proxy.TangoProxyException;
 import hzg.wpn.util.base64.Base64InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -41,7 +37,7 @@ public class TangoProxyServlet extends HttpServlet {
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         CommandInfo commandInfo = extractCommandInfo(req);
         LOG.info("message received:" + commandInfo.toString());
-        TangoProxy proxy = (TangoProxy)req.getAttribute(TangoDeviceMapper.ATTR_TANGO_PROXY);
+        TangoProxy proxy = (TangoProxy) req.getAttribute(TangoDeviceMapper.ATTR_TANGO_PROXY);
         final Command cmd = Commands.createCommand(commandInfo, proxy);
         try {
             Object result = Commands.execute(cmd);
