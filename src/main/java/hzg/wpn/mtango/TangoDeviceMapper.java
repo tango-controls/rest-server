@@ -1,13 +1,14 @@
 package hzg.wpn.mtango;
 
-import com.google.code.simplelrucache.ConcurrentLruCache;
 import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.*;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * This class looks up for the TangoProxy instance for the device specified in devname parameter of the request.
@@ -21,7 +22,8 @@ public class TangoDeviceMapper implements Filter {
     public static final String PARAMETER_DEVNAME = "devname";
     public static final int INITIAL_POOL_CAPACITY = 100;
     public static final String ATTR_TANGO_PROXY = "tango.proxy";
-    private static final long TTL = TimeUnit.MILLISECONDS.convert(30, TimeUnit.MINUTES);
+    public static final long DELAY = 30L;
+
 
     private final TangoProxyPool proxyPool = new TangoProxyPool();
 
@@ -32,12 +34,12 @@ public class TangoDeviceMapper implements Filter {
 
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         String devname = req.getParameter(PARAMETER_DEVNAME);
-        if(devname == null) throw new ServletException("No remote device was specified.");
+        if (devname == null) throw new ServletException("No remote device was specified.");
 
         try {
             TangoProxy proxy = proxyPool.getProxy(devname);
 
-            req.setAttribute(ATTR_TANGO_PROXY,proxy);
+            req.setAttribute(ATTR_TANGO_PROXY, proxy);
 
             chain.doFilter(req, resp);
         } catch (TangoProxyException e) {
@@ -49,18 +51,58 @@ public class TangoDeviceMapper implements Filter {
         this.db = (DatabaseDs) config.getServletContext().getAttribute(TangoProxyLauncher.TANGO_DB);
     }
 
-    //TODO @ThreadSafe
-    public class TangoProxyPool {
-        private final ConcurrentLruCache<String,TangoProxy> cache = new ConcurrentLruCache<>(INITIAL_POOL_CAPACITY, TTL);
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        public TangoProxy getProxy(String devname) throws TangoProxyException{
-            TangoProxy proxy;
-            if((proxy = cache.get(devname)) == null){
-                String url = db.getDeviceAddress(devname);
-                proxy = TangoProxies.newDeviceProxyWrapper(url);
+    @ThreadSafe
+    public class TangoProxyPool {
+        private final ConcurrentMap<String, FutureTask<TangoProxy>> cache = new ConcurrentHashMap<>(INITIAL_POOL_CAPACITY);
+        private final ConcurrentMap<String, Long> timestamps = new ConcurrentHashMap<>(INITIAL_POOL_CAPACITY);
+
+
+        {
+            scheduler.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    long current = System.currentTimeMillis();
+                    for (Map.Entry<String, Long> entry : timestamps.entrySet()) {
+                        if ((current - entry.getValue().longValue()) > 10000) { //10s
+                            cache.remove(entry.getKey());
+                        }
+                    }
+                }
+            }, DELAY, TimeUnit.MINUTES);
+        }
+
+        /**
+         * Implementation guarantees that only one proxy instance for each remote Tango device will be created.
+         *
+         * @param devname
+         * @return a TangoProxy
+         * @throws TangoProxyException
+         */
+        public TangoProxy getProxy(final String devname) throws TangoProxyException {
+            FutureTask<TangoProxy> ft = cache.get(devname);
+            if (ft == null) {
+                Callable<TangoProxy> callable = new Callable<TangoProxy>() {
+                    public TangoProxy call() throws Exception {
+                        String url = db.getDeviceAddress(devname);//TODO db NPE?
+                        return TangoProxies.newDeviceProxyWrapper(url);
+                    }
+                };
+
+                FutureTask<TangoProxy> f = new FutureTask<>(callable);
+                ft = cache.putIfAbsent(devname, f);
+                if (ft == null) {
+                    ft = f;
+                    ft.run();
+                }
             }
-            cache.put(devname,proxy);
-            return proxy;
+            try {
+                timestamps.put(devname, System.currentTimeMillis());
+                return ft.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new TangoProxyException(e);
+            }
         }
     }
 }
