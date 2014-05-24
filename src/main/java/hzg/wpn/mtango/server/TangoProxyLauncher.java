@@ -1,5 +1,6 @@
-package hzg.wpn.mtango;
+package hzg.wpn.mtango.server;
 
+import hzg.wpn.mtango.DatabaseDs;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
 
 import javax.servlet.ServletContextEvent;
@@ -16,12 +17,12 @@ public class TangoProxyLauncher implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         String tangoHost = System.getenv("TANGO_HOST");
-        if(tangoHost == null) tangoHost = TANGO_LOCALHOST;
+        if (tangoHost == null) tangoHost = TANGO_LOCALHOST;
 
         try {
             DatabaseDs db = new DatabaseDs(tangoHost);
 
-            sce.getServletContext().setAttribute(TANGO_DB,db);
+            sce.getServletContext().setAttribute(TANGO_DB, db);
 
             System.out.println("TangoProxy is initialized.");
         } catch (TangoProxyException e) {

@@ -1,4 +1,4 @@
-package hzg.wpn.mtango;
+package hzg.wpn.mtango.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,6 +6,7 @@ import hzg.wpn.mtango.command.Command;
 import hzg.wpn.mtango.command.CommandInfo;
 import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.mtango.command.Result;
+import hzg.wpn.mtango.server.filters.TangoDeviceMapper;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.util.base64.Base64InputStream;
 import org.slf4j.Logger;
@@ -81,11 +82,7 @@ public class TangoProxyServlet extends HttpServlet {
             throw new ServletException("callback parameter can not be null");
         }
 
-        String jsonData = gson.toJson(result);
-        StringBuilder output = new StringBuilder();
-
-        output.append(callback).append("(").append(jsonData).append(");");
-        resp.getWriter().write(output.toString());
+        gson.toJson(result, resp.getWriter());
     }
 
     @Override

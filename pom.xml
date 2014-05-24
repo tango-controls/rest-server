@@ -60,11 +60,6 @@
             <version>2.0</version>
         </dependency>
         <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.8.3</version>
-        </dependency>
-        <dependency>
             <groupId>hzg.wpn</groupId>
             <artifactId>TangoAPI</artifactId>
             <version>1.0.9</version>
