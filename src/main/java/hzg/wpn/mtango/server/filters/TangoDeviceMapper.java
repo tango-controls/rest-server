@@ -1,5 +1,7 @@
-package hzg.wpn.mtango;
+package hzg.wpn.mtango.server.filters;
 
+import hzg.wpn.mtango.DatabaseDs;
+import hzg.wpn.mtango.server.TangoProxyLauncher;
 import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.tango.client.proxy.TangoProxyException;

@@ -6,24 +6,34 @@
          version="3.0">
 
     <listener>
-        <listener-class>hzg.wpn.mtango.TangoProxyLauncher</listener-class>
+        <listener-class>hzg.wpn.mtango.server.TangoProxyLauncher</listener-class>
     </listener>
 
     <filter>
         <filter-name>TangoMapper</filter-name>
-        <filter-class>hzg.wpn.mtango.TangoDeviceMapper</filter-class>
+        <filter-class>hzg.wpn.mtango.server.filters.TangoDeviceMapper</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>JsonpResponseWrapper</filter-name>
+        <filter-class>hzg.wpn.mtango.server.filters.JsonpResponseWrapper</filter-class>
     </filter>
 
     <filter-mapping>
         <filter-name>TangoMapper</filter-name>
         <servlet-name>TangoProxyServlet</servlet-name>
     </filter-mapping>
-    
+
+    <filter-mapping>
+        <filter-name>JsonpResponseWrapper</filter-name>
+        <url-pattern>*.jsonp</url-pattern>
+    </filter-mapping>
+
     <servlet>
         <description>Servlet stub for TangoTest</description>
         <display-name>TangoProxyServlet</display-name>
         <servlet-name>TangoProxyServlet</servlet-name>
-        <servlet-class>hzg.wpn.mtango.TangoProxyServlet</servlet-class>
+        <servlet-class>hzg.wpn.mtango.server.TangoProxyServlet</servlet-class>
     </servlet>
 
     <welcome-file-list>
@@ -32,6 +42,6 @@
 
     <servlet-mapping>
         <servlet-name>TangoProxyServlet</servlet-name>
-        <url-pattern>/tango</url-pattern>
+        <url-pattern>/tango/*</url-pattern>
     </servlet-mapping>
 </web-app>
