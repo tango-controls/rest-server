@@ -1,14 +1,10 @@
 package hzg.wpn.mtango.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import hzg.wpn.mtango.DatabaseDs;
 import hzg.wpn.mtango.command.Command;
 import hzg.wpn.mtango.command.CommandInfo;
 import hzg.wpn.mtango.command.Commands;
-import hzg.wpn.mtango.command.Result;
-import hzg.wpn.mtango.server.filters.TangoDeviceMapper;
 import hzg.wpn.tango.client.proxy.TangoProxy;
-import hzg.wpn.util.base64.Base64InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,27 +25,31 @@ import java.util.Set;
 public class TangoProxyServlet extends HttpServlet {
     private static Logger LOG = LoggerFactory.getLogger(TangoProxyServlet.class);
 
-    private final Gson gson = new GsonBuilder()
-            .serializeNulls()
-            .registerTypeAdapter(CommandInfo.class, CommandInfo.jsonDeserializer())
-            .create();
+
+    private DeviceMapper mapper;
+
+    @Override
+    public void init() throws ServletException {
+        DatabaseDs db = (DatabaseDs) getServletContext().getAttribute(TangoProxyLauncher.TANGO_DB);
+        mapper = new DeviceMapper(db);
+    }
 
     @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CommandInfo commandInfo = extractCommandInfo(req);
-        LOG.info("message received:" + commandInfo.toString());
-        TangoProxy proxy = (TangoProxy) req.getAttribute(TangoDeviceMapper.ATTR_TANGO_PROXY);
-        final Command cmd = Commands.createCommand(commandInfo, proxy);
         try {
+            TangoProxyRequest request = new TangoProxyRequest(req);
+            CommandInfo commandInfo = request.toCommandInfo();
+            LOG.info("message received:" + commandInfo.toString());
+
+            TangoProxy proxy = mapper.map(request.devname);
+            final Command cmd = Commands.createCommand(commandInfo, proxy);
             Object result = Commands.execute(cmd);
 
-            sendResponse(Result.createSuccessResult(result), req, resp);
+            TangoProxyResponse.sendSuccess(result, resp.getWriter());
         } catch (Exception e) {
             LOG.error("Request processing has failed!", e);
 
-            Result error = Result.createFailureResult(createExceptionMessage(e));
-
-            sendResponse(error, req, resp);
+            TangoProxyResponse.sendFailure(createExceptionMessage(e), resp.getWriter());
         }
     }
 
@@ -65,24 +65,6 @@ public class TangoProxyServlet extends HttpServlet {
         }
         while ((e = e.getCause()) != null);
         return result.toArray(new String[result.size()]);
-    }
-
-    private CommandInfo extractCommandInfo(HttpServletRequest req) {
-        String encoded = req.getParameter("cmd");
-
-        String json = new String(Base64InputStream.decode(encoded)).trim();
-
-        return gson.fromJson(json, CommandInfo.class);
-    }
-
-    private void sendResponse(Result result, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/javascript");
-        String callback = req.getParameter("callback");
-        if (callback == null) {
-            throw new ServletException("callback parameter can not be null");
-        }
-
-        gson.toJson(result, resp.getWriter());
     }
 
     @Override
