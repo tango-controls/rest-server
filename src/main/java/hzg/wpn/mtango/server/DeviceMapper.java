@@ -10,12 +10,13 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * This class looks up for the TangoProxy instance for the device specified in devname parameter of the request.
+ * This class looks up for the Launcher instance for the device specified in devname parameter of the request.
  * If there is no such instance it creates a new one.
  *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 23.05.14
  */
+@ThreadSafe
 public class DeviceMapper {
     public static final int INITIAL_POOL_CAPACITY = 100;
     public static final long DELAY = 30L;
@@ -60,7 +61,7 @@ public class DeviceMapper {
          * Implementation guarantees that only one proxy instance for each remote Tango device will be created.
          *
          * @param devname
-         * @return a TangoProxy
+         * @return a Launcher
          * @throws TangoProxyException
          */
         public TangoProxy getProxy(final String devname) throws TangoProxyException {
