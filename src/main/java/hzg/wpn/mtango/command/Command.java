@@ -3,6 +3,7 @@ package hzg.wpn.mtango.command;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -10,6 +11,7 @@ import java.util.Arrays;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 15.10.12
  */
+@Immutable
 public class Command {
     private final TangoProxy proxy;
     private final Method method;
@@ -22,12 +24,8 @@ public class Command {
         this.args = args;
     }
 
-    public Object execute() throws CommandExecutionException {
-        try {
-            return method.invoke(proxy, args);
-        } catch (Exception e) {
-            throw new CommandExecutionException(e);
-        }
+    public Object execute() throws Exception {
+        return method.invoke(proxy, args);
     }
 
     @Override

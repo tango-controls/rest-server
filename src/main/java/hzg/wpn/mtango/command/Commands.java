@@ -68,7 +68,7 @@ public class Commands {
 
     private static final ConcurrentMap<Command, FutureTask<Object>> currentTasks = new ConcurrentHashMap<Command, FutureTask<Object>>();
 
-    public static Object execute(final Command cmd) throws CommandExecutionException {
+    public static Object execute(final Command cmd) throws Exception {
         FutureTask<Object> task = currentTasks.get(cmd);
         if (task == null) {
             FutureTask<Object> ft = new FutureTask<Object>(new Callable<Object>() {
@@ -85,8 +85,6 @@ public class Commands {
         }
         try {
             return task.get();
-        } catch (Exception e) {
-            throw new CommandExecutionException(e);
         } finally {
             EXEC.schedule(new Runnable() {
                 @Override

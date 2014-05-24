@@ -6,7 +6,7 @@
          version="3.0">
 
     <listener>
-        <listener-class>hzg.wpn.mtango.server.TangoProxyLauncher</listener-class>
+        <listener-class>hzg.wpn.mtango.server.Launcher</listener-class>
     </listener>
 
     <filter>
@@ -20,10 +20,9 @@
     </filter-mapping>
 
     <servlet>
-        <description>Servlet stub for TangoTest</description>
-        <display-name>TangoProxyServlet</display-name>
-        <servlet-name>TangoProxyServlet</servlet-name>
-        <servlet-class>hzg.wpn.mtango.server.TangoProxyServlet</servlet-class>
+        <display-name>QueriesServlet</display-name>
+        <servlet-name>QueriesServlet</servlet-name>
+        <servlet-class>hzg.wpn.mtango.server.QueriesServlet</servlet-class>
     </servlet>
 
     <welcome-file-list>
@@ -31,7 +30,7 @@
     </welcome-file-list>
 
     <servlet-mapping>
-        <servlet-name>TangoProxyServlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <servlet-name>QueriesServlet</servlet-name>
+        <url-pattern>/queries/*</url-pattern>
     </servlet-mapping>
 </web-app>

@@ -15,24 +15,20 @@ import java.lang.reflect.Type;
  * @since 15.10.12
  */
 public class CommandInfo {
-    public final String type;
-    public final String target;
-    public final JsonElement argin;
-
-    private CommandInfo(String type, String target, JsonElement argin) {
-        this.type = type;
-        this.target = target;
-        this.argin = argin;
-    }
+    public String type;
+    public String devname;
+    public String target;
+    public JsonElement argin;
 
     public static JsonDeserializer<CommandInfo> jsonDeserializer() {
         return new JsonDeserializer<CommandInfo>() {
             public CommandInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                String type = json.getAsJsonObject().get("type").getAsString();
-                String target = json.getAsJsonObject().get("target").getAsString();
+                CommandInfo result = new CommandInfo();
+                result.target = json.getAsJsonObject().get("target").getAsString();
+                result.devname = json.getAsJsonObject().get("devname").getAsString();
                 //postpone argin conversion till we know its type
-                JsonElement argin = json.getAsJsonObject().get("argin");
-                return new CommandInfo(type, target, argin);
+                result.argin = json.getAsJsonObject().get("argin");
+                return result;
             }
         };
     }
@@ -40,10 +36,9 @@ public class CommandInfo {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
+                .add("devname", devname + "/" + target)
                 .add("argin", argin)
                 .add("type", type)
                 .toString();
     }
-
-    //TODO ...
 }
