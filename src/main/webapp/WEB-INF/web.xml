@@ -10,19 +10,9 @@
     </listener>
 
     <filter>
-        <filter-name>TangoMapper</filter-name>
-        <filter-class>hzg.wpn.mtango.server.filters.TangoDeviceMapper</filter-class>
-    </filter>
-
-    <filter>
         <filter-name>JsonpResponseWrapper</filter-name>
         <filter-class>hzg.wpn.mtango.server.filters.JsonpResponseWrapper</filter-class>
     </filter>
-
-    <filter-mapping>
-        <filter-name>TangoMapper</filter-name>
-        <servlet-name>TangoProxyServlet</servlet-name>
-    </filter-mapping>
 
     <filter-mapping>
         <filter-name>JsonpResponseWrapper</filter-name>
@@ -42,6 +32,6 @@
 
     <servlet-mapping>
         <servlet-name>TangoProxyServlet</servlet-name>
-        <url-pattern>/tango/*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </servlet-mapping>
 </web-app>

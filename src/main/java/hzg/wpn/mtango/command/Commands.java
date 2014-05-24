@@ -1,5 +1,6 @@
 package hzg.wpn.mtango.command;
 
+import hzg.wpn.mtango.util.Json;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 
 import java.lang.reflect.Method;
@@ -10,17 +11,19 @@ import java.util.concurrent.*;
  * @since 11.10.12
  */
 public class Commands {
+    private Commands() {
+    }
+
     public static Command createCommand(CommandInfo info, TangoProxy proxy) {
-        CommandType type = CommandType.valueOf(info.type.toUpperCase());
-        switch (type) {
-            case READ:
+        switch (info.type) {
+            case "read":
                 return createReadCommand(info, proxy);
-            case WRITE:
+            case "write":
                 return createWriteCommand(info, proxy);
-            case EXECUTE:
+            case "exec":
                 return createExecCommand(info, proxy);
             default:
-                throw new IllegalArgumentException("Unknown action type[" + type + "]");
+                throw new IllegalArgumentException("Unknown action type[" + info.type + "]");
         }
     }
 
@@ -39,7 +42,7 @@ public class Commands {
         try {
             Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
-            Object arg = info.convertArgin(proxy.getAttributeInfo(attributeName).getType().getDataType());
+            Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataType());
 
             return new Command(proxy, method, attributeName, arg);
         } catch (NoSuchMethodException e) {
@@ -51,7 +54,7 @@ public class Commands {
         try {
             Method method = proxy.getClass().getMethod("executeCommand", String.class, Object.class);
             String cmdName = info.target;
-            Object arg = info.convertArgin(proxy.getCommandInfo(cmdName).getArginType());
+            Object arg = Json.GSON.fromJson(info.argin, proxy.getCommandInfo(cmdName).getArginType());
 
             return new Command(proxy, method, cmdName, arg);
         } catch (NoSuchMethodException e) {
@@ -59,7 +62,7 @@ public class Commands {
         }
     }
 
-    public static final long REMOVE_TASK_DEFAULT_DELAY = 200;
+    public static final long REMOVE_TASK_DEFAULT_DELAY = 200L;
     private static final ScheduledExecutorService EXEC = Executors.newSingleThreadScheduledExecutor();
 
 

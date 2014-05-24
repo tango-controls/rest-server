@@ -1,14 +1,11 @@
-package hzg.wpn.mtango.server.filters;
+package hzg.wpn.mtango.server;
 
 import hzg.wpn.mtango.DatabaseDs;
-import hzg.wpn.mtango.server.TangoProxyLauncher;
 import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.servlet.*;
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -19,39 +16,23 @@ import java.util.concurrent.*;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 23.05.14
  */
-public class TangoDeviceMapper implements Filter {
-
-    public static final String PARAMETER_DEVNAME = "devname";
+public class DeviceMapper {
     public static final int INITIAL_POOL_CAPACITY = 100;
-    public static final String ATTR_TANGO_PROXY = "tango.proxy";
     public static final long DELAY = 30L;
-
 
     private final TangoProxyPool proxyPool = new TangoProxyPool();
 
-    private DatabaseDs db;
+    private final DatabaseDs db;
 
-    public void destroy() {
+    public DeviceMapper(DatabaseDs db) {
+        this.db = db;
     }
 
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
-        String devname = req.getParameter(PARAMETER_DEVNAME);
-        if (devname == null) throw new ServletException("No remote device was specified.");
-
-        try {
-            TangoProxy proxy = proxyPool.getProxy(devname);
-
-            req.setAttribute(ATTR_TANGO_PROXY, proxy);
-
-            chain.doFilter(req, resp);
-        } catch (TangoProxyException e) {
-            throw new ServletException(e);
-        }
+    public TangoProxy map(String devname) throws TangoProxyException {
+        TangoProxy proxy = proxyPool.getProxy(devname);
+        return proxy;
     }
 
-    public void init(FilterConfig config) throws ServletException {
-        this.db = (DatabaseDs) config.getServletContext().getAttribute(TangoProxyLauncher.TANGO_DB);
-    }
 
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -67,7 +48,7 @@ public class TangoDeviceMapper implements Filter {
                 public void run() {
                     long current = System.currentTimeMillis();
                     for (Map.Entry<String, Long> entry : timestamps.entrySet()) {
-                        if ((current - entry.getValue().longValue()) > 10000) { //10s
+                        if ((current - entry.getValue().longValue()) > TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES)) {
                             cache.remove(entry.getKey());
                         }
                     }
