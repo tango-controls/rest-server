@@ -74,7 +74,7 @@ public class EventsServlet extends HttpServlet {
                     }
                 }
             };
-            int evtId = proxy.subscribeToEvent(eventsRequest.attrname, event);
+            proxy.subscribeToEvent(eventsRequest.attrname, event);
             proxy.addEventListener(eventsRequest.attrname, event, listener);
             latch.await();
             Responses.sendSuccess(result.get().getValue(), response.getWriter());
