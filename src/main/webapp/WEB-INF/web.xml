@@ -35,6 +35,11 @@
         <servlet-class>hzg.wpn.mtango.server.QueriesServlet</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>EventsServlet</servlet-name>
+        <servlet-class>hzg.wpn.mtango.server.EventsServlet</servlet-class>
+    </servlet>
+
     <welcome-file-list>
         <welcome-file>www/apps/mTangoTest/index.html</welcome-file>
     </welcome-file-list>
@@ -42,5 +47,10 @@
     <servlet-mapping>
         <servlet-name>QueriesServlet</servlet-name>
         <url-pattern>/queries/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>EventsServlet</servlet-name>
+        <url-pattern>/events/*</url-pattern>
     </servlet-mapping>
 </web-app>

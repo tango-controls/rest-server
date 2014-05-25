@@ -1,6 +1,5 @@
-package hzg.wpn.mtango.server;
+package hzg.wpn.mtango;
 
-import hzg.wpn.mtango.DatabaseDs;
 import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
@@ -12,6 +11,8 @@ import java.util.concurrent.*;
 /**
  * This class looks up for the Launcher instance for the device specified in devname parameter of the request.
  * If there is no such instance it creates a new one.
+ * <p/>
+ * Only on instance of thos class should is allowed. Servlets must acquire it from ServletContext
  *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 23.05.14
