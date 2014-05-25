@@ -4,7 +4,7 @@ import fr.esrf.TangoDs.TangoConst;
 import hzg.wpn.mtango.DeviceMapper;
 import hzg.wpn.tango.client.proxy.EventData;
 import hzg.wpn.tango.client.proxy.TangoEvent;
-import hzg.wpn.tango.client.proxy.TangoEventCallback;
+import hzg.wpn.tango.client.proxy.TangoEventListener;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.util.Arrays;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class EventsServlet extends HttpServlet {
 
             TangoEvent event = TangoEvent.valueOf(eventsRequest.type.toUpperCase());
             //TODO prevent memory leak
-            int evtId = proxy.subscribeEvent(eventsRequest.attrname, event, new TangoEventCallback<Object>() {
+            TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
                     try {
@@ -73,7 +73,9 @@ public class EventsServlet extends HttpServlet {
                         latch.countDown();
                     }
                 }
-            });
+            };
+            int evtId = proxy.subscribeToEvent(eventsRequest.attrname, event);
+            proxy.addEventListener(eventsRequest.attrname, event, listener);
             latch.await();
             Responses.sendSuccess(result.get().getValue(), response.getWriter());
         } catch (Exception e) {
