@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,16 +47,15 @@ public class EventsServlet extends HttpServlet {
 
             TangoProxy proxy = mapper.map(eventsRequest.devname);
 
+            final AtomicReference<EventData<Object>> result = new AtomicReference<>();
+
             TangoEvent event = TangoEvent.valueOf(eventsRequest.type.toUpperCase());
-            proxy.subscribeEvent(eventsRequest.attrname, event, new TangoEventCallback<Object>() {
-                //Thread = AWT whatever
-                //TODO thread safety this thread should not write into output, rather it should pass the result to the 'waiting thread'
+            //TODO prevent memory leak
+            int evtId = proxy.subscribeEvent(eventsRequest.attrname, event, new TangoEventCallback<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
                     try {
-                        Responses.sendSuccess(data.getValue(), response.getWriter());
-                    } catch (IOException e) {
-                        LOG.error("Can not send response!", e);
+                        result.set(data);
                     } finally {
                         latch.countDown();
                     }
@@ -63,18 +63,19 @@ public class EventsServlet extends HttpServlet {
 
                 @Override
                 public void onError(Throwable cause) {
-                    LOG.error("Request processing has failed!", cause);
+                    LOG.error("TangoEvent#onError", cause);
 
                     try {
-                        Responses.sendFailure(cause, response.getWriter());
-                    } catch (IOException e) {
-                        LOG.error("Can not send response!", e);
+//                        Responses.sendFailure(cause, response.getWriter());
+//                    } catch (IOException e) {
+//                        LOG.error("Can not send response!", e);
                     } finally {
                         latch.countDown();
                     }
                 }
             });
             latch.await();
+            Responses.sendSuccess(result.get().getValue(), response.getWriter());
         } catch (Exception e) {
             LOG.error("Request processing has failed!", e);
 
