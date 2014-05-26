@@ -54,6 +54,7 @@ public class EventsServlet extends HttpServlet {
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
+                    if(latch.getCount() == 0L) return;
                     try {
                         result.set(data);
                     } finally {

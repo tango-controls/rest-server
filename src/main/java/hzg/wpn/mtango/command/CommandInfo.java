@@ -25,7 +25,7 @@ public class CommandInfo {
             public CommandInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
                 CommandInfo result = new CommandInfo();
                 result.target = json.getAsJsonObject().get("target").getAsString();
-                result.devname = json.getAsJsonObject().get("devname").getAsString();
+                result.devname = json.getAsJsonObject().get("dev").getAsString();
                 //postpone argin conversion till we know its type
                 result.argin = json.getAsJsonObject().get("argin");
                 return result;

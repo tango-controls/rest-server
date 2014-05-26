@@ -2,6 +2,7 @@ package hzg.wpn.mtango.command;
 
 import hzg.wpn.mtango.util.Json;
 import hzg.wpn.tango.client.proxy.TangoProxy;
+import hzg.wpn.tango.client.proxy.TangoProxyException;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.*;
@@ -45,7 +46,7 @@ public class Commands {
             Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataType());
 
             return new Command(proxy, method, attributeName, arg);
-        } catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException|TangoProxyException e) {
             throw new AssertionError(e);
         }
     }
@@ -57,7 +58,7 @@ public class Commands {
             Object arg = Json.GSON.fromJson(info.argin, proxy.getCommandInfo(cmdName).getArginType());
 
             return new Command(proxy, method, cmdName, arg);
-        } catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException|TangoProxyException e) {
             throw new AssertionError(e);
         }
     }
