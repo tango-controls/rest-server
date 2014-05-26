@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<project name="JavaScriptMVC ant utilities" basedir=".">
+    <property environment="env"/>
+    <property name="application.name" value="app"/>
+    <property name="dir.build" value="../build"/>
+    <property name="dir.target" value="../main/webapp/www"/>
+
+    <target name="test">
+        <echo>Running unit tests...</echo>
+        <echo>Executing: js.bat apps/${application.name}/run_unit.js</echo>
+        <exec executable="cmd" failonerror="true" failifexecutionfails="true" osfamily="windows">
+            <arg line="/c"/>
+            <arg line="js.bat"/>
+            <arg line="apps/${application.name}/run_unit.js"/>
+        </exec>
+        <exec executable="${basedir}/js" failonerror="true" failifexecutionfails="true" osfamily="unix">
+            <arg line="apps/${application.name}/run_unit.js"/>
+        </exec>
+    </target>
+
+
+    <target name="compress-javascript">
+        <echo>Compressing javascript...</echo>
+        <echo>Executing: ${basedir}/js.bat apps/${application.name}/compress.js</echo>
+        <exec executable="cmd" failonerror="true" failifexecutionfails="true" osfamily="windows">
+            <arg line="/c"/>
+            <arg line="js.bat"/>
+            <arg line="apps/${application.name}/compress.js"/>
+        </exec>
+        <exec executable="${basedir}/js" failonerror="true" failifexecutionfails="true" osfamily="unix">
+            <arg line="apps/${application.name}/compress.js"/>
+        </exec>
+        <antcall target="-post-compress-javascript"/>
+    </target>
+
+    <target name="-post-compress-javascript">
+        <fail message="production.js was not found. Task 'compress-javascript' has failed.">
+            <condition>
+                <not>
+                    <available file="production.js" filepath="apps/${application.name}"/>
+                </not>
+            </condition>
+        </fail>
+    </target>
+
+    <!--TODO -->
+    <target name="compress-css">
+        <!--<echo>Compressing css...</echo>-->
+        <!--<echo>Executing: java -jar exec/yuicompressor-2.4.7.jar - -type css -o '.css$:.min.css'-->
+        <!--${src}/stylesheets/*.css-->
+        <!--</echo>-->
+        <!--<exec dir="${root}" executable="cmd" failonerror="true" failifexecutionfails="true">-->
+        <!--<arg line="/c"/>-->
+        <!--<arg line="java"/>-->
+        <!--<arg line="-jar"/>-->
+        <!--<arg line="exec/yuicompressor-2.4.7.jar"/>-->
+        <!--<arg line="- -type"/>-->
+        <!--<arg line="css"/>-->
+        <!--<arg line="-o"/>-->
+        <!--<arg line="'.css$:.min.css'"/>-->
+        <!--<arg line="${src}/stylesheets/*.css"/>-->
+        <!--</exec>-->
+    </target>
+
+
+    <target name="-copy-jmvc-core">
+        <copy todir="${dir.target}/jmvc" overwrite="true">
+            <fileset dir="jmvc">
+                <include name="include.js"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-move-app-productionjs">
+        <move todir="${dir.target}/apps/${application.name}">
+            <fileset dir="apps/${application.name}">
+                <include name="**/production.js"/>
+            </fileset>
+        </move>
+    </target>
+
+    <target name="-copy-app-mainjs">
+        <copy todir="${dir.target}/apps/">
+            <fileset dir="apps">
+                <include name="**/${application.name}.js"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-copy-libs">
+        <copy todir="${dir.target}/libs/">
+            <fileset dir="libs">
+                <include name="*.min.js"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-copy-app-resources">
+        <copy todir="${dir.target}/resources/">
+            <fileset dir="resources">
+                <!--shared resources-->
+                <include name="*.*"/>
+                <!--app resources-->
+                <include name="**/${application.name}/*.*"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-copy-app-images">
+        <copy todir="${dir.target}/images">
+            <fileset dir="images">
+                <!--shared images-->
+                <include name="*.gif"/>
+                <include name="*.png"/>
+                <include name="*.jpg"/>
+                <!--app images-->
+                <include name="**/${application.name}/*.gif"/>
+                <include name="**/${application.name}/*.png"/>
+                <include name="**/${application.name}/*.jpg"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="-copy-app-stylesheets">
+        <copy todir="${dir.target}/stylesheets">
+            <fileset dir="stylesheets">
+                <include name="*.css"/>
+                <!--jquery ui theme-->
+                <include name="smoothness/**/*.*"/>
+                <!-- app specific css -->
+                <include name="**/${application.name}/*.css"/>
+            </fileset>
+        </copy>
+        <!-- TODO if images then copy-->
+        <!--<copy todir="${dir.target}/stylesheets/images">
+            <fileset dir="stylesheets/images">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>-->
+    </target>
+
+    <target name="-copy-engines">
+        <copy todir="${dir.target}/engines">
+            <fileset dir="engines">
+                <!--js files are already included in production.js-->
+                <include name="**/*.css"/>
+                <include name="**/*.gif"/>
+                <include name="**/*.png"/>
+                <include name="**/*.jpg"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="build" depends="compress-javascript,compress-css">
+        <echo>Making build dir...</echo>
+        <mkdir dir="${dir.target}"/>
+        <antcall target="-copy-jmvc-core"/>
+
+        <antcall target="-copy-engines"/>
+
+        <!--TODO generate production index-->
+
+        <antcall target="-move-app-productionjs"/>
+
+        <antcall target="-copy-app-mainjs"/>
+
+        <antcall target="-copy-libs"/>
+
+        <antcall target="-copy-app-resources"/>
+
+        <antcall target="-copy-app-images"/>
+
+        <antcall target="-copy-app-stylesheets"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${dir.target}"/>
+    </target>
+</project>
