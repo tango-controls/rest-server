@@ -1,8 +1,8 @@
-package hzg.wpn.mtango.server;
+package org.tango.web.server;
 
-import hzg.wpn.mtango.util.Json;
 import hzg.wpn.tango.client.attribute.Quality;
 import org.javatuples.Triplet;
+import org.tango.web.server.util.Json;
 
 import java.io.Writer;
 import java.util.LinkedHashSet;

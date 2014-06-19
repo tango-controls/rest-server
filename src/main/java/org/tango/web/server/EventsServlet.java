@@ -1,7 +1,6 @@
-package hzg.wpn.mtango.server;
+package org.tango.web.server;
 
 import fr.esrf.TangoDs.TangoConst;
-import hzg.wpn.mtango.DeviceMapper;
 import hzg.wpn.tango.client.proxy.EventData;
 import hzg.wpn.tango.client.proxy.TangoEvent;
 import hzg.wpn.tango.client.proxy.TangoEventListener;
@@ -54,7 +53,7 @@ public class EventsServlet extends HttpServlet {
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    if(latch.getCount() == 0L) return;
+                    if (latch.getCount() == 0L) return;
                     try {
                         result.set(data);
                     } finally {

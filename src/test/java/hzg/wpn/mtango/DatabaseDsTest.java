@@ -1,6 +1,7 @@
 package hzg.wpn.mtango;
 
 import org.junit.Test;
+import org.tango.web.server.DatabaseDs;
 
 import static junit.framework.Assert.assertEquals;
 

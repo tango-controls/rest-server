@@ -1,4 +1,4 @@
-package hzg.wpn.mtango.command;
+package org.tango.web.server.command;
 
 import hzg.wpn.tango.client.proxy.TangoProxy;
 

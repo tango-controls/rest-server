@@ -1,8 +1,8 @@
-package hzg.wpn.mtango.util;
+package org.tango.web.server.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import hzg.wpn.mtango.command.CommandInfo;
+import org.tango.web.server.command.CommandInfo;
 
 /**
  * @author ingvord

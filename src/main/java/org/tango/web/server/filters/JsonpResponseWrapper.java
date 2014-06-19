@@ -1,4 +1,4 @@
-package hzg.wpn.mtango.server.filters;
+package org.tango.web.server.filters;
 
 import javax.servlet.*;
 import java.io.IOException;

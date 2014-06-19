@@ -1,4 +1,4 @@
-package hzg.wpn.mtango.command;
+package org.tango.web.server.command;
 
 import com.google.common.base.Objects;
 import com.google.gson.JsonDeserializationContext;
