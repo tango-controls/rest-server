@@ -1,12 +1,11 @@
-package hzg.wpn.mtango.server;
+package org.tango.web.server;
 
-import hzg.wpn.mtango.DeviceMapper;
-import hzg.wpn.mtango.command.Command;
-import hzg.wpn.mtango.command.CommandInfo;
-import hzg.wpn.mtango.command.Commands;
-import hzg.wpn.mtango.util.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.web.server.command.Command;
+import org.tango.web.server.command.CommandInfo;
+import org.tango.web.server.command.Commands;
+import org.tango.web.server.util.Json;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

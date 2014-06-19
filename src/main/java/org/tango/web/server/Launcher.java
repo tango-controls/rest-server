@@ -1,7 +1,5 @@
-package hzg.wpn.mtango.server;
+package org.tango.web.server;
 
-import hzg.wpn.mtango.DatabaseDs;
-import hzg.wpn.mtango.DeviceMapper;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
 
 import javax.servlet.ServletContextEvent;

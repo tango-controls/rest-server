@@ -6,17 +6,17 @@
          version="3.0">
 
     <listener>
-        <listener-class>hzg.wpn.mtango.server.Launcher</listener-class>
+        <listener-class>org.tango.web.server.Launcher</listener-class>
     </listener>
 
     <filter>
         <filter-name>TimeWatcher</filter-name>
-        <filter-class>hzg.wpn.mtango.server.filters.TimeWatcher</filter-class>
+        <filter-class>org.tango.web.server.filters.TimeWatcher</filter-class>
     </filter>
 
     <filter>
         <filter-name>JsonpResponseWrapper</filter-name>
-        <filter-class>hzg.wpn.mtango.server.filters.JsonpResponseWrapper</filter-class>
+        <filter-class>org.tango.web.server.filters.JsonpResponseWrapper</filter-class>
     </filter>
 
     <filter-mapping>
@@ -30,19 +30,29 @@
     </filter-mapping>
 
     <servlet>
+        <servlet-name>RestServlet</servlet-name>
+        <servlet-class>org.tango.web.server.RestServlet</servlet-class>
+    </servlet>
+
+    <servlet>
         <display-name>QueriesServlet</display-name>
         <servlet-name>QueriesServlet</servlet-name>
-        <servlet-class>hzg.wpn.mtango.server.QueriesServlet</servlet-class>
+        <servlet-class>org.tango.web.server.QueriesServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>EventsServlet</servlet-name>
-        <servlet-class>hzg.wpn.mtango.server.EventsServlet</servlet-class>
+        <servlet-class>org.tango.web.server.EventsServlet</servlet-class>
     </servlet>
 
     <welcome-file-list>
         <welcome-file>www/apps/mTangoTest/index.html</welcome-file>
     </welcome-file-list>
+
+    <servlet-mapping>
+        <servlet-name>RestServlet</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>QueriesServlet</servlet-name>

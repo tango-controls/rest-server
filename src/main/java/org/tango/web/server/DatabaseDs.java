@@ -1,4 +1,4 @@
-package hzg.wpn.mtango;
+package org.tango.web.server;
 
 import fr.esrf.Tango.DevVarLongStringArray;
 import hzg.wpn.tango.client.proxy.TangoProxies;
@@ -19,7 +19,7 @@ public class DatabaseDs {
     private final TangoProxy proxy;
 
     public DatabaseDs(String tangoHost) throws TangoProxyException {
-        this(tangoHost,DEFAULT_ID);
+        this(tangoHost, DEFAULT_ID);
     }
 
     public DatabaseDs(String tangoHost, String devname) throws TangoProxyException {
@@ -28,7 +28,7 @@ public class DatabaseDs {
     }
 
     public String getDeviceAddress(String devname) throws TangoProxyException {
-            DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo",devname);
-            return "tango://" + tangoHost + "/" + info.svalue[0];
+        DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo", devname);
+        return "tango://" + tangoHost + "/" + info.svalue[0];
     }
 }

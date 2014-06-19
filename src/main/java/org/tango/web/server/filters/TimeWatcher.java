@@ -1,4 +1,4 @@
-package hzg.wpn.mtango.server.filters;
+package org.tango.web.server.filters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
