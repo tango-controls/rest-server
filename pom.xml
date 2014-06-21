@@ -55,9 +55,19 @@
             <version>2.0</version>
         </dependency>
         <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-servlet-initializer</artifactId>
+            <version>3.0.7.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+            <version>3.0.7.Final</version>
+        </dependency>
+        <dependency>
             <groupId>hzg.wpn</groupId>
-            <artifactId>TangoAPI</artifactId>
-            <version>1.1.0</version>
+            <artifactId>ezTangORB</artifactId>
+            <version>1.1.2</version>
         </dependency>
     </dependencies>
 

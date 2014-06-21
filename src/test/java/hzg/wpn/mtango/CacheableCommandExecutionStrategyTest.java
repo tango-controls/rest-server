@@ -1,12 +1,12 @@
 package hzg.wpn.mtango;
 
-import hzg.wpn.mtango.command.Command;
-import hzg.wpn.mtango.command.Commands;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.tango.web.server.command.Command;
+import org.tango.web.server.command.Commands;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.*;
