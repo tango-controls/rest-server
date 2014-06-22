@@ -1,11 +1,14 @@
 package org.tango.web.server;
 
 import fr.esrf.Tango.DevVarLongStringArray;
+import fr.esrf.TangoApi.DeviceInfo;
 import hzg.wpn.tango.client.proxy.TangoProxies;
 import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.tango.client.proxy.TangoProxyException;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -14,6 +17,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DatabaseDs {
     public static final String DEFAULT_ID = "sys/database/2";
+    public static final String TANGO_DB = "tango.db";
 
     private final String tangoHost;
     private final TangoProxy proxy;
@@ -27,8 +31,19 @@ public class DatabaseDs {
         this.proxy = TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + devname);
     }
 
-    public String getDeviceAddress(String devname) throws TangoProxyException {
+    public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException {
         DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo", devname);
-        return "tango://" + tangoHost + "/" + info.svalue[0];
+        DeviceInfo deviceInfo = new DeviceInfo(info);
+        return deviceInfo;
+    }
+
+    public String getDeviceAddress(String devname) throws TangoProxyException {
+        DeviceInfo info = getDeviceInfo(devname);
+        return "tango://" + tangoHost + "/" + info.name;
+    }
+
+    public Collection<String> getDeviceList() throws TangoProxyException {
+        String[] result = proxy.executeCommand("DbGetDeviceWideList", "*");
+        return Arrays.asList(result);
     }
 }
