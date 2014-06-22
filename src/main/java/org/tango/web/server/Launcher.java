@@ -12,8 +12,6 @@ import javax.servlet.ServletContextListener;
 public class Launcher implements ServletContextListener {
     public static final String TANGO_HOST = "TANGO_HOST";
     public static final String TANGO_LOCALHOST = "localhost:10000";
-    public static final String TANGO_DB = "tango.db";
-    public static final String TANGO_MAPPER = "tango.mapper";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -23,11 +21,11 @@ public class Launcher implements ServletContextListener {
         try {
             DatabaseDs db = new DatabaseDs(tangoHost);
 
-            sce.getServletContext().setAttribute(TANGO_DB, db);
+            sce.getServletContext().setAttribute(DatabaseDs.TANGO_DB, db);
 
             DeviceMapper mapper = new DeviceMapper(db);
 
-            sce.getServletContext().setAttribute(TANGO_MAPPER, mapper);
+            sce.getServletContext().setAttribute(DeviceMapper.TANGO_MAPPER, mapper);
 
             System.out.println("MTango is initialized.");
         } catch (TangoProxyException e) {

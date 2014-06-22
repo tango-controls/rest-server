@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 public class DeviceMapper {
     public static final int INITIAL_POOL_CAPACITY = 100;
     public static final long DELAY = 30L;
+    public static final String TANGO_MAPPER = "tango.mapper";
 
     private final TangoProxyPool proxyPool = new TangoProxyPool();
 

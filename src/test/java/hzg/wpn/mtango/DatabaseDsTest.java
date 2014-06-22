@@ -3,7 +3,10 @@ package hzg.wpn.mtango;
 import org.junit.Test;
 import org.tango.web.server.DatabaseDs;
 
+import java.util.Collection;
+
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -24,5 +27,15 @@ public class DatabaseDsTest {
 
         //assume that TangoTest is running on the same host as DB which normally the case
         assertEquals("tango://" + TANGO_HOST + "/sys/tg_test/1", result);
+    }
+
+    @Test
+    public void testGetDeviceList() throws Exception {
+        DatabaseDs instance = new DatabaseDs(TANGO_HOST);
+
+        Collection<String> result = instance.getDeviceList();
+
+        //assume that TangoTest is running on the same host as DB which normally the case
+        assertTrue(result.contains("sys/tg_test/1"));
     }
 }

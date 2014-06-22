@@ -36,7 +36,7 @@ public class EventsServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        this.mapper = (DeviceMapper) getServletContext().getAttribute(Launcher.TANGO_MAPPER);
+        this.mapper = (DeviceMapper) getServletContext().getAttribute(DeviceMapper.TANGO_MAPPER);
     }
 
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {

@@ -30,7 +30,7 @@ public class QueriesServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        mapper = (DeviceMapper) getServletContext().getAttribute(Launcher.TANGO_MAPPER);
+        mapper = (DeviceMapper) getServletContext().getAttribute(DeviceMapper.TANGO_MAPPER);
     }
 
     @Override
