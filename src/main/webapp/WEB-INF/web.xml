@@ -10,10 +10,13 @@
         <param-name>resteasy.logger.type</param-name>
         <param-value>SLF4J</param-value>
     </context-param>
-
     <context-param>
         <param-name>resteasy.resources</param-name>
         <param-value>org.tango.web.server.rest.Rest2Tango</param-value>
+    </context-param>
+    <context-param>
+        <param-name>resteasy.providers</param-name>
+        <param-value>org.tango.web.server.rest.DeviceInfoResponseWriter</param-value>
     </context-param>
     <context-param>
         <param-name>resteasy.servlet.mapping.prefix</param-name>
