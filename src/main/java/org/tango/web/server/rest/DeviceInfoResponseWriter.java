@@ -29,7 +29,7 @@ public class DeviceInfoResponseWriter implements MessageBodyWriter<DeviceInfo> {
 
     @Override
     public boolean isWriteable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
-        return mediaType == MediaType.APPLICATION_JSON_TYPE && aClass.isAssignableFrom(DeviceInfo.class);
+        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType) && aClass.isAssignableFrom(DeviceInfo.class);
     }
 
     @Override
