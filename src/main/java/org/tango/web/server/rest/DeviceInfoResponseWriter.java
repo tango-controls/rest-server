@@ -39,6 +39,8 @@ public class DeviceInfoResponseWriter implements MessageBodyWriter<DeviceInfo> {
 
     @Override
     public void writeTo(DeviceInfo deviceInfo, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream) throws IOException, WebApplicationException {
-        gson.toJson(deviceInfo, new OutputStreamWriter(outputStream));
+        try (OutputStreamWriter out = new OutputStreamWriter(outputStream)) {
+            gson.toJson(deviceInfo, out);
+        }
     }
 }
