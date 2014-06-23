@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.esrf.TangoApi.DeviceInfo;
 
+import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -20,6 +21,7 @@ import java.lang.reflect.Type;
  * @since 23.06.14
  */
 @Provider
+@Produces("application/json")
 public class DeviceInfoResponseWriter implements MessageBodyWriter<DeviceInfo> {
     private final Gson gson = new GsonBuilder()
             .serializeNulls()

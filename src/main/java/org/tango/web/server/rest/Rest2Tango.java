@@ -35,7 +35,6 @@ public class Rest2Tango {
     @GET
     @Path("device/{domain}/{name}/{instance}")
     @Produces("application/json")
-    //TODO marshaller
     public DeviceInfo getDeviceInfo(@PathParam("domain") String domain,
                                     @PathParam("name") String name,
                                     @PathParam("instance") String instance,
