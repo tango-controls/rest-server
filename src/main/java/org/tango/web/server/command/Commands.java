@@ -1,7 +1,7 @@
 package org.tango.web.server.command;
 
-import hzg.wpn.tango.client.proxy.TangoProxy;
-import hzg.wpn.tango.client.proxy.TangoProxyException;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.util.Json;
 
 import java.lang.reflect.Method;
