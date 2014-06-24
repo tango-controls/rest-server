@@ -8,9 +8,9 @@ package org.tango.web.server.rest;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
-import hzg.wpn.tango.client.proxy.TangoProxy;
-import hzg.wpn.tango.client.proxy.TangoProxyException;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 
@@ -73,21 +73,8 @@ public class Rest2Tango {
 
     }
 
-    @GET
-    @Path("device/{domain}/{name}/{instance}/attribute/{attr}")
-    @Produces("application/json")
-    //TODO marshaller
-    public Object getAttribute(@PathParam("domain") String domain,
-                               @PathParam("name") String name,
-                               @PathParam("instance") String instance,
-                               @PathParam("attr") String attr,
-                               @Context ServletContext ctx) throws Exception {
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        return proxy.readAttributeValueTimeQuality(attr);
-    }
-
     @PUT
-    @Path("device/{domain}/{name}/{instance}/attribute/{attr}/argin={arg}")
+    @Path("device/{domain}/{name}/{instance}/{attr}/argin={arg}")
     @Produces("application/json")
     //TODO marshaller
     public void putAttribute(@PathParam("domain") String domain,
@@ -96,26 +83,44 @@ public class Rest2Tango {
                              @PathParam("attr") String attr,
                              @PathParam("arg") String arg,
                              @Context ServletContext ctx) throws Exception {
-        //TODO exceptions
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (!proxy.hasAttribute(attr))
+            throw new IllegalArgumentException(String.format("Device %s does not have attribute %s", proxy.getName(), attr));
         Class<?> targetType = proxy.getAttributeInfo(attr).getClazz();
         Object converted = ConvertUtils.convert(arg, targetType);
         proxy.writeAttribute(attr, converted);
     }
 
-    @PUT
-    @Path("device/{domain}/{name}/{instance}/command/{cmd}/argin={arg}")
+    @GET
+    @Path("device/{domain}/{name}/{instance}/{cmd}")
     @Produces("application/json")
-    //TODO marshaller
-    public Object putCommand(@PathParam("domain") String domain,
-                             @PathParam("name") String name,
-                             @PathParam("instance") String instance,
-                             @PathParam("cmd") String cmd,
-                             @PathParam("arg") String arg,
-                             @Context ServletContext ctx) throws Exception {
+    public Object getCommandOrAttribute(@PathParam("domain") String domain,
+                                        @PathParam("name") String name,
+                                        @PathParam("instance") String instance,
+                                        @PathParam("cmd") String cmd,
+                                        @Context ServletContext ctx) throws Exception {
+        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (proxy.hasAttribute(cmd))
+            return proxy.readAttribute(cmd);
+        else
+            return proxy.executeCommand(cmd, null);
+    }
+
+    @GET
+    @Path("device/{domain}/{name}/{instance}/{cmd}/argin={arg}")
+    @Produces("application/json")
+    public Object getCommandWithArg(@PathParam("domain") String domain,
+                                    @PathParam("name") String name,
+                                    @PathParam("instance") String instance,
+                                    @PathParam("cmd") String cmd,
+                                    @PathParam("arg") String arg,
+                                    @Context ServletContext ctx) throws Exception {
         //TODO exceptions
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (!proxy.hasCommand(cmd))
+            throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
         Class<?> targetType = proxy.getCommandInfo(cmd).getArginType();
+        if (targetType == Void.class) return proxy.executeCommand(cmd, null);
         Object converted = ConvertUtils.convert(arg, targetType);
         return proxy.executeCommand(cmd, converted);
     }

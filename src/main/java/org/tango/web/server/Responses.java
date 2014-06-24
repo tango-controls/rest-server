@@ -1,7 +1,7 @@
 package org.tango.web.server;
 
-import hzg.wpn.tango.client.attribute.Quality;
 import org.javatuples.Triplet;
+import org.tango.client.ez.attribute.Quality;
 import org.tango.web.server.util.Json;
 
 import java.io.Writer;

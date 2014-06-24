@@ -2,9 +2,9 @@ package org.tango.web.server;
 
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
-import hzg.wpn.tango.client.proxy.TangoProxies;
-import hzg.wpn.tango.client.proxy.TangoProxy;
-import hzg.wpn.tango.client.proxy.TangoProxyException;
+import org.tango.client.ez.proxy.TangoProxies;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;

@@ -2,6 +2,7 @@ package org.tango.web.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.web.server.command.Command;
 import org.tango.web.server.command.CommandInfo;
 import org.tango.web.server.command.Commands;
@@ -40,7 +41,7 @@ public class QueriesServlet extends HttpServlet {
             CommandInfo commandInfo = request.cmd;
             LOG.info("message received:" + commandInfo.toString());
 
-            hzg.wpn.tango.client.proxy.TangoProxy proxy = mapper.map(commandInfo.devname);
+            TangoProxy proxy = mapper.map(commandInfo.devname);
             Command cmd = Commands.createCommand(commandInfo, proxy);
             Object result = Commands.execute(cmd);
 

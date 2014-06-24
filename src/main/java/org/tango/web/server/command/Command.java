@@ -1,6 +1,6 @@
 package org.tango.web.server.command;
 
-import hzg.wpn.tango.client.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;

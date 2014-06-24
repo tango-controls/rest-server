@@ -70,9 +70,9 @@
             <version>3.0.7.Final</version>
         </dependency>
         <dependency>
-            <groupId>hzg.wpn</groupId>
+            <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>1.1.2</version>
+            <version>1.1.6</version>
         </dependency>
     </dependencies>
 

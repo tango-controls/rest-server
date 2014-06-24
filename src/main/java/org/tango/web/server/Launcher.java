@@ -1,6 +1,7 @@
 package org.tango.web.server;
 
-import hzg.wpn.tango.client.proxy.TangoProxyException;
+
+import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

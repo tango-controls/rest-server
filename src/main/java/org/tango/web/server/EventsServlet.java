@@ -1,13 +1,13 @@
 package org.tango.web.server;
 
 import fr.esrf.TangoDs.TangoConst;
-import hzg.wpn.tango.client.proxy.EventData;
-import hzg.wpn.tango.client.proxy.TangoEvent;
-import hzg.wpn.tango.client.proxy.TangoEventListener;
-import hzg.wpn.tango.client.proxy.TangoProxy;
 import hzg.wpn.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.EventData;
+import org.tango.client.ez.proxy.TangoEvent;
+import org.tango.client.ez.proxy.TangoEventListener;
+import org.tango.client.ez.proxy.TangoProxy;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
