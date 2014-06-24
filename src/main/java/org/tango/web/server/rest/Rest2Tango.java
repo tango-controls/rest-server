@@ -13,6 +13,7 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
+import org.tango.web.server.Responses;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -101,20 +102,20 @@ public class Rest2Tango {
                                         @Context ServletContext ctx) throws Exception {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(cmd))
-            return proxy.readAttribute(cmd);
+            return Responses.createSuccessResult(proxy.readAttribute(cmd));
         else
-            return proxy.executeCommand(cmd, null);
+            return Responses.createSuccessResult(proxy.executeCommand(cmd, null));
     }
 
     @GET
     @Path("device/{domain}/{name}/{instance}/{cmd}/argin={arg}")
     @Produces("application/json")
-    public Object getCommandWithArg(@PathParam("domain") String domain,
-                                    @PathParam("name") String name,
-                                    @PathParam("instance") String instance,
-                                    @PathParam("cmd") String cmd,
-                                    @PathParam("arg") String arg,
-                                    @Context ServletContext ctx) throws Exception {
+    public Responses getCommandWithArg(@PathParam("domain") String domain,
+                                       @PathParam("name") String name,
+                                       @PathParam("instance") String instance,
+                                       @PathParam("cmd") String cmd,
+                                       @PathParam("arg") String arg,
+                                       @Context ServletContext ctx) throws Exception {
         //TODO exceptions
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (!proxy.hasCommand(cmd))
@@ -122,7 +123,7 @@ public class Rest2Tango {
         Class<?> targetType = proxy.getCommandInfo(cmd).getArginType();
         if (targetType == Void.class) return proxy.executeCommand(cmd, null);
         Object converted = ConvertUtils.convert(arg, targetType);
-        return proxy.executeCommand(cmd, converted);
+        return Responses.createSuccessResult(proxy.executeCommand(cmd, converted));
     }
 
     private TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
