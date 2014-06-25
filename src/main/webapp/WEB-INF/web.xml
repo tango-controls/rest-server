@@ -16,9 +16,7 @@
     </context-param>
     <context-param>
         <param-name>resteasy.providers</param-name>
-        <param-value>org.tango.web.server.rest.DeviceInfoResponseWriter,
-            org.tango.web.server.rest.ResponseResponseWriter
-        </param-value>
+        <param-value>org.tango.web.server.rest.JsonResponseWriter</param-value>
     </context-param>
     <context-param>
         <param-name>resteasy.servlet.mapping.prefix</param-name>

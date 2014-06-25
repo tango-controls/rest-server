@@ -108,6 +108,21 @@ public class Rest2Tango {
     }
 
     @GET
+    @Path("device/{domain}/{name}/{instance}/{cmd}/info")
+    @Produces("application/json")
+    public Object getCommandOrAttributeInfo(@PathParam("domain") String domain,
+                                            @PathParam("name") String name,
+                                            @PathParam("instance") String instance,
+                                            @PathParam("cmd") String cmd,
+                                            @Context ServletContext ctx) throws Exception {//TODO exceptions
+        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (proxy.hasAttribute(cmd))
+            return proxy.getAttributeInfo(cmd).toAttributeInfo();
+        else
+            return proxy.getCommandInfo(cmd).toCommandInfo();
+    }
+
+    @GET
     @Path("device/{domain}/{name}/{instance}/{cmd}/argin={arg}")
     @Produces("application/json")
     public Responses getCommandWithArg(@PathParam("domain") String domain,
