@@ -13,25 +13,16 @@ import java.util.Set;
  * @since 5/24/14@8:10 PM
  */
 public class Responses {
-    private final Object argout;
-    private final String[] errors;
-    private final Quality quality;
-    private final long timestamp;
-
-    Responses(Object argout, String[] errors, Quality quality, long timestamp) {
-        this.argout = argout;
-        this.errors = errors;
-        this.quality = quality;
-        this.timestamp = timestamp;
+    private Responses() {
     }
 
     public static void sendSuccess(Object argout, Writer out) {
-        Responses resp = createSuccessResult(argout);
+        Response resp = createSuccessResult(argout);
         Json.GSON.toJson(resp, out);
     }
 
     public static void sendFailure(Throwable error, Writer out) {
-        Responses resp = Responses.createFailureResult(createExceptionMessage(error));
+        Response resp = Responses.createFailureResult(createExceptionMessage(error));
         Json.GSON.toJson(resp, out);
     }
 
@@ -46,17 +37,17 @@ public class Responses {
     }
 
 
-    public static Responses createAttributeSuccessResult(Triplet<Object, Long, Quality> triplet) {
-        return new Responses(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
+    public static Response createAttributeSuccessResult(Triplet<Object, Long, Quality> triplet) {
+        return new Response(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
     }
 
-    public static Responses createSuccessResult(Object argout) {
-        return new Responses(argout, null, null, System.currentTimeMillis());
+    public static Response createSuccessResult(Object argout) {
+        return new Response(argout, null, null, System.currentTimeMillis());
     }
 
-    public static Responses createFailureResult(String[] messages) {
+    public static Response createFailureResult(String[] messages) {
         if (messages == null || messages.length == 0)
             messages = new String[]{"Unexpected server side error! See server log for details."};
-        return new Responses(null, messages, Quality.INVALID, System.currentTimeMillis());
+        return new Response(null, messages, Quality.INVALID, System.currentTimeMillis());
     }
 }
