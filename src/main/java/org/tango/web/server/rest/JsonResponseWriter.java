@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import fr.esrf.TangoApi.AttributeInfo;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
-import org.tango.web.server.Responses;
+import org.tango.web.server.Response;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -28,7 +28,7 @@ public class JsonResponseWriter implements MessageBodyWriter<Object> {
     private final Set<Class<?>> supportedClasses = new HashSet<>();
 
     {
-        Collections.addAll(supportedClasses, DeviceInfo.class, CommandInfo.class, AttributeInfo.class, Responses.class);
+        Collections.addAll(supportedClasses, DeviceInfo.class, CommandInfo.class, AttributeInfo.class, Response.class);
     }
 
     private final Gson gson = new GsonBuilder()
