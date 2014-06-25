@@ -14,13 +14,13 @@ import java.util.Set;
  */
 public class Responses {
     private final Object argout;
-    private final String[] error;
+    private final String[] errors;
     private final Quality quality;
     private final long timestamp;
 
-    Responses(Object argout, String[] error, Quality quality, long timestamp) {
+    Responses(Object argout, String[] errors, Quality quality, long timestamp) {
         this.argout = argout;
-        this.error = error;
+        this.errors = errors;
         this.quality = quality;
         this.timestamp = timestamp;
     }
@@ -46,18 +46,17 @@ public class Responses {
     }
 
 
-    public static Responses createSuccessResult(Object argout) {
-        if (argout != null && Triplet.class.isAssignableFrom(argout.getClass())) {
-            Triplet<Object, Long, Quality> triplet = (Triplet<Object, Long, Quality>) argout;
-            return new Responses(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
-        } else {
-            return new Responses(argout, null, Quality.VALID, System.currentTimeMillis());
-        }
+    public static Responses createAttributeSuccessResult(Triplet<Object, Long, Quality> triplet) {
+        return new Responses(triplet.getValue0(), null, triplet.getValue2(), triplet.getValue1());
     }
 
-    public static Responses createFailureResult(String[] message) {
-        if (message == null || message.length == 0)
-            message = new String[]{"Unexpected server side error! See server log for details."};
-        return new Responses(null, message, Quality.INVALID, System.currentTimeMillis());
+    public static Responses createSuccessResult(Object argout) {
+        return new Responses(argout, null, null, System.currentTimeMillis());
+    }
+
+    public static Responses createFailureResult(String[] messages) {
+        if (messages == null || messages.length == 0)
+            messages = new String[]{"Unexpected server side error! See server log for details."};
+        return new Responses(null, messages, Quality.INVALID, System.currentTimeMillis());
     }
 }
