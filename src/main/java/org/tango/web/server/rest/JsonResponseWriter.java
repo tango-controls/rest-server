@@ -32,7 +32,7 @@ public class JsonResponseWriter implements MessageBodyWriter<Object> {
     }
 
     private final Gson gson = new GsonBuilder()
-            .serializeNulls()
+//            .serializeNulls()
             .create();
 
     @Override

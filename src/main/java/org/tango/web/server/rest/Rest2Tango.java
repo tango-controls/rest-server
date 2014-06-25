@@ -28,9 +28,9 @@ public class Rest2Tango {
     @Path("devices")
     @Produces("application/json")
     //TODO marshaller
-    public Collection<String> getDevices(@Context ServletContext ctx) throws Exception {//TODO handle exception
+    public Responses getDevices(@Context ServletContext ctx) throws Exception {//TODO handle exception
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
-        return db.getDeviceList();
+        return Responses.createSuccessResult(db.getDeviceList());
     }
 
     @GET
@@ -102,7 +102,7 @@ public class Rest2Tango {
                                         @Context ServletContext ctx) throws Exception {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(cmd))
-            return Responses.createSuccessResult(proxy.readAttribute(cmd));
+            return Responses.createAttributeSuccessResult(proxy.readAttributeValueTimeQuality(cmd));
         else
             return Responses.createSuccessResult(proxy.executeCommand(cmd, null));
     }
