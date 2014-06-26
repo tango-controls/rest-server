@@ -36,6 +36,18 @@ public class Rest2Tango {
     @GET
     @Path("device/{domain}/{name}/{instance}")
     @Produces("application/json")
+    public DeviceState getDevice(@PathParam("domain") String domain,
+                                 @PathParam("name") String name,
+                                 @PathParam("instance") String instance,
+                                 @Context ServletContext ctx) throws Exception {//TODO exceptions
+        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        DeviceState result = new DeviceState(proxy.toDeviceProxy().state().toString(), proxy.toDeviceProxy().status());
+        return result;
+    }
+
+    @GET
+    @Path("device/{domain}/{name}/{instance}/info")
+    @Produces("application/json")
     public DeviceInfo getDeviceInfo(@PathParam("domain") String domain,
                                     @PathParam("name") String name,
                                     @PathParam("instance") String instance,

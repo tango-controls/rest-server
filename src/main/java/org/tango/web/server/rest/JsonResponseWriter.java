@@ -28,7 +28,8 @@ public class JsonResponseWriter implements MessageBodyWriter<Object> {
     private final Set<Class<?>> supportedClasses = new HashSet<>();
 
     {
-        Collections.addAll(supportedClasses, DeviceInfo.class, CommandInfo.class, AttributeInfo.class, Response.class);
+        Collections.addAll(supportedClasses, DeviceInfo.class, CommandInfo.class, AttributeInfo.class, Response.class,
+                DeviceState.class);
     }
 
     private final Gson gson = new GsonBuilder()
