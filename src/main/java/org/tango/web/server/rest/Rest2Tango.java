@@ -5,6 +5,8 @@ package org.tango.web.server.rest;
  * @since 21.06.14
  */
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
@@ -16,12 +18,12 @@ import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.Response;
 import org.tango.web.server.Responses;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 @Path("/")
 public class Rest2Tango {
@@ -65,8 +67,12 @@ public class Rest2Tango {
                                         @PathParam("instance") String instance,
                                         @Context ServletContext ctx) throws Exception {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        Collection<AttributeInfoEx> result = new ArrayList<>();
-        Collections.addAll(result, proxy.toDeviceProxy().get_attribute_info_ex());
+        Collection<String> result = Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, String>() {
+            @Override
+            public String apply(@Nullable AttributeInfoEx input) {
+                return input.name;
+            }
+        });
         return Responses.createSuccessResult(result);
     }
 
@@ -78,8 +84,12 @@ public class Rest2Tango {
                                       @PathParam("instance") String instance,
                                       @Context ServletContext ctx) throws Exception {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        Collection<CommandInfo> result = new ArrayList<>();
-        Collections.addAll(result, proxy.toDeviceProxy().command_list_query());
+        Collection<String> result = Collections2.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, String>() {
+            @Override
+            public String apply(@Nullable CommandInfo input) {
+                return input.cmd_name;
+            }
+        });
         return Responses.createSuccessResult(result);
     }
 
