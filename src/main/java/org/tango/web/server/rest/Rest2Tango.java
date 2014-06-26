@@ -94,23 +94,44 @@ public class Rest2Tango {
     }
 
     @PUT
-    @Path("device/{domain}/{name}/{instance}/{attr}/write={arg}")
+    @Path("device/{domain}/{name}/{instance}/{member}={arg}")
     @Produces("application/json")
-    public void putAttribute(@PathParam("domain") String domain,
-                             @PathParam("name") String name,
-                             @PathParam("instance") String instance,
-                             @PathParam("attr") String attr,
-                             @PathParam("arg") String arg,
-                             @Context ServletContext ctx) throws Exception {
+    public Response putAttribute(@PathParam("domain") String domain,
+                                 @PathParam("name") String name,
+                                 @PathParam("instance") String instance,
+                                 @PathParam("member") String member,
+                                 @PathParam("arg") String arg,
+                                 @Context ServletContext ctx) throws Exception {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        if (!proxy.hasAttribute(attr))
-            throw new IllegalArgumentException(String.format("Device %s does not have attribute %s", proxy.getName(), attr));
-        Class<?> targetType = proxy.getAttributeInfo(attr).getClazz();
-        Object converted = ConvertUtils.convert(arg, targetType);
-        proxy.writeAttribute(attr, converted);
+        if (proxy.hasCommand(member)) {
+            Class<?> targetType = proxy.getCommandInfo(member).getArginType();
+            if (targetType == Void.class) return Responses.createSuccessResult(proxy.executeCommand(member, null));
+            Object converted = ConvertUtils.convert(arg, targetType);
+            return Responses.createSuccessResult(proxy.executeCommand(member, converted));
+        } else if (proxy.hasAttribute(member)) {
+            Class<?> targetType = proxy.getAttributeInfo(member).getClazz();
+            Object converted = ConvertUtils.convert(arg, targetType);
+            proxy.writeAttribute(member, converted);
+            return Responses.createSuccessResult(null);
+        } else
+            throw new IllegalArgumentException(String.format("Device %s does not have neither attribute nor command %s", proxy.getName(), member));
     }
 
     //TODO write_read
+    @GET
+    @Path("device/{domain}/{name}/{instance}/{cmd_or_attr}/info")
+    @Produces("application/json")
+    public Object getCommandOrAttributeInfo(@PathParam("domain") String domain,
+                                            @PathParam("name") String name,
+                                            @PathParam("instance") String instance,
+                                            @PathParam("cmd_or_attr") String member,
+                                            @Context ServletContext ctx) throws Exception {
+        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (proxy.hasAttribute(member))
+            return proxy.getAttributeInfo(member).toAttributeInfo();
+        else
+            return proxy.getCommandInfo(member).toCommandInfo();
+    }
 
     @GET
     @Path("device/{domain}/{name}/{instance}/{cmd_or_attr}")
@@ -120,30 +141,18 @@ public class Rest2Tango {
                                         @PathParam("instance") String instance,
                                         @PathParam("cmd_or_attr") String member,
                                         @Context ServletContext ctx) throws Exception {
+
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        if (proxy.hasAttribute(member))
-            return proxy.getAttributeInfo(member).toAttributeInfo();
+        if (proxy.hasAttribute(member)) //TODO if attr image - generate one and send link
+            return Responses.createAttributeSuccessResult(proxy.readAttributeValueTimeQuality(member));
+        else if (proxy.hasCommand(member))
+            return Responses.createSuccessResult(proxy.executeCommand(member, null));
         else
-            return proxy.getCommandInfo(member).toCommandInfo();
+            throw new IllegalArgumentException();
     }
 
     @GET
-    @Path("device/{domain}/{name}/{instance}/{cmd}/execute")//TODO optional argument
-    @Produces("application/json")
-    public Object getCommandVoid(@PathParam("domain") String domain,
-                                 @PathParam("name") String name,
-                                 @PathParam("instance") String instance,
-                                 @PathParam("cmd") String cmd,
-                                 @Context ServletContext ctx) throws Exception {//TODO exceptions
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        if (proxy.hasCommand(cmd))
-            return Responses.createSuccessResult(proxy.executeCommand(cmd, null));
-        else
-            throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
-    }
-
-    @GET
-    @Path("device/{domain}/{name}/{instance}/{cmd}/execute={arg}")//TODO optional argument
+    @Path("device/{domain}/{name}/{instance}/{cmd}={arg}")//TODO optional argument
     @Produces("application/json")
     public Object getCommand(@PathParam("domain") String domain,
                              @PathParam("name") String name,
@@ -160,22 +169,6 @@ public class Rest2Tango {
             Object converted = ConvertUtils.convert(arg, targetType);
             return Responses.createSuccessResult(proxy.executeCommand(cmd, converted));
         }
-    }
-
-
-    @GET
-    @Path("device/{domain}/{name}/{instance}/{attr}/read")
-    @Produces("application/json")
-    public Object getAttribute(@PathParam("domain") String domain,
-                               @PathParam("name") String name,
-                               @PathParam("instance") String instance,
-                               @PathParam("attr") String attr,
-                               @Context ServletContext ctx) throws Exception {//TODO exceptions
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        if (proxy.hasAttribute(attr))
-            return Responses.createAttributeSuccessResult(proxy.readAttributeValueTimeQuality(attr));
-        else
-            throw new IllegalArgumentException(String.format("Device %s does not have attribute %s", proxy.getName(), attr));
     }
 
     private TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
