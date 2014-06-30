@@ -63,12 +63,12 @@
     <servlet>
         <display-name>QueriesServlet</display-name>
         <servlet-name>QueriesServlet</servlet-name>
-        <servlet-class>org.tango.web.server.QueriesServlet</servlet-class>
+        <servlet-class>org.tango.web.server.js.QueriesServlet</servlet-class>
     </servlet>
 
     <servlet>
         <servlet-name>EventsServlet</servlet-name>
-        <servlet-class>org.tango.web.server.EventsServlet</servlet-class>
+        <servlet-class>org.tango.web.server.js.EventsServlet</servlet-class>
     </servlet>
 
     <welcome-file-list>
