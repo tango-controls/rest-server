@@ -31,7 +31,12 @@
     </listener>
 
     <filter>
-        <filter-name>TimeWatcher</filter-name>
+        <filter-name>Authentication</filter-name>
+        <filter-class>org.tango.web.server.filters.AuthenticationFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>StopWatch</filter-name>
         <filter-class>org.tango.web.server.filters.TimeWatcher</filter-class>
     </filter>
 
@@ -51,7 +56,12 @@
     </servlet-mapping>
 
     <filter-mapping>
-        <filter-name>TimeWatcher</filter-name>
+        <filter-name>Authentication</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>StopWatch</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
@@ -84,4 +94,27 @@
         <servlet-name>EventsServlet</servlet-name>
         <url-pattern>/events/*</url-pattern>
     </servlet-mapping>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango web gateway</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>mtango</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>Basic Authentication</realm-name>
+        <!--<auth-method>FORM</auth-method>
+        <form-login-config>
+        <form-login-page>/login.html</form-login-page>
+        <form-error-page>/fail_login.html</form-error-page>
+        </form-login-config>-->
+    </login-config>
+    <security-role>
+        <description>mtango user</description>
+        <role-name>mtango</role-name>
+    </security-role>
 </web-app>
