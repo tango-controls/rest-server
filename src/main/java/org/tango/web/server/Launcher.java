@@ -28,6 +28,10 @@ public class Launcher implements ServletContextListener {
 
             sce.getServletContext().setAttribute(DeviceMapper.TANGO_MAPPER, mapper);
 
+            AccessControl accessControl = new AccessControl(tangoHost);
+
+            sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
+
             System.out.println("MTango is initialized.");
         } catch (TangoProxyException e) {
             throw new RuntimeException(e);
