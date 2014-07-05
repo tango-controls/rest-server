@@ -32,7 +32,7 @@
 
     <filter>
         <filter-name>Authentication</filter-name>
-        <filter-class>org.tango.web.server.filters.AuthenticationFilter</filter-class>
+        <filter-class>org.tango.web.server.filters.AccessControlFilter</filter-class>
     </filter>
 
     <filter>

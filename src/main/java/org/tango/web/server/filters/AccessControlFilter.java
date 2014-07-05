@@ -17,16 +17,17 @@ import java.util.List;
  * @author Ingvord
  * @since 01.07.14
  */
-public class AuthenticationFilter implements Filter {
-    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationFilter.class);
+public class AccessControlFilter implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
+    public static final String DEFAULT_USER = "*";
 
     public void destroy() {
-        LOG.info("AuthenticationFilter is destroyed.");
+        LOG.info("AccessControlFilter is destroyed.");
     }
 
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         String user = ((HttpServletRequest) req).getRemoteUser();
-        if (user == null) throw new NullPointerException("user can not be null"); //TODO client friendly response
+        if (user == null) user = DEFAULT_USER;
         AccessControl accessControl = (AccessControl) req.getServletContext().getAttribute(AccessControl.TANGO_ACCESS);
         try {
             String requestURI = ((HttpServletRequest) req).getRequestURI();
@@ -36,12 +37,12 @@ public class AuthenticationFilter implements Filter {
                     if (accessControl.checkUserCanRead(user, req.getRemoteAddr(), device))
                         chain.doFilter(req, resp);
                     else
-                        throw new IllegalAccessError(String.format("User %s does not have access to %s", user, device));//TODO send client friendly response
+                        throw new IllegalAccessError(String.format("User %s does not have read access to %s", user, device));//TODO send client friendly response
                 case "PUT":
                     if (accessControl.checkUserCanWrite(user, req.getRemoteAddr(), device))
                         chain.doFilter(req, resp);
                     else
-                        throw new IllegalAccessError(String.format("User %s does not have access to %s", user, device));//TODO send client friendly response
+                        throw new IllegalAccessError(String.format("User %s does not have write access to %s", user, device));//TODO send client friendly response
                 default:
                     throw new IllegalAccessError("Method is not allowed: " + ((HttpServletRequest) req).getMethod());
             }
@@ -51,6 +52,7 @@ public class AuthenticationFilter implements Filter {
         }
     }
 
+    //TODO check performance against regex
     private String getDevice(String uri) {
         String[] parts = uri.split("/");
         List<String> partsList = Arrays.asList(parts);
