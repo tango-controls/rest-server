@@ -79,7 +79,10 @@ public class Rest2TangoTest {
 
     @Test
     public void testPutAttribute() throws Exception {
-
+        ResteasyClient cr = new ResteasyClientBuilder().httpEngine(engine).build();// Request("http://www.mastertheboss.com/");
+        cr.target("http://localhost:8080/mtango/rest/device/sys/tg_test/1/long_scalar_w=1234567")
+                .request().put(null);
+//        System.out.println(result);
     }
 
     @Test

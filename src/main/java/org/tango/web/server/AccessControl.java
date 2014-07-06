@@ -22,7 +22,7 @@ public class AccessControl {
 
     private static final ScheduledExecutorService EXEC = Executors.newScheduledThreadPool(1);
 
-    private final ConcurrentMap<String, Future<String>> accessMsp = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Future<String>> accessMap = new ConcurrentHashMap<>();
 
     public AccessControl(String tangoHost) throws TangoProxyException {
         this(tangoHost, DEFAULT_ID);
@@ -46,35 +46,37 @@ public class AccessControl {
         return WRITE.equals(access);
     }
 
+    //TODO basically we must subscribe to the events of AddUser etc and cache these values
     private String getAccess(final String userName, final String IP, final String devName) throws TangoProxyException {
-        final String userKey = userName + "@" + IP;
-        Future<String> f = accessMsp.get(userKey);
-        //TODO reset remove task
-        if (f == null) {
-            Callable<String> callable = new Callable<String>() {
-                @Override
-                public String call() throws Exception {
-                    return proxy.executeCommand("GetAccess", new String[]{userName, IP, devName});
-                }
-            };
-            FutureTask<String> ft = new FutureTask<>(callable);
-            f = accessMsp.putIfAbsent(userKey, ft);
-            if (f == null) {
-                ft.run();
-                EXEC.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        accessMsp.remove(userKey);
-                    }
-                }, DEFAULT_CACHE_DELAY, TimeUnit.MINUTES);
-                f = ft;
-            }
-
-        }
-        try {
-            return f.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new TangoProxyException(e);
-        }
+        return proxy.executeCommand("GetAccess", new String[]{userName, IP, devName});
+//        final String userKey = userName + "@" + IP;
+//        Future<String> f = accessMap.get(userKey);
+//        //TODO reset remove task
+//        if (f == null) {
+//            Callable<String> callable = new Callable<String>() {
+//                @Override
+//                public String call() throws Exception {
+//                    return proxy.executeCommand("GetAccess", new String[]{userName, IP, devName});
+//                }
+//            };
+//            FutureTask<String> ft = new FutureTask<>(callable);
+//            f = accessMap.putIfAbsent(userKey, ft);
+//            if (f == null) {
+//                ft.run();
+//                EXEC.schedule(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        accessMap.remove(userKey);
+//                    }
+//                }, DEFAULT_CACHE_DELAY, TimeUnit.MINUTES);
+//                f = ft;
+//            }
+//
+//        }
+//        try {
+//            return f.get();
+//        } catch (InterruptedException | ExecutionException e) {
+//            throw new TangoProxyException(e);
+//        }
     }
 }
