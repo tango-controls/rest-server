@@ -30,3 +30,21 @@ response = urllib2.urlopen("http://localhost:8080/mtango/rest/devices")
 result = json.loads(response.read())
 
 print result[u'argout']
+
+#write attribute example
+request = urllib2.Request('http://localhost:8080/mtango/rest/device/sys/tg_test/1/long_scalar_w=123456')
+request.get_method = lambda: 'PUT'
+url = opener.open(request)
+
+#read attribute example
+response = urllib2.urlopen("http://localhost:8080/mtango/rest/device/sys/tg_test/1/long_scalar_w")
+result = json.loads(response.read())
+
+print result
+
+#execute command example
+#space is replaced with %20 as it is not done by the urlopen
+response = urllib2.urlopen("http://localhost:8080/mtango/rest/device/sys/tg_test/1/DevString=Hello%20World!!!")
+result = json.loads(response.read())
+
+print result
