@@ -97,11 +97,11 @@
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Tango web gateway</web-resource-name>
-            <url-pattern>/*</url-pattern>
+            <web-resource-name>Tango RESTful gateway</web-resource-name>
+            <url-pattern>/rest/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
-            <role-name>mtango</role-name>
+            <role-name>mtango-rest</role-name>
         </auth-constraint>
     </security-constraint>
     <login-config>
@@ -114,7 +114,7 @@
         </form-login-config>-->
     </login-config>
     <security-role>
-        <description>mtango user</description>
-        <role-name>mtango</role-name>
+        <description>mtango rest api user</description>
+        <role-name>mtango-rest</role-name>
     </security-role>
 </web-app>
