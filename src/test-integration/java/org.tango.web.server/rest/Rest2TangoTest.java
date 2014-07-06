@@ -18,6 +18,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import org.junit.Before;
 import org.junit.Test;
+import org.tango.web.rest.*;
 
 import java.util.List;
 
@@ -71,7 +72,7 @@ public class Rest2TangoTest {
                 .request().get(String.class);
         DeviceState result = gson.fromJson(json, DeviceState.class);
         assertTrue(result.state.equals("RUNNING"));
-        assertTrue(result.status.equals("The device is in RUNNING state"));
+        assertTrue(result.status.equals("The device is in RUNNING state."));
     }
 
     @Test
@@ -134,7 +135,7 @@ public class Rest2TangoTest {
                 .request().get(String.class);
         Response result = gson.fromJson(json, Response.class);
         //gson deserializes any number to double if otherwise is not specified
-        assertTrue((int) (double) result.argout == 123456);
+        assertTrue((int) (double) result.argout == 1234567);
     }
 
     @Test
