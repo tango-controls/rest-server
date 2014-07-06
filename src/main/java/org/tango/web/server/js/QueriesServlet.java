@@ -3,11 +3,11 @@ package org.tango.web.server.js;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.web.rest.Responses;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.command.Command;
 import org.tango.web.server.command.CommandInfo;
 import org.tango.web.server.command.Commands;
-import org.tango.web.server.rest.Responses;
 import org.tango.web.server.util.Json;
 
 import javax.servlet.ServletException;

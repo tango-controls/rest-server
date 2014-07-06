@@ -11,8 +11,13 @@ import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.javatuples.Triplet;
+import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.web.rest.DeviceState;
+import org.tango.web.rest.Response;
+import org.tango.web.rest.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 
@@ -141,8 +146,10 @@ public class Rest2Tango {
 
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(member)) //TODO if attr image - generate one and send link
-            return Responses.createAttributeSuccessResult(proxy.readAttributeValueTimeQuality(member));
-        else if (proxy.hasCommand(member))
+        {
+            Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(member);
+            return Responses.createAttributeSuccessResult(new Triplet<>(result.getValue0(), result.getValue1(), result.getValue2().name()));
+        } else if (proxy.hasCommand(member))
             return Responses.createSuccessResult(proxy.executeCommand(member, null));
         else
             throw new IllegalArgumentException();
