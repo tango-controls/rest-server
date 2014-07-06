@@ -1,17 +1,15 @@
 package org.tango.web.server.filters;
 
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.AccessControl;
-import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.util.CommonUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Ingvord
@@ -31,34 +29,35 @@ public class AccessControlFilter implements Filter {
         AccessControl accessControl = (AccessControl) req.getServletContext().getAttribute(AccessControl.TANGO_ACCESS);
         try {
             String requestURI = ((HttpServletRequest) req).getRequestURI();
-            String device = getDevice(requestURI);
+            String device = CommonUtils.parseDevice(requestURI);
             switch (((HttpServletRequest) req).getMethod()) {
                 case "GET":
                     if (accessControl.checkUserCanRead(user, req.getRemoteAddr(), device))
                         chain.doFilter(req, resp);
-                    else
-                        throw new IllegalAccessError(String.format("User %s does not have read access to %s", user, device));//TODO send client friendly response
+                    else {
+                        String msg = String.format("User %s does not have read access to %s", user, device);
+                        ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, msg);
+                        LOG.info(msg);
+                    }
+
+                    break;
                 case "PUT":
                     if (accessControl.checkUserCanWrite(user, req.getRemoteAddr(), device))
                         chain.doFilter(req, resp);
-                    else
-                        throw new IllegalAccessError(String.format("User %s does not have write access to %s", user, device));//TODO send client friendly response
+                    else {
+                        String msg = String.format("User %s does not have write access to %s", user, device);
+                        ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, msg);
+                        LOG.info(msg);
+                    }
+                    break;
                 default:
-                    throw new IllegalAccessError("Method is not allowed: " + ((HttpServletRequest) req).getMethod());
+                    ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                    LOG.info("Method is not allowed: " + ((HttpServletRequest) req).getMethod());
             }
 
         } catch (TangoProxyException e) {
             throw new ServletException(e);
         }
-    }
-
-    //TODO check performance against regex
-    private String getDevice(String uri) {
-        String[] parts = uri.split("/");
-        List<String> partsList = Arrays.asList(parts);
-        if (partsList.contains("devices")) return DatabaseDs.DEFAULT_ID;
-        int marker = partsList.indexOf("device");
-        return Joiner.on('/').join(Arrays.copyOfRange(parts, marker + 1, marker + 4));
     }
 
     public void init(FilterConfig config) throws ServletException {
