@@ -1,4 +1,4 @@
-package org.tango.web.server;
+package org.tango.web.server.rest;
 
 import org.tango.client.ez.attribute.Quality;
 

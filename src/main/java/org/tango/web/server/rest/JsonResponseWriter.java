@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import fr.esrf.TangoApi.AttributeInfo;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
-import org.tango.web.server.Response;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;

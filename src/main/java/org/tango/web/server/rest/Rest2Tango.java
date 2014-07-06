@@ -15,8 +15,6 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
-import org.tango.web.server.Response;
-import org.tango.web.server.Responses;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -117,7 +115,6 @@ public class Rest2Tango {
             throw new IllegalArgumentException(String.format("Device %s does not have neither attribute nor command %s", proxy.getName(), member));
     }
 
-    //TODO write_read
     @GET
     @Path("device/{domain}/{name}/{instance}/{cmd_or_attr}/info")
     @Produces("application/json")
