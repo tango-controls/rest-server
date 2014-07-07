@@ -13,7 +13,7 @@ import static junit.framework.Assert.assertEquals;
  * @since 15.10.12
  */
 //TODO make these tests environment independent
-public class CommandImplTest {
+public class ITCommandImplTest {
     private final String tangoHost = System.getenv("TANGO_HOST");
 
     @Test
@@ -24,7 +24,7 @@ public class CommandImplTest {
 
         cmd.execute();
 
-        mtd = proxy.getClass().getMethod("readAttributeValueAndTime", String.class);
+        mtd = proxy.getClass().getMethod("readAttribute", String.class);
         cmd = new Command(proxy, mtd, "double_scalar_w");
 
         assertEquals(Math.PI, cmd.execute());
