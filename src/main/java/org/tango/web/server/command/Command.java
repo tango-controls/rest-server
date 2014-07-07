@@ -2,8 +2,6 @@ package org.tango.web.server.command;
 
 import org.tango.client.ez.proxy.TangoProxy;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -11,14 +9,13 @@ import java.util.Arrays;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 15.10.12
  */
-@Immutable
 public class Command {
     private final TangoProxy proxy;
     private final Method method;
     private final Object[] args;
 
 
-    public Command(@Nonnull TangoProxy proxy, @Nonnull Method method, Object... args) {
+    public Command(TangoProxy proxy, Method method, Object... args) {
         this.proxy = proxy;
         this.method = method;
         this.args = args;
