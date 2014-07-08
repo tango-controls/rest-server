@@ -1,7 +1,6 @@
-package hzg.wpn.mtango;
+package org.tango.web.server;
 
 import org.junit.Test;
-import org.tango.web.server.DatabaseDs;
 
 import java.util.Collection;
 
@@ -12,7 +11,7 @@ import static org.junit.Assert.assertTrue;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 23.05.14
  */
-public class DatabaseDsTest {
+public class ITDatabaseDsTest {
     private static final String TANGO_HOST;
 
     static {
