@@ -6,6 +6,7 @@ import org.tango.web.rest.*;
 import javax.ws.rs.client.Client;
 import java.util.List;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -85,5 +86,12 @@ public class ITRest2TangoTest {
         Response<String> result = client.target("http://localhost:8080/mtango/rest/device/sys/tg_test/1/DevString=Hello World!!!")
                 .request().get(new StringResponse());
         assertTrue(result.argout.equals("Hello World!!!"));
+    }
+
+    @Test
+    public void testGeneralPurposeResponse() throws Exception {
+        Response result = client.target("http://localhost:8080/mtango/rest/device/sys/tg_test/1/DevVarLongArray=1,2,3,4,5")
+                .request().get(Response.class);
+        assertArrayEquals(new Double[]{1., 2., 3., 4., 5.}, ((List<Double>) result.argout).toArray(new Double[5]));
     }
 }
