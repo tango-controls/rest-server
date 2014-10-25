@@ -67,7 +67,7 @@
 
     <filter-mapping>
         <filter-name>JsonpResponseWrapper</filter-name>
-        <url-pattern>*.jsonp</url-pattern>
+        <url-pattern>*</url-pattern>
     </filter-mapping>
 
     <servlet>

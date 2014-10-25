@@ -21,18 +21,24 @@ public class JsonpResponseWrapper implements Filter {
     }
 
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
-        String callback = req.getParameter("cbk");
-        if (callback == null) throw new ServletException("cbk parameter is not defined in the request!");
+        String output = req.getParameter("output");
+        if (output != null && output.equalsIgnoreCase("jsonp")) {
+            String callback = req.getParameter("cbk");
+            if (callback == null) throw new ServletException("cbk parameter is not defined in the request!");
 
-        resp.setContentType("application/javascript");
+            resp.setContentType("application/javascript");
 
-        PrintWriter out = resp.getWriter();
-        out.append(";").append(callback).append("(");
-        chain.doFilter(req, resp);
-        out.append(");");
-
-        //this is the last filter in the chain
-        resp.flushBuffer();
+            PrintWriter out = new PrintWriter(resp.getOutputStream());
+            out.append(";").append(callback).append("(");
+            out.flush();
+            chain.doFilter(req, resp);
+            out.append(");");
+            out.flush();
+            //this is the last filter in the chain
+            resp.flushBuffer();
+        } else {
+            chain.doFilter(req, resp);
+        }
     }
 
     public void init(FilterConfig config) throws ServletException {
