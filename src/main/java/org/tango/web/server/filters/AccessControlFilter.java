@@ -30,7 +30,9 @@ public class AccessControlFilter implements Filter {
         try {
             String requestURI = ((HttpServletRequest) req).getRequestURI();
             String device = CommonUtils.parseDevice(requestURI);
-            switch (((HttpServletRequest) req).getMethod()) {
+            //workaround jsonp limitation
+            String method = req.getParameter("_method") != null ? req.getParameter("_method").toUpperCase() : ((HttpServletRequest) req).getMethod();
+            switch (method) {
                 case "GET":
                     if (accessControl.checkUserCanRead(user, req.getRemoteAddr(), device))
                         chain.doFilter(req, resp);

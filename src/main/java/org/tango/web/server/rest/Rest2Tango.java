@@ -200,17 +200,25 @@ public class Rest2Tango {
     }
 
     @GET
-    @Path("device/{domain}/{name}/{instance}/{cmd}={arg}")//TODO optional argument
+    @Path("device/{domain}/{name}/{instance}/{cmd_or_attr}={arg}")//TODO optional argument
     @Produces("application/json")
     public Object getCommand(@PathParam("domain") String domain,
                              @PathParam("name") String name,
                              @PathParam("instance") String instance,
-                             @PathParam("cmd") String cmd,
+                             @PathParam("cmd_or_attr") String cmd,
                              @PathParam("arg") String arg,
+                             @QueryParam("_method") String method,
                              @Context ServletContext ctx) throws Exception {//TODO exceptions
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (!proxy.hasCommand(cmd)) {
-            throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
+            //workaround jsonp limitation
+            if(method != null && "PUT".equalsIgnoreCase(method) && proxy.hasAttribute(cmd)){
+                Class<?> targetType = proxy.getAttributeInfo(cmd).getType().getDataType();
+                Object converted = ConvertUtils.convert(arg, targetType);
+                proxy.writeAttribute(cmd,converted);
+                return Responses.createSuccessResult(null);
+            } else
+                throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
         } else {
             Class<?> targetType = proxy.getCommandInfo(cmd).getArginType();
             if (targetType == Void.class) return proxy.executeCommand(cmd, null);
