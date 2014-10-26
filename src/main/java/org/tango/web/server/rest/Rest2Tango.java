@@ -13,8 +13,7 @@ import fr.esrf.TangoApi.DeviceInfo;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
 import org.tango.client.ez.attribute.Quality;
-import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.proxy.*;
 import org.tango.web.rest.DeviceState;
 import org.tango.web.rest.Response;
 import org.tango.web.rest.Responses;
@@ -27,6 +26,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Path("/")
 public class Rest2Tango {
@@ -153,6 +155,48 @@ public class Rest2Tango {
             return Responses.createSuccessResult(proxy.executeCommand(member, null));
         else
             throw new IllegalArgumentException();
+    }
+
+    @GET
+    @Path("device/{domain}/{name}/{instance}/{attr}.{evt}")
+    @Produces("application/json")
+    public Object getCommandOrAttributeOnChange(@PathParam("domain") String domain,
+                                        @PathParam("name") String name,
+                                        @PathParam("instance") String instance,
+                                        @PathParam("attr") String member,
+                                        @PathParam("evt") String evt,
+                                        @Context ServletContext ctx) throws Exception {
+
+        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        if (!proxy.hasAttribute(member)) return Responses.createFailureResult(new String[]{String.format("No such attr: %s/%s/%s/%s",domain,name,instance,member)});
+
+        try {
+            TangoEvent event = TangoEvent.valueOf(evt.toUpperCase());
+            proxy.subscribeToEvent(member, event);
+
+            final AtomicReference<Response<Object>> refResult = new AtomicReference<>();
+            final CountDownLatch latch = new CountDownLatch(1);
+            TangoEventListener<Object> listener = new TangoEventListener<Object>() {
+                @Override
+                public void onEvent(EventData<Object> data) {
+                    refResult.set(Responses.createAttributeSuccessResult(new Triplet<>(data.getValue(), data.getTime(), Quality.VALID.name())));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onError(Throwable cause) {
+                    refResult.set(Responses.createFailureResult(new String[]{cause.getMessage()}));
+                    latch.countDown();
+                }
+            };
+            proxy.addEventListener(member, event, listener);
+
+            //block this servlet until event
+            latch.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            return refResult.get();
+        } catch (Exception e) {
+            return Responses.createFailureResult(new String[]{e.getMessage()});
+        }
     }
 
     @GET
