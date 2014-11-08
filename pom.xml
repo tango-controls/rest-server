@@ -175,4 +175,25 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-release</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-plugins</id>
+            <name>bintray-plugins</name>
+            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
