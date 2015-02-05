@@ -31,11 +31,6 @@
     </listener>
 
     <filter>
-        <filter-name>Authentication</filter-name>
-        <filter-class>org.tango.web.server.filters.AccessControlFilter</filter-class>
-    </filter>
-
-    <filter>
         <filter-name>StopWatch</filter-name>
         <filter-class>org.tango.web.server.filters.TimeWatcher</filter-class>
     </filter>
@@ -43,6 +38,11 @@
     <filter>
         <filter-name>JsonpResponseWrapper</filter-name>
         <filter-class>org.tango.web.server.filters.JsonpResponseWrapper</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>Authentication</filter-name>
+        <filter-class>org.tango.web.server.filters.AccessControlFilter</filter-class>
     </filter>
 
     <servlet>
@@ -71,6 +71,11 @@
     </filter-mapping>
 
     <servlet>
+        <servlet-name>JsClientEntryPoint</servlet-name>
+        <servlet-class>org.tango.web.server.js.EntryPoint</servlet-class>
+    </servlet>
+    
+    <servlet>
         <display-name>QueriesServlet</display-name>
         <servlet-name>QueriesServlet</servlet-name>
         <servlet-class>org.tango.web.server.js.QueriesServlet</servlet-class>
@@ -85,6 +90,11 @@
         <welcome-file>www/apps/mTangoTest/index.html</welcome-file>
     </welcome-file-list>
 
+    <servlet-mapping>
+        <servlet-name>JsClientEntryPoint</servlet-name>
+        <url-pattern>/js-entry-point/*</url-pattern>
+    </servlet-mapping>
+    
     <servlet-mapping>
         <servlet-name>QueriesServlet</servlet-name>
         <url-pattern>/queries/*</url-pattern>
