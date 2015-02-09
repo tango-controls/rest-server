@@ -1,0 +1,54 @@
+1.5.5 : r1312
+- set test with &jmvc[env]=test
+- bug fixes
+- documentation
+- animate colors
+- scroll plugin
+- engine dependancies
+
+1.5.4 : r1201
+- new rhino and shrink safe
+- uses sizzle
+- changes to element plugin
+
+1.5.3 : r1042
+- Update jmvc with 'js jmvc\update'
+- Unit Testing
+- Documentation
+- DragDrop improvements
+- Hover
+- MouseEnter
+- Lasso
+- Position
+- Stateful Controller redesign
+- OpenAjax.hub support
+- RSH improvements
+
+1.5.2
+-Making way for unit tests to run in rhino
+-FF3 testing works
+-added js script
+-added rhino based generators
+-all Element plugin functions are under_scored
+-RSH doesn't write to Object.property
+-include(function(){}) support
+-Internationalization support
+-LOTS of bug fixes.
+-View performance improvements via [].join()
+-postMessage fix in xdoc
+
+1.5.1
+-Error with helpers loading after inflector
+-RSH working
+
+1.5.0
+-Rhino compression
+-Class Inheritance
+-Ajax, JSON, XML, Cookie models
+-Drag and Drop controller
+-Dispatcher
+-Controller Scaffolds
+-Generator
+-Documentation
+
+
