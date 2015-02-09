@@ -76,6 +76,11 @@
             <version>3.0.7.Final</version>
         </dependency>
         <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-cache-core</artifactId>
+            <version>3.0.7.Final</version>
+        </dependency>
+        <dependency>
             <groupId>org.tango</groupId>
             <artifactId>rest-api</artifactId>
             <version>0.0.3</version>
