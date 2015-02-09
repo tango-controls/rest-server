@@ -17,6 +17,7 @@ import java.io.IOException;
  */
 public class AccessControlFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
+    //TODO customizable default user
     public static final String DEFAULT_USER = "*";
 
     public void destroy() {
