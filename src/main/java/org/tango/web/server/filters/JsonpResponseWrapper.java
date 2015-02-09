@@ -31,17 +31,17 @@ public class JsonpResponseWrapper implements Filter {
 
         PrintWriter out = new PrintWriter(resp.getOutputStream());
 
+        out.append(";").append(callback).append("(");
+        out.flush();
         try {
-            out.append(";").append(callback).append("(");
-            out.flush();
             chain.doFilter(req, resp);
-            out.append(");");
-            out.flush();
-            //this is the last filter in the chain
-            resp.flushBuffer();
         } catch (Exception e) {
             Responses.sendFailure(e, out);
         }
+        out.append(");");
+        out.flush();
+        //this is the last filter in the chain
+        resp.flushBuffer();
     }
 
     public void init(FilterConfig config) throws ServletException {
