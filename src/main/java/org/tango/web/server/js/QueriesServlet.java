@@ -21,9 +21,12 @@ import java.util.regex.Pattern;
 /**
  * This servlet serves attribute read/write and command execution service
  *
+ * Deprecated use {@link org.tango.web.server.rest.Rest2Tango} instead
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11.10.12
  */
+@Deprecated
 public class QueriesServlet extends HttpServlet {
     public static final Pattern URI_PATTERN = Pattern.compile("/mtango/queries/(read|write|exec)/result\\.jsonp?");
     private static Logger LOG = LoggerFactory.getLogger(QueriesServlet.class);
