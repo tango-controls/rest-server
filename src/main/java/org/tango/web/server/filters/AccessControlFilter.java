@@ -17,8 +17,6 @@ import java.io.IOException;
  */
 public class AccessControlFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
-    //TODO customizable default user
-    public static final String DEFAULT_USER = "*";
 
     public void destroy() {
         LOG.info("AccessControlFilter is destroyed.");
@@ -26,7 +24,11 @@ public class AccessControlFilter implements Filter {
 
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         String user = ((HttpServletRequest) req).getRemoteUser();
-        if (user == null) user = DEFAULT_USER;
+        if (user == null) {
+            ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized user!");
+            return;
+        }
+
         AccessControl accessControl = (AccessControl) req.getServletContext().getAttribute(AccessControl.TANGO_ACCESS);
         try {
             String requestURI = ((HttpServletRequest) req).getRequestURI();
