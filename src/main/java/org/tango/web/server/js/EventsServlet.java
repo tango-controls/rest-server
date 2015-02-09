@@ -22,9 +22,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ *
+ * Deprecated use {@link org.tango.web.server.rest.Rest2Tango} instead
+ *
  * @author ingvord
  * @since 5/25/14@12:55 PM
  */
+@Deprecated
 public class EventsServlet extends HttpServlet {
     public static final Pattern URI_PATTERN;
 
