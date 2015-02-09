@@ -3,6 +3,7 @@ package org.tango.web.server.filters;
 import org.tango.web.rest.Responses;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -31,17 +32,18 @@ public class JsonpResponseWrapper implements Filter {
             resp.setContentType("application/javascript");
 
             PrintWriter out = new PrintWriter(resp.getOutputStream());
-            out.append(";").append(callback).append("(");
-            out.flush();
+
             try {
+                out.append(";").append(callback).append("(");
+                out.flush();
                 chain.doFilter(req, resp);
+                out.append(");");
+                out.flush();
+                //this is the last filter in the chain
+                resp.flushBuffer();
             } catch (Exception e) {
                 Responses.sendFailure(e, out);
             }
-            out.append(");");
-            out.flush();
-            //this is the last filter in the chain
-            resp.flushBuffer();
         } else {
             chain.doFilter(req, resp);
         }
