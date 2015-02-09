@@ -38,7 +38,8 @@ public class JsonpAuthenticationFilter implements Filter {
 
         @Override
         public String getRemoteUser() {
-            return DEFAULT_USER;
+            String remoteUser = super.getRemoteUser();
+            return remoteUser != null ? remoteUser : DEFAULT_USER;
         }
     }
 

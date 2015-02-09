@@ -3,7 +3,7 @@ package org.tango.web.server.filters;
 import org.tango.web.rest.Responses;
 
 import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -26,7 +26,7 @@ public class JsonpResponseWrapper implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         String callback = req.getParameter("cbk");
         if (callback == null) throw new ServletException("cbk parameter is not defined in the request!");
-
+        ((HttpServletResponse)resp).setDateHeader("Expires", System.currentTimeMillis() + Long.MAX_VALUE); // jsonp never expires
         resp.setContentType("application/javascript");
 
         PrintWriter out = new PrintWriter(resp.getOutputStream());

@@ -17,9 +17,23 @@
         <param-name>resteasy.providers</param-name>
         <param-value>org.tango.web.server.rest.JsonResponseWriter</param-value>
     </context-param>
+    <context-param>
+        <param-name>resteasy.server.cache.maxsize</param-name>
+        <param-value>1000</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>resteasy.server.cache.eviction.wakeup.interval</param-name>
+        <param-value>5000</param-value>
+    </context-param>
 
     <listener>
         <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
+    </listener>
+    <listener>
+        <listener-class>
+            org.jboss.resteasy.plugins.cache.server.SimpleServerCache
+        </listener-class>
     </listener>
     <listener>
         <listener-class>org.tango.web.server.Launcher</listener-class>
