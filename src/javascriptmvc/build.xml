@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<project name="JavaScriptMVC ant utilities" basedir=".">
+<project name="mTango.WAR admin panel" basedir=".">
     <property environment="env"/>
-    <property name="application.name" value="app"/>
+    <property name="application.name" value="adminka"/>
     <property name="dir.build" value="../build"/>
     <property name="dir.target" value="../main/webapp/www"/>
 
