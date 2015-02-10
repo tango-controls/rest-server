@@ -118,7 +118,7 @@
     </filter-mapping>
 
     <welcome-file-list>
-        <welcome-file>www/apps/mTangoTest/index.html</welcome-file>
+        <welcome-file>www/apps/adminka/index.html</welcome-file>
     </welcome-file-list>
 
     <security-constraint>
@@ -128,6 +128,15 @@
         </web-resource-collection>
         <auth-constraint>
             <role-name>mtango-rest</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango Admin panel</web-resource-name>
+            <url-pattern>/www/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>mtango-admin</role-name>
         </auth-constraint>
     </security-constraint>
     <login-config>
@@ -142,5 +151,9 @@
     <security-role>
         <description>mtango rest api user</description>
         <role-name>mtango-rest</role-name>
+    </security-role>
+    <security-role>
+        <description>mtango admin</description>
+        <role-name>mtango-admin</role-name>
     </security-role>
 </web-app>
