@@ -61,7 +61,7 @@
 
     <filter>
         <filter-name>LruCache</filter-name>
-        <filter-class>org.tango.web.server.filters.LruCacheFilter</filter-class>
+        <filter-class>org.tango.web.server.filters.SimpleCacheFilter</filter-class>
     </filter>
 
     <servlet>
