@@ -12,7 +12,7 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
-import org.jboss.resteasy.annotations.cache.Cache;
+import org.jboss.resteasy.annotations.cache.NoCache;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.*;
 import org.tango.web.rest.DeviceState;
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Path("/")
-@Cache(maxAge = 3000)
+@NoCache
 public class Rest2Tango {
     @GET
     @Path("devices")
