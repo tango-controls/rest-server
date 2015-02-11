@@ -1,11 +1,12 @@
 package org.tango.web.server.filters;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -16,9 +17,11 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class SimpleCacheFilter implements Filter {
     public static final long DELAY = 200L;//TODO parameter
+    public static final int CAPACITY = 1000;//TODO parameter
 
-    private final ConcurrentMap<String, Long> timeCache = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, byte[]> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, CacheEntry> cache = new ConcurrentLinkedHashMap.Builder<String, CacheEntry>()
+            .maximumWeightedCapacity(CAPACITY)
+            .build();
 
     public void destroy() {
     }
@@ -27,28 +30,29 @@ public class SimpleCacheFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         HttpServletRequest httpReq = (HttpServletRequest) req;
         HttpServletResponse httpResp = (HttpServletResponse) resp;
-        if (httpReq.getMethod().equals("GET")) {
-            long timestamp = System.currentTimeMillis();
-            String URI = httpReq.getRequestURI();
-            Long oldTimestamp = timeCache.putIfAbsent(URI, timestamp);
-            if (oldTimestamp == null || timestamp - oldTimestamp > DELAY) {
+
+        String URI = httpReq.getRequestURI();
+        long timestamp = System.currentTimeMillis();
+
+        if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {//TODO GET with assignment
+            CacheEntry cacheEntry = cache.get(URI);
+            if (cacheEntry == null || timestamp - cacheEntry.timestamp > DELAY) {
                 CachedResponseWrapper wrapper = new CachedResponseWrapper(httpResp);
                 chain.doFilter(req, wrapper);
 
-                timeCache.put(URI,timestamp);
-                cache.put(URI, wrapper.cache.toByteArray());
-                returnCachedValue(URI, resp);
+                cache.put(URI, cacheEntry = new CacheEntry(timestamp, wrapper.cached.toByteArray()));
+                returnCachedValue(cacheEntry, resp);
             } else {
-                returnCachedValue(URI, resp);
+                returnCachedValue(cacheEntry, resp);
             }
         } else {
             chain.doFilter(req, resp);
         }
     }
 
-    private void returnCachedValue(String URI, ServletResponse resp) throws IOException {
+    private void returnCachedValue(CacheEntry cacheEntry, ServletResponse resp) throws IOException {
         try (ServletOutputStream outputStream = resp.getOutputStream()) {
-            outputStream.write(cache.get(URI));
+            outputStream.write(cacheEntry.value);
         }
     }
 
@@ -58,7 +62,7 @@ public class SimpleCacheFilter implements Filter {
 
     private static class CachedResponseWrapper extends HttpServletResponseWrapper {
         private final PrintWriter writer;
-        private final ByteArrayOutputStream cache;
+        private final ByteArrayOutputStream cached;
         private final ServletOutputStream outputStream;
 
         /**
@@ -69,12 +73,12 @@ public class SimpleCacheFilter implements Filter {
          */
         public CachedResponseWrapper(HttpServletResponse response) {
             super(response);
-            cache = new ByteArrayOutputStream(/*super.getBufferSize()*/);
-            writer = new PrintWriter(cache);
+            cached = new ByteArrayOutputStream(/*super.getBufferSize()*/);
+            writer = new PrintWriter(cached);
             outputStream = new ServletOutputStream() {
                 @Override
                 public void write(int b) throws IOException {
-                    cache.write(b);
+                    cached.write(b);
                 }
             };
         }
@@ -87,6 +91,16 @@ public class SimpleCacheFilter implements Filter {
         @Override
         public ServletOutputStream getOutputStream() throws IOException {
             return outputStream;
+        }
+    }
+
+    private static class CacheEntry{
+        private final byte[] value;
+        private final long timestamp;
+
+        private CacheEntry(long timestamp, byte[] value) {
+            this.value = value;
+            this.timestamp = timestamp;
         }
     }
 }
