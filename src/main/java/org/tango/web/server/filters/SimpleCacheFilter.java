@@ -1,6 +1,8 @@
 package org.tango.web.server.filters;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +18,8 @@ import java.util.concurrent.ConcurrentMap;
  * @since 09.02.2015
  */
 public class SimpleCacheFilter implements Filter {
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleCacheFilter.class);
+
     public static final long DELAY = 200L;//TODO parameter
     public static final int CAPACITY = 1000;//TODO parameter
 
@@ -37,12 +41,14 @@ public class SimpleCacheFilter implements Filter {
         if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {//TODO GET with assignment
             CacheEntry cacheEntry = cache.get(URI);
             if (cacheEntry == null || timestamp - cacheEntry.timestamp > DELAY) {
+                LOG.debug("Cache miss!");
                 CachedResponseWrapper wrapper = new CachedResponseWrapper(httpResp);
                 chain.doFilter(req, wrapper);
 
                 cache.put(URI, cacheEntry = new CacheEntry(timestamp, wrapper.cached.toByteArray()));
                 returnCachedValue(cacheEntry, resp);
             } else {
+                LOG.debug("Cache hit!");
                 returnCachedValue(cacheEntry, resp);
             }
         } else {
