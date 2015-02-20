@@ -57,9 +57,8 @@ public class SimpleCacheFilter implements Filter {
     }
 
     private void returnCachedValue(CacheEntry cacheEntry, ServletResponse resp) throws IOException {
-        try (ServletOutputStream outputStream = resp.getOutputStream()) {
-            outputStream.write(cacheEntry.value);
-        }
+        ServletOutputStream outputStream = resp.getOutputStream();
+        outputStream.write(cacheEntry.value);
     }
 
     public void init(FilterConfig config) throws ServletException {
