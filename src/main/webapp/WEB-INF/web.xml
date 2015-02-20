@@ -94,13 +94,13 @@
     </filter-mapping>
 
     <filter-mapping>
-        <filter-name>ResponseCache</filter-name>
-        <url-pattern>/*</url-pattern>
+        <filter-name>JsonpResponseWrapper</filter-name>
+        <url-pattern>/js/*</url-pattern>
     </filter-mapping>
 
     <filter-mapping>
-        <filter-name>JsonpResponseWrapper</filter-name>
-        <url-pattern>/js/*</url-pattern>
+        <filter-name>ResponseCache</filter-name>
+        <url-pattern>/rest/*</url-pattern>
     </filter-mapping>
 
     <welcome-file-list>
