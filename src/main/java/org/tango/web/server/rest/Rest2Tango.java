@@ -208,8 +208,8 @@ public class Rest2Tango {
                     helper.subscribe();
                     return result;
                 } else {
-                    //block this servlet until event or timeout
-                    return oldHelper.get(timeout);
+                    //block this servlet until event or timeout if it has no value
+                    return oldHelper.hasValue() ? oldHelper.get() : oldHelper.get(timeout);
                 }
             } else if(state == EventHelper.State.CONTINUATION){
                 //block this servlet until event or timeout
@@ -293,6 +293,14 @@ public class Rest2Tango {
             }
         }
 
+        public boolean hasValue(){
+            return value != null;
+        }
+
+        public Response<?> get(){
+            return value;
+        }
+
         /**
          * Waits for value to be set
          *
@@ -318,7 +326,7 @@ public class Rest2Tango {
             listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    System.out.println("onEvent!!!");
+                    System.out.println("onEvent!!!");//TODO log
                     EventHelper.this.set(Responses.createAttributeSuccessResult(new Triplet<>(data.getValue(), data.getTime(), Quality.VALID.name())));
                 }
 

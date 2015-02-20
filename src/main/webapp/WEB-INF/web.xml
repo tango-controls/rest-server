@@ -100,7 +100,7 @@
 
     <filter-mapping>
         <filter-name>ResponseCache</filter-name>
-        <url-pattern>/rest/*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <welcome-file-list>
