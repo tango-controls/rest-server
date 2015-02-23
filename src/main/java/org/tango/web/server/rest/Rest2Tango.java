@@ -8,12 +8,16 @@ package org.tango.web.server.rest;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.jboss.resteasy.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.*;
 import org.tango.web.rest.DeviceState;
@@ -23,14 +27,20 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import java.awt.image.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.file.*;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Path("/")
 @NoCache
@@ -152,8 +162,12 @@ public class Rest2Tango {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(member)) //TODO if attr image - generate one and send link
         {
-            Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(member);
-            return Responses.createAttributeSuccessResult(new Triplet<>(result.getValue0(), result.getValue1(), result.getValue2().name()));
+            if(proxy.getAttributeInfo(member).getFormat().toAttrDataFormat() == AttrDataFormat.IMAGE){
+                return new ImageAttributeHelper(member, proxy, ctx.getRealPath("/temp")).send();
+            } else {
+                Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(member);
+                return Responses.createAttributeSuccessResult(new Triplet<>(result.getValue0(), result.getValue1(), result.getValue2().name()));
+            }
         } else if (proxy.hasCommand(member))
             return Responses.createSuccessResult(proxy.executeCommand(member, null));
         else
@@ -259,13 +273,69 @@ public class Rest2Tango {
         return mapper.map(domain + "/" + name + "/" + instance);
     }
 
+    public static class ImageAttributeHelper {
+        private String attribute;
+        private TangoProxy proxy;
+        private java.nio.file.Path root;
+
+        public ImageAttributeHelper(String attr_name, TangoProxy proxy, String root) {
+            this.attribute = attr_name;
+            this.proxy = proxy;
+            this.root = Paths.get(root);
+        }
+
+
+        public Response<String> send() throws TangoProxyException, IOException{
+            //the first is a two dim array
+            Triplet<Object,Long,Quality> valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
+            BufferedImage image = attributeToImage(valueTimeQuality.getValue0());
+            String device_dir_name = proxy.getName().replaceAll("\\/", "_");
+            java.nio.file.Path device_dir = root.resolve(device_dir_name);
+            if(!Files.exists(device_dir)){
+                device_dir = Files.createDirectories(device_dir);
+            }
+
+            java.nio.file.Path tmp_image_file = device_dir.resolve(attribute + ".jpeg");
+            String tmp_image_file_path = tmp_image_file.subpath(tmp_image_file.getNameCount() - 3,tmp_image_file.getNameCount()).toString().replace('\\', '/');
+            //TODO if debug perform asynch write into the FileSystem
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(image.getHeight() * image.getWidth() * 4);
+            if(ImageIO.write(image, "jpeg", bos))
+                return Responses.createSuccessResult("data:image/jpeg;base64,"+ Base64.encodeBytes(bos.toByteArray()));
+            else
+                return Responses.createFailureResult(new String[]{"Cannot save image!"});
+        }
+
+        private int resolveImageType(Class<?> dataType){
+            if(dataType == double.class || dataType == float.class)
+                throw new UnsupportedOperationException("Reading of floating based images is not yet implemented");
+            else
+                return BufferedImage.TYPE_USHORT_555_RGB;
+        }
+
+        private BufferedImage attributeToImage(Object data){
+            int height = Array.getLength(data);
+            int width = Array.getLength(Array.get(data,0));
+
+            BufferedImage imgResult = new BufferedImage(width, height, resolveImageType(data.getClass().getComponentType().getComponentType()));
+            for (int i = 0, x = 0, y = 0, size = width * height;
+                 i < size;
+                 i++, x = x < (width - 1) ? x + 1 : 0, y += x == 0 ? 1 : 0) {
+                imgResult.setRGB(x, y, Array.getInt(Array.get(data, y), x));
+            }
+            return imgResult;
+        }
+    }
     /**
      * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
      * @since 20.02.2015
      */
+    @ThreadSafe
     public static class EventHelper {
+        //TODO parameters
         private static final long MAX_AWAIT = 30000L;
         private static final long DELTA = 256L;
+
+        private static final Logger log = LoggerFactory.getLogger(EventHelper.class);
 
         public static enum State {
             UNDEFINED,
@@ -326,13 +396,13 @@ public class Rest2Tango {
             listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    System.out.println("onEvent!!!");//TODO log
+                    log.debug(proxy.getName() +"/" + attribute + "." + evt +" onEvent!");
                     EventHelper.this.set(Responses.createAttributeSuccessResult(new Triplet<>(data.getValue(), data.getTime(), Quality.VALID.name())));
                 }
 
                 @Override
                 public void onError(Throwable cause) {
-                    //TODO log
+                    log.debug(proxy.getName() +"/" + attribute + "." + evt +" onError!");
                     EventHelper.this.set(Responses.createFailureResult(new String[]{cause.getMessage()}));
                 }
             };
