@@ -19,6 +19,7 @@ import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
+import org.tango.client.ez.data.format.TangoDataFormat;
 import org.tango.client.ez.proxy.*;
 import org.tango.web.rest.DeviceState;
 import org.tango.web.rest.Response;
@@ -127,10 +128,7 @@ public class Rest2Tango {
             Object converted = ConvertUtils.convert(arg, targetType);
             return Responses.createSuccessResult(proxy.executeCommand(member, converted));
         } else if (proxy.hasAttribute(member)) {
-            Class<?> targetType = proxy.getAttributeInfo(member).getClazz();
-            Object converted = ConvertUtils.convert(arg, targetType);
-            proxy.writeAttribute(member, converted);
-            return Responses.createSuccessResult(null);
+            return new WriteAttributeHelper(proxy).write(member, arg);
         } else
             throw new IllegalArgumentException(String.format("Device %s does not have neither attribute nor command %s", proxy.getName(), member));
     }
@@ -254,10 +252,8 @@ public class Rest2Tango {
         if (!proxy.hasCommand(cmd)) {
             //workaround jsonp limitation
             if (method != null && "PUT".equalsIgnoreCase(method) && proxy.hasAttribute(cmd)) {
-                Class<?> targetType = proxy.getAttributeInfo(cmd).getType().getDataType();
-                Object converted = ConvertUtils.convert(arg, targetType);
-                proxy.writeAttribute(cmd, converted);
-                return Responses.createSuccessResult(null);
+                return new WriteAttributeHelper(proxy).write(cmd,arg);
+
             } else
                 throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
         } else {
@@ -407,6 +403,23 @@ public class Rest2Tango {
                 }
             };
             proxy.addEventListener(attribute, evt, listener);
+        }
+    }
+
+    private static class WriteAttributeHelper {
+        private TangoProxy proxy;
+
+        public WriteAttributeHelper(TangoProxy proxy) {
+            this.proxy = proxy;
+        }
+
+        public Response<Void> write(String attrName, String arg) throws TangoProxyException {
+            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+            Class<?> targetType = attributeInfo.getClazz();
+            Object converted = ConvertUtils.convert(arg, targetType);
+            proxy.writeAttribute(attrName, converted);
+            //TODO read actual value
+            return Responses.createSuccessResult(null);
         }
     }
 }
