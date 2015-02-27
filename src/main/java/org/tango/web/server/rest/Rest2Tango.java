@@ -9,6 +9,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrDataFormat;
+import fr.esrf.Tango.DevFailed;
+import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
@@ -19,13 +21,13 @@ import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
-import org.tango.client.ez.data.format.TangoDataFormat;
 import org.tango.client.ez.proxy.*;
+import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.rest.DeviceState;
 import org.tango.web.rest.Response;
-import org.tango.web.rest.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
+import org.tango.web.server.Responses;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,6 +43,7 @@ import java.lang.reflect.Array;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 @Path("/")
@@ -49,9 +52,14 @@ public class Rest2Tango {
     @GET
     @Path("devices")
     @Produces("application/json")
-    public Response getDevices(@Context ServletContext ctx) throws Exception {//TODO handle exception
+    public Response getDevices(@Context ServletContext ctx) {
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
-        return Responses.createSuccessResult(db.getDeviceList());
+        try {
+            Collection<String> deviceList = db.getDeviceList();
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
     }
 
     @GET
@@ -60,8 +68,14 @@ public class Rest2Tango {
     public DeviceState getDevice(@PathParam("domain") String domain,
                                  @PathParam("name") String name,
                                  @PathParam("instance") String instance,
-                                 @Context ServletContext ctx) throws Exception {//TODO exceptions
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+                                 @Context ServletContext ctx) throws DevFailed {
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return new DeviceState(
+                    DevState.UNKNOWN.toString(),String.format("Can not get proxy for device[%s/%s/%s]",domain,name,instance));
+        }
         DeviceState result = new DeviceState(proxy.toDeviceProxy().state().toString(), proxy.toDeviceProxy().status());
         return result;
     }
@@ -72,7 +86,7 @@ public class Rest2Tango {
     public DeviceInfo getDeviceInfo(@PathParam("domain") String domain,
                                     @PathParam("name") String name,
                                     @PathParam("instance") String instance,
-                                    @Context ServletContext ctx) throws Exception {//TODO exceptions
+                                    @Context ServletContext ctx) throws TangoProxyException {
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
         DeviceInfo info = db.getDeviceInfo(domain + "/" + name + "/" + instance);
         return info;
@@ -84,9 +98,23 @@ public class Rest2Tango {
     public Response getDeviceAttributes(@PathParam("domain") String domain,
                                         @PathParam("name") String name,
                                         @PathParam("instance") String instance,
-                                        @Context ServletContext ctx) throws Exception {
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        Collection<String> result = Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, String>() {
+                                        @Context ServletContext ctx) {
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
+        List<AttributeInfoEx> attributeInfoExes = null;
+        try {
+            attributeInfoExes = Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex());
+        } catch (DevFailed devFailed) {
+            return Responses.createFailureResult(
+                    String.format("Can not get attribute info list from the device[%s/%s/%s]",domain,name,instance),
+                    TangoUtils.convertDevFailedToException(devFailed));
+        }
+
+        Collection<String> result = Collections2.transform(attributeInfoExes, new Function<AttributeInfoEx, String>() {
             @Override
             public String apply(@Nullable AttributeInfoEx input) {
                 return input.name;
@@ -101,9 +129,24 @@ public class Rest2Tango {
     public Response getDeviceCommands(@PathParam("domain") String domain,
                                       @PathParam("name") String name,
                                       @PathParam("instance") String instance,
-                                      @Context ServletContext ctx) throws Exception {
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        Collection<String> result = Collections2.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, String>() {
+                                      @Context ServletContext ctx) {
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
+
+        List<CommandInfo> commandInfos = null;
+        try {
+            commandInfos = Arrays.asList(proxy.toDeviceProxy().command_list_query());
+        } catch (DevFailed devFailed) {
+            return Responses.createFailureResult(
+                    String.format("Can not get commands list from the device[%s/%s/%s]",domain,name,instance),
+                    TangoUtils.convertDevFailedToException(devFailed));
+        }
+
+        Collection<String> result = Collections2.transform(commandInfos, new Function<CommandInfo, String>() {
             @Override
             public String apply(@Nullable CommandInfo input) {
                 return input.cmd_name;
@@ -120,17 +163,22 @@ public class Rest2Tango {
                                  @PathParam("instance") String instance,
                                  @PathParam("member") String member,
                                  @PathParam("arg") String arg,
-                                 @Context ServletContext ctx) throws Exception {
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+                                 @Context ServletContext ctx) throws TangoProxyException {
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(
+                    String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
+
         if (proxy.hasCommand(member)) {
-            Class<?> targetType = proxy.getCommandInfo(member).getArginType();
-            if (targetType == Void.class) return Responses.createSuccessResult(proxy.executeCommand(member, null));
-            Object converted = ConvertUtils.convert(arg, targetType);
-            return Responses.createSuccessResult(proxy.executeCommand(member, converted));
+            return new CommandHelper(proxy).execute(member, arg);
         } else if (proxy.hasAttribute(member)) {
             return new WriteAttributeHelper(proxy).write(member, arg);
         } else
-            throw new IllegalArgumentException(String.format("Device %s does not have neither attribute nor command %s", proxy.getName(), member));
+            return Responses.createFailureResult(
+                    String.format("Device[%s] does not have neither attribute nor command[%s]", proxy.getName(), member));
     }
 
     @GET
@@ -140,7 +188,7 @@ public class Rest2Tango {
                                             @PathParam("name") String name,
                                             @PathParam("instance") String instance,
                                             @PathParam("cmd_or_attr") String member,
-                                            @Context ServletContext ctx) throws Exception {
+                                            @Context ServletContext ctx) throws TangoProxyException {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(member))
             return proxy.getAttributeInfo(member).toAttributeInfo();
@@ -155,21 +203,27 @@ public class Rest2Tango {
                                         @PathParam("name") String name,
                                         @PathParam("instance") String instance,
                                         @PathParam("cmd_or_attr") String member,
-                                        @Context ServletContext ctx) throws Exception {
+                                        @Context ServletContext ctx) throws TangoProxyException, IOException {
 
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
-        if (proxy.hasAttribute(member)) //TODO if attr image - generate one and send link
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(
+                    String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
+
+        if (proxy.hasAttribute(member))
         {
             if(proxy.getAttributeInfo(member).getFormat().toAttrDataFormat() == AttrDataFormat.IMAGE){
                 return new ImageAttributeHelper(member, proxy, ctx.getRealPath("/temp")).send();
             } else {
-                Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(member);
-                return Responses.createAttributeSuccessResult(new Triplet<>(result.getValue0(), result.getValue1(), result.getValue2().name()));
+                return new ReadAttributeHelper(proxy).read(member);
             }
         } else if (proxy.hasCommand(member))
             return Responses.createSuccessResult(proxy.executeCommand(member, null));
         else
-            throw new IllegalArgumentException();
+            return Responses.createFailureResult(String.format("Device[%s] does not have neither attribute nor command[%s]", proxy.getName(), member));
     }
 
     public static final long CAPACITY = 1000L;//TODO parameter
@@ -187,21 +241,28 @@ public class Rest2Tango {
                                                 @PathParam("evt") String evt,
                                                 @QueryParam("timeout") long timeout,
                                                 @QueryParam("state") EventHelper.State state,
-                                                @Context ServletContext ctx) throws Exception {
+                                                @Context ServletContext ctx) throws TangoProxyException, InterruptedException {
 
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(
+                    String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
+
         String device_member = proxy.getName() + '/' + member;
         if (!proxy.hasAttribute(member))
-            return Responses.createFailureResult(new String[]{"No such attr: " + device_member});
+            return Responses.createFailureResult("No such attr: " + device_member);
 
         TangoEvent event;
         try {
             event = TangoEvent.valueOf(evt.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return Responses.createFailureResult(new String[]{"Unknown event type: " + evt});
+            return Responses.createFailureResult("Unknown event type: " + evt);
         }
+        device_member += '.' + evt;
         try {
-            device_member += '.' + evt;
             if (state == EventHelper.State.INITIAL) {
                 EventHelper helper;
                 helper = new EventHelper(member, event, proxy);
@@ -210,11 +271,10 @@ public class Rest2Tango {
                     //read initial value from the proxy
                     Triplet<?,Long, Quality> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
                     Response<?> result = Responses.createAttributeSuccessResult(
-                            new Triplet<>(
                                     attrTimeQuality.getValue0(),
                                     attrTimeQuality.getValue1(),
                                     attrTimeQuality.getValue2().name()
-                            ));
+                            );
 
                     helper.set(result);
                     helper.subscribe();
@@ -233,8 +293,8 @@ public class Rest2Tango {
             //block this servlet until event or timeout
             return helper.get(timeout);
             }
-        } catch (Exception e) {
-            return Responses.createFailureResult(new String[]{e.getMessage()});
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Failed to subscribe to event " + device_member,e);
         }
     }
 
@@ -247,24 +307,26 @@ public class Rest2Tango {
                              @PathParam("cmd_or_attr") String cmd,
                              @PathParam("arg") String arg,
                              @QueryParam("_method") String method,
-                             @Context ServletContext ctx) throws Exception {//TODO exceptions
-        TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
+                             @Context ServletContext ctx) throws TangoProxyException {
+        TangoProxy proxy = null;
+        try {
+            proxy = lookupTangoProxy(domain, name, instance, ctx);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(
+                    String.format("Can not find proxy for device[%s/%s/%s]",domain,name,instance),e);
+        }
         if (!proxy.hasCommand(cmd)) {
             //workaround jsonp limitation
             if (method != null && "PUT".equalsIgnoreCase(method) && proxy.hasAttribute(cmd)) {
-                return new WriteAttributeHelper(proxy).write(cmd,arg);
-
+                return new WriteAttributeHelper(proxy).write(cmd, arg);
             } else
-                throw new IllegalArgumentException(String.format("Device %s does not have command %s", proxy.getName(), cmd));
+                return Responses.createFailureResult(String.format("Device %s does not have command %s", proxy.getName(), cmd));
         } else {
-            Class<?> targetType = proxy.getCommandInfo(cmd).getArginType();
-            if (targetType == Void.class) return proxy.executeCommand(cmd, null);
-            Object converted = ConvertUtils.convert(arg, targetType);
-            return Responses.createSuccessResult(proxy.executeCommand(cmd, converted));
+            return new CommandHelper(proxy).execute(cmd, arg);
         }
     }
 
-    private TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
+    private static TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
         DeviceMapper mapper = (DeviceMapper) ctx.getAttribute(DeviceMapper.TANGO_MAPPER);
         return mapper.map(domain + "/" + name + "/" + instance);
     }
@@ -280,10 +342,15 @@ public class Rest2Tango {
             this.root = Paths.get(root);
         }
 
-
-        public Response<String> send() throws TangoProxyException, IOException{
+        public Response<String> send() throws IOException {
             //the first is a two dim array
-            Triplet<Object,Long,Quality> valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
+            Triplet<Object,Long,Quality> valueTimeQuality = null;
+            try {
+                valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
+            } catch (TangoProxyException e) {
+                return Responses.createFailureResult(
+                        String.format("Failed to read image[%s/%s]",proxy.getName(),attribute),e);
+            }
             BufferedImage image = attributeToImage(valueTimeQuality.getValue0());
             String device_dir_name = proxy.getName().replaceAll("\\/", "_");
             java.nio.file.Path device_dir = root.resolve(device_dir_name);
@@ -298,7 +365,7 @@ public class Rest2Tango {
             if(ImageIO.write(image, "jpeg", bos))
                 return Responses.createSuccessResult("data:image/jpeg;base64,"+ Base64.encodeBytes(bos.toByteArray()));
             else
-                return Responses.createFailureResult(new String[]{"Cannot save image!"});
+                return Responses.createFailureResult("Cannot save image!");
         }
 
         private int resolveImageType(Class<?> dataType){
@@ -346,24 +413,24 @@ public class Rest2Tango {
         private volatile Response<?> value;
 
         private final Object guard = new Object();
-        public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
+        EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
             this.attribute = attribute;
             this.evt = evt;
             this.proxy = proxy;
         }
 
-        public void set(Response<?> value) {
+        void set(Response<?> value) {
             synchronized (guard){
                 this.value = value;
                 guard.notifyAll();
             }
         }
 
-        public boolean hasValue(){
+        boolean hasValue(){
             return value != null;
         }
 
-        public Response<?> get(){
+        Response<?> get(){
             return value;
         }
 
@@ -376,7 +443,7 @@ public class Rest2Tango {
          * @return
          * @throws InterruptedException
          */
-        public Response<?> get(long timeout) throws InterruptedException{
+        Response<?> get(long timeout) throws InterruptedException{
             synchronized (guard){
                 do
                     guard.wait((timeout = timeout - DELTA) > 0 ? timeout : MAX_AWAIT);
@@ -386,34 +453,84 @@ public class Rest2Tango {
         }
 
         private TangoEventListener<Object> listener;
-        public void subscribe() throws TangoProxyException{
+        void subscribe() throws TangoProxyException{
             proxy.subscribeToEvent(attribute, evt);
 
             listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
                     log.debug(proxy.getName() +"/" + attribute + "." + evt +" onEvent!");
-                    EventHelper.this.set(Responses.createAttributeSuccessResult(new Triplet<>(data.getValue(), data.getTime(), Quality.VALID.name())));
+                    EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), Quality.VALID.name()));
                 }
 
                 @Override
                 public void onError(Throwable cause) {
                     log.debug(proxy.getName() +"/" + attribute + "." + evt +" onError!");
-                    EventHelper.this.set(Responses.createFailureResult(new String[]{cause.getMessage()}));
+                    EventHelper.this.set(Responses.createFailureResult(cause));
                 }
             };
             proxy.addEventListener(attribute, evt, listener);
         }
     }
 
-    private static class WriteAttributeHelper {
+    private static class CommandHelper {
         private TangoProxy proxy;
 
-        public WriteAttributeHelper(TangoProxy proxy) {
+        CommandHelper(TangoProxy proxy){
             this.proxy = proxy;
         }
 
-        public Response<Void> write(String attrName, String arg) throws TangoProxyException {
+
+        Response execute(String member, String arg) {
+            Class<?> targetType = null;
+            try {
+                targetType = proxy.getCommandInfo(member).getArginType();
+            } catch (TangoProxyException e) {
+                return Responses.createFailureResult(
+                        String.format("Can not get info for command[%s/%s]",proxy.getName(),member),e);
+            }
+            Object argin = null;
+            if (targetType != Void.class)
+                argin = ConvertUtils.convert(arg, targetType);
+
+            try {
+                return Responses.createSuccessResult(proxy.executeCommand(member, argin));
+            } catch (TangoProxyException e){
+                return Responses.createFailureResult(
+                        String.format("Can not execute command[%s/%s]", proxy.getName(), member), e);
+            }
+        }
+    }
+
+    private static class ReadAttributeHelper {
+        private TangoProxy proxy;
+
+        ReadAttributeHelper(TangoProxy proxy) {
+            this.proxy = proxy;
+        }
+
+        Response read(String attr){
+            Triplet<Object, Long, Quality> result = null;
+            try {
+                result = proxy.readAttributeValueTimeQuality(attr);
+                return Responses.createAttributeSuccessResult(
+                        result.getValue0(), result.getValue1(), result.getValue2().name());
+            } catch (TangoProxyException e) {
+                return Responses.createFailureResult(
+                        String.format("Can not read attribute[%s/%s]",proxy.getName(),attr),e);
+            }
+
+        }
+    }
+
+    private static class WriteAttributeHelper {
+        private TangoProxy proxy;
+
+        WriteAttributeHelper(TangoProxy proxy) {
+            this.proxy = proxy;
+        }
+
+        Response<Void> write(String attrName, String arg) throws TangoProxyException {
             TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
             Class<?> targetType = attributeInfo.getClazz();
             Object converted = ConvertUtils.convert(arg, targetType);

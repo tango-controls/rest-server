@@ -15,7 +15,11 @@
     </context-param>
     <context-param>
         <param-name>resteasy.providers</param-name>
-        <param-value>org.tango.web.server.rest.JsonResponseWriter</param-value>
+        <param-value>
+            org.tango.web.server.rest.JsonResponseWriter,
+            org.tango.web.server.rest.TangoExceptionMapper,
+            org.tango.web.server.rest.DevFailedMapper
+        </param-value>
     </context-param>
 
     <listener>
