@@ -9,6 +9,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrDataFormat;
+import fr.esrf.Tango.AttributeDataType;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
@@ -21,7 +22,9 @@ import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
+import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.*;
+import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.rest.DeviceState;
 import org.tango.web.rest.Response;
@@ -33,17 +36,16 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import java.awt.image.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Array;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.*;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 @Path("/")
@@ -203,7 +205,8 @@ public class Rest2Tango {
                                         @PathParam("name") String name,
                                         @PathParam("instance") String instance,
                                         @PathParam("cmd_or_attr") String member,
-                                        @Context ServletContext ctx) throws TangoProxyException, IOException {
+                                        @Context ServletContext ctx,
+                                        @Context HttpServletResponse response) throws TangoProxyException, IOException {
 
         TangoProxy proxy = null;
         try {
@@ -216,7 +219,11 @@ public class Rest2Tango {
         if (proxy.hasAttribute(member))
         {
             if(proxy.getAttributeInfo(member).getFormat().toAttrDataFormat() == AttrDataFormat.IMAGE){
-                return new ImageAttributeHelper(member, proxy, ctx.getRealPath("/temp")).send();
+                new ImageAttributeHelper(proxy, ctx.getRealPath("/temp")).send(member,response.getOutputStream());
+                return null;
+            } if(AttributeDataType.from_int(proxy .getAttributeInfo(member).toAttributeInfo().data_type) == AttributeDataType.ATT_ENCODED) {
+                new EncodedAttributeHelper(proxy, ctx.getRealPath("/temp")).send(member,response.getOutputStream());
+                return null;
             } else {
                 return new ReadAttributeHelper(proxy).read(member);
             }
@@ -332,62 +339,72 @@ public class Rest2Tango {
     }
 
     public static class ImageAttributeHelper {
-        private String attribute;
         private TangoProxy proxy;
         private java.nio.file.Path root;
 
-        public ImageAttributeHelper(String attr_name, TangoProxy proxy, String root) {
-            this.attribute = attr_name;
+        public ImageAttributeHelper(TangoProxy proxy, String root) {
             this.proxy = proxy;
             this.root = Paths.get(root);
         }
 
-        public Response<String> send() throws IOException {
-            //the first is a two dim array
-            Triplet<Object,Long,Quality> valueTimeQuality = null;
+        public void send(String attribute, OutputStream responseStream) throws IOException {
+            Writer writer = new BufferedWriter(new OutputStreamWriter(responseStream, Charset.forName("UTF-8")));
+            Triplet<?,Long,Quality> valueTimeQuality = null;
             try {
                 valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
             } catch (TangoProxyException e) {
-                return Responses.createFailureResult(
-                        String.format("Failed to read image[%s/%s]",proxy.getName(),attribute),e);
+                Responses.sendFailure(
+                        new Exception(String.format("Failed to read image[%s/%s]",proxy.getName(),attribute),e), writer);
+                writer.close();
+                return;
             }
-            BufferedImage image = attributeToImage(valueTimeQuality.getValue0());
-            String device_dir_name = proxy.getName().replaceAll("\\/", "_");
-            java.nio.file.Path device_dir = root.resolve(device_dir_name);
-            if(!Files.exists(device_dir)){
-                device_dir = Files.createDirectories(device_dir);
-            }
-
-            java.nio.file.Path tmp_image_file = device_dir.resolve(attribute + ".jpeg");
-            String tmp_image_file_path = tmp_image_file.subpath(tmp_image_file.getNameCount() - 3,tmp_image_file.getNameCount()).toString().replace('\\', '/');
+            RenderedImage image = getImage(valueTimeQuality,writer);
+            if(image == null) return;
             //TODO if debug perform asynch write into the FileSystem
-            ByteArrayOutputStream bos = new ByteArrayOutputStream(image.getHeight() * image.getWidth() * 4);
-            if(ImageIO.write(image, "jpeg", bos))
-                return Responses.createSuccessResult("data:image/jpeg;base64,"+ Base64.encodeBytes(bos.toByteArray()));
-            else
-                return Responses.createFailureResult("Cannot save image!");
-        }
 
-        private int resolveImageType(Class<?> dataType){
-            if(dataType == double.class || dataType == float.class)
-                throw new UnsupportedOperationException("Reading of floating based images is not yet implemented");
-            else
-                return BufferedImage.TYPE_USHORT_555_RGB;
-        }
+            OutputStream out = new Base64.OutputStream(new BufferedOutputStream(responseStream));
 
-        private BufferedImage attributeToImage(Object data){
-            int height = Array.getLength(data);
-            int width = Array.getLength(Array.get(data,0));
-
-            BufferedImage imgResult = new BufferedImage(width, height, resolveImageType(data.getClass().getComponentType().getComponentType()));
-            for (int i = 0, x = 0, y = 0, size = width * height;
-                 i < size;
-                 i++, x = x < (width - 1) ? x + 1 : 0, y += x == 0 ? 1 : 0) {
-                imgResult.setRGB(x, y, Array.getInt(Array.get(data, y), x));
+            writer.write("{\"argout\":\"data:/jpeg;base64,");
+            writer.flush();
+            if(ImageIO.write(image, "jpeg", out)) {
+                writer.write("\",\"quality\":\"VALID\"");
+            } else {
+                writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
             }
-            return imgResult;
+            writer.write(",\"timestamp\":");
+            writer.write(Long.toString(valueTimeQuality.getValue1()));
+            writer.write("}");
+
+            writer.flush();
+            writer.close();
+        }
+
+        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer) throws IOException{
+            //the first is a two dim array
+            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue0();
+
+            Class<?> componentType = tangoImage.data.getClass().getComponentType();
+            if(componentType != int.class) {
+                Responses.sendFailure(
+                        new Exception("Unsupported image component type: " + componentType.getSimpleName()), writer);
+                writer.close();
+                return null;
+            }
+            return TangoImageUtils.toRenderedImage_sRGB((int[]) tangoImage.data, tangoImage.width, tangoImage.height);
         }
     }
+
+    public class EncodedAttributeHelper extends ImageAttributeHelper{
+        public EncodedAttributeHelper(TangoProxy proxy, String realPath) {
+            super(proxy, realPath);
+        }
+
+        @Override
+        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer){
+            return (RenderedImage) valueTimeQuality.getValue0();
+        }
+    }
+
     /**
      * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
      * @since 20.02.2015
