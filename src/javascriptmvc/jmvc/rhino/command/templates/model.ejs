@@ -1,9 +1,14 @@
 /**
-*
-*/
-<%=name%> = MVC.Model.<%=(type=='Model'? '': type)%>.extend('<%=class_name%>',
+ * Model
+ *
+ * @type {MVC.Model<%=(type=='Model'? '': '.' + type)%>}
+ */
+<%=name%> = MVC.Model<%=(type=='Model'? '': '.' + type)%>.extend('<%=class_name%>',
 /* @Static */
 {
+<% if(type == "JsonP"){ %>      domain: null,//TODO set to a proper value<% } %>
+        attributes:{},
+        default_attributes:{}
 },
 /* @Prototype */
 {

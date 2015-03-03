@@ -1,13 +1,21 @@
+/**
+ * Controller
+ *
+ * @type {MVC.Controller}
+ */
 <%=name%> = MVC.Controller.extend('<%=class_name%>',
 /* @Static */
 {<%if(this.scaffold){%>
-init: function(){
-this.scaffold();
-this._super()
-}
+        /**
+         * @constructor
+         */
+    init: function(){
+      this.scaffold();
+      this._super()
+    }
 <%}%>},
 /* @Prototype */
 {
-
+    
 }
 );

@@ -1,0 +1,89 @@
+var types = ['controller','model','plugin','engine','resource','stylesheet','view','unit_test','functional_test'];
+if(!_args[0] || !_args[1] || !_args[2]){
+	print("Usage: js jmvc/remove/shared shared_name type app_name")
+	print("type:= " + types.join('|'));
+	quit();
+}
+
+load('jmvc/generate/loader.js');
+
+if(MVC.Array.include(types,_args[1])){
+    print("Unknown type: " + _args[1]);
+    print("type:= " + types.join('|'));
+    quit();
+}
+
+if(!MVCOptions.exists("apps/" + _args[2] + ".js")){
+    print("Application " + _args[2] + " does not exist. Create it first using `js jmvc/generate/app " + _args[2] + "`\n\n");
+    quit();
+}
+
+var data = {
+     name: _args[0],
+     class_name:MVC.String.classize(_args[0]),
+     type: _args[1],
+     application_name: _args[2]
+}
+
+var app = JSONparse(readFile("apps/" + data.application_name + "/" + data.application_name + ".json"));
+
+switch(data.type){
+    case 'controller':
+        app.controllers = MVC.Array.remove(app.controllers,data.name);
+           if(!MVCOptions.exists("test/functional/" + data.name + "_controller_test.js")){
+               app.tests.functional = MVC.Array.remove(app.tests.functional,data.name + "_controller");
+           }
+           if(!MVCOptions.exists("test/unit/" + data.name + "_controller_test.js")){
+               app.tests.unit = MVC.Array.remove(app.tests.unit,data.name + "_controller");
+           }
+        if(MVCOptions.exists("views/" +  data.class_name)){
+            var views = new java.io.File("views/" + data.class_name).list();
+            for(var i = 0, size = views.length; i < size; ++i){
+                app.views = MVC.Array.remove(app.views,"views/"  + data.class_name + "/" + views[i]);
+            }
+        }
+        break;
+    case 'model':
+        app.models = MVC.Array.remove(app.models,data.name);
+        if(!MVCOptions.exists("test/functional/" + data.name + "_test.js")){
+                       app.tests.functional = MVC.Array.remove(app.tests.functional,data.name);
+                   }
+                   if(!MVCOptions.exists("test/unit/" + data.name + "_test.js")){
+                       app.tests.unit = MVC.Array.remove(app.tests.unit,data.name);
+                   }
+                if(MVCOptions.exists("views/" +  data.class_name)){
+                    var views = new java.io.File("views/" + data.class_name).list();
+                    for(var i = 0, size = views.length; i < size; ++i){
+                        app.views = MVC.Array.remove(app.views,"views/"  + data.class_name + "/" + views[i]);
+                    }
+                }
+        break;
+    case 'engine':
+        app.engines = MVC.Array.remove(app.engines,data.name);
+        break;
+    case 'plugin':
+        app.plugins = MVC.Array.remove(app.plugins,data.name);
+        break;
+    case 'resource':
+        app.resources = MVC.Array.remove(app.resources,data.name);
+        break;
+    case 'stylesheet':
+        app.stylesheets = MVC.Array.remove(app.stylesheets,data.name);
+        break;
+    case 'view':
+        app.views = MVC.Array.remove(app.views,"views/" + data.name);
+        break;
+    case 'unit_test':
+        app.tests.unit = MVC.Array.remove(app.tests.unit,data.name);
+        break;
+    case 'functional_test':
+        app.tests.functional = MVC.Array.remove(app.tests.functional,data.name);
+        break;
+}
+
+//TODO remove files
+
+save_app_json(data.application_name, app);
+
+print("\n               Done!\n");
+

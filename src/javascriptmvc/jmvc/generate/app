@@ -4,15 +4,23 @@ if(!_args[0]){
 }
 load('jmvc/generate/loader.js');
 
-var data = {class_name: _args[0], application_name: _args[0]}
+var data = {
+    path_to_jmvc:'../../jmvc/include.js',
+    class_name: _args[0],
+    application_name: _args[0]
+}
 
-render_to("apps/"+_args[0]+".js", "jmvc/rhino/command/templates/application.ejs", data);
+create_app_json(_args[0]);
 
+var app = load_app_json(_args[0]);
 
-MVCOptions.create_folder("apps/"+_args[0]);
+MVC.Object.extend(data, app);
+
+MVCOptions.create_folder("controllers/"+_args[0]);
 
 print("               apps/"+_args[0]);
 
+MVCOptions.save("apps/"+_args[0]+"/" + _args[0] + ".json",  MVC.Object.to_json(data)  );
 
 render_to("apps/"+_args[0]+"/compress.js", "jmvc/rhino/command/templates/compress_script.ejs", data);
 
@@ -21,5 +29,9 @@ render_to("apps/"+_args[0]+"/index.html", "jmvc/rhino/command/templates/compress
 render_to("apps/"+_args[0]+"/run_unit.js", "jmvc/rhino/command/templates/unit_script.ejs", data);
 
 render_to("apps/"+_args[0]+"/test.js", "jmvc/rhino/command/templates/test.ejs", data);
+
+render_to("apps/"+_args[0]+".js", "jmvc/rhino/command/templates/application.ejs", data);
+
+render_to("controllers/"+_args[0]+"/main_controller.js", "jmvc/rhino/command/templates/main_controller.ejs", data);
 
 print("\nMake sure to add new files to your application and test file!\n");

@@ -1,61 +1,61 @@
 /*
- json.js
- 2007-08-19
+    json.js
+    2007-08-19
 
- Public Domain
+    Public Domain
 
- This file adds these methods to JavaScript:
+    This file adds these methods to JavaScript:
 
- array.toJSONString(whitelist)
- boolean.toJSONString()
- date.toJSONString()
- number.toJSONString()
- object.toJSONString(whitelist)
- string.toJSONString()
- These methods produce a JSON text from a JavaScript value.
- It must not contain any cyclical references. Illegal values
- will be excluded.
+        array.toJSONString(whitelist)
+        boolean.toJSONString()
+        date.toJSONString()
+        number.toJSONString()
+        object.toJSONString(whitelist)
+        string.toJSONString()
+            These methods produce a JSON text from a JavaScript value.
+            It must not contain any cyclical references. Illegal values
+            will be excluded.
 
- The default conversion for dates is to an ISO string. You can
- add a toJSONString method to any date object to get a different
- representation.
+            The default conversion for dates is to an ISO string. You can
+            add a toJSONString method to any date object to get a different
+            representation.
 
- The object and array methods can take an optional whitelist
- argument. A whitelist is an array of strings. If it is provided,
- keys in objects not found in the whitelist are excluded.
+            The object and array methods can take an optional whitelist
+            argument. A whitelist is an array of strings. If it is provided,
+            keys in objects not found in the whitelist are excluded.
 
- string.parseJSON(filter)
- This method parses a JSON text to produce an object or
- array. It can throw a SyntaxError exception.
+        string.parseJSON(filter)
+            This method parses a JSON text to produce an object or
+            array. It can throw a SyntaxError exception.
 
- The optional filter parameter is a function which can filter and
- transform the results. It receives each of the keys and values, and
- its return value is used instead of the original value. If it
- returns what it received, then structure is not modified. If it
- returns undefined then the member is deleted.
+            The optional filter parameter is a function which can filter and
+            transform the results. It receives each of the keys and values, and
+            its return value is used instead of the original value. If it
+            returns what it received, then structure is not modified. If it
+            returns undefined then the member is deleted.
 
- Example:
+            Example:
 
- // Parse the text. If a key contains the string 'date' then
- // convert the value to a date.
+            // Parse the text. If a key contains the string 'date' then
+            // convert the value to a date.
 
- myData = text.parseJSON(function (key, value) {
- return key.indexOf('date') >= 0 ? new Date(value) : value;
- });
+            myData = text.parseJSON(function (key, value) {
+                return key.indexOf('date') >= 0 ? new Date(value) : value;
+            });
 
- It is expected that these methods will formally become part of the
- JavaScript Programming Language in the Fourth Edition of the
- ECMAScript standard in 2008.
+    It is expected that these methods will formally become part of the
+    JavaScript Programming Language in the Fourth Edition of the
+    ECMAScript standard in 2008.
 
- This file will break programs with improper for..in loops. See
- http://yuiblog.com/blog/2006/09/26/for-in-intrigue/
+    This file will break programs with improper for..in loops. See
+    http://yuiblog.com/blog/2006/09/26/for-in-intrigue/
 
- This is a reference implementation. You are free to copy, modify, or
- redistribute.
+    This is a reference implementation. You are free to copy, modify, or
+    redistribute.
 
- Use your own copy. It is extremely unwise to load untrusted third party
- code into your pages.
- */
+    Use your own copy. It is extremely unwise to load untrusted third party
+    code into your pages.
+*/
 
 /*jslint evil: true */
 
@@ -64,8 +64,8 @@
 if (!Object.prototype.toJSONString) {
 
     Array.prototype.toJSONString = function (w) {
-        var a = [], // The array holding the partial texts.
-            i, // Loop counter.
+        var a = [],     // The array holding the partial texts.
+            i,          // Loop counter.
             l = this.length,
             v;          // The value to be stringified.
 
@@ -74,25 +74,25 @@ if (!Object.prototype.toJSONString) {
         for (i = 0; i < l; i += 1) {
             v = this[i];
             switch (typeof v) {
-                case 'object':
+            case 'object':
 
 // Serialize a JavaScript object value. Ignore objects thats lack the
 // toJSONString method. Due to a specification error in ECMAScript,
 // typeof null is 'object', so watch out for that case.
 
-                    if (v) {
-                        if (typeof v.toJSONString === 'function') {
-                            a.push(v.toJSONString(w));
-                        }
-                    } else {
-                        a.push('null');
+                if (v) {
+                    if (typeof v.toJSONString === 'function') {
+                        a.push(v.toJSONString(w));
                     }
-                    break;
+                } else {
+                    a.push('null');
+                }
+                break;
 
-                case 'string':
-                case 'number':
-                case 'boolean':
-                    a.push(v.toJSONString());
+            case 'string':
+            case 'number':
+            case 'boolean':
+                a.push(v.toJSONString());
 
 // Values without a JSON representation are ignored.
 
@@ -122,11 +122,11 @@ if (!Object.prototype.toJSONString) {
         }
 
         return '"' + this.getUTCFullYear() + '-' +
-            f(this.getUTCMonth() + 1) + '-' +
-            f(this.getUTCDate()) + 'T' +
-            f(this.getUTCHours()) + ':' +
-            f(this.getUTCMinutes()) + ':' +
-            f(this.getUTCSeconds()) + 'Z"';
+                f(this.getUTCMonth() + 1)  + '-' +
+                f(this.getUTCDate())       + 'T' +
+                f(this.getUTCHours())      + ':' +
+                f(this.getUTCMinutes())    + ':' +
+                f(this.getUTCSeconds())    + 'Z"';
     };
 
 
@@ -139,9 +139,9 @@ if (!Object.prototype.toJSONString) {
 
 
     Object.prototype.toJSONString = function (w) {
-        var a = [], // The array holding the partial texts.
-            k, // The current key.
-            i, // The loop counter.
+        var a = [],     // The array holding the partial texts.
+            k,          // The current key.
+            i,          // The loop counter.
             v;          // The current value.
 
 // If a whitelist (array of keys) is provided, use it assemble the components
@@ -153,26 +153,26 @@ if (!Object.prototype.toJSONString) {
                 if (typeof k === 'string') {
                     v = this[k];
                     switch (typeof v) {
-                        case 'object':
+                    case 'object':
 
 // Serialize a JavaScript object value. Ignore objects that lack the
 // toJSONString method. Due to a specification error in ECMAScript,
 // typeof null is 'object', so watch out for that case.
 
-                            if (v) {
-                                if (typeof v.toJSONString === 'function') {
-                                    a.push(k.toJSONString() + ':' +
-                                        v.toJSONString(w));
-                                }
-                            } else {
-                                a.push(k.toJSONString() + ':null');
+                        if (v) {
+                            if (typeof v.toJSONString === 'function') {
+                                a.push(k.toJSONString() + ':' +
+                                       v.toJSONString(w));
                             }
-                            break;
+                        } else {
+                            a.push(k.toJSONString() + ':null');
+                        }
+                        break;
 
-                        case 'string':
-                        case 'number':
-                        case 'boolean':
-                            a.push(k.toJSONString() + ':' + v.toJSONString());
+                    case 'string':
+                    case 'number':
+                    case 'boolean':
+                        a.push(k.toJSONString() + ':' + v.toJSONString());
 
 // Values without a JSON representation are ignored.
 
@@ -186,29 +186,29 @@ if (!Object.prototype.toJSONString) {
 
             for (k in this) {
                 if (typeof k === 'string' &&
-                    Object.prototype.hasOwnProperty.apply(this, [k])) {
+                        Object.prototype.hasOwnProperty.apply(this, [k])) {
                     v = this[k];
                     switch (typeof v) {
-                        case 'object':
+                    case 'object':
 
 // Serialize a JavaScript object value. Ignore objects that lack the
 // toJSONString method. Due to a specification error in ECMAScript,
 // typeof null is 'object', so watch out for that case.
 
-                            if (v) {
-                                if (typeof v.toJSONString === 'function') {
-                                    a.push(k.toJSONString() + ':' +
-                                        v.toJSONString());
-                                }
-                            } else {
-                                a.push(k.toJSONString() + ':null');
+                        if (v) {
+                            if (typeof v.toJSONString === 'function') {
+                                a.push(k.toJSONString() + ':' +
+                                       v.toJSONString());
                             }
-                            break;
+                        } else {
+                            a.push(k.toJSONString() + ':null');
+                        }
+                        break;
 
-                        case 'string':
-                        case 'number':
-                        case 'boolean':
-                            a.push(k.toJSONString() + ':' + v.toJSONString());
+                    case 'string':
+                    case 'number':
+                    case 'boolean':
+                        a.push(k.toJSONString() + ':' + v.toJSONString());
 
 // Values without a JSON representation are ignored.
 
@@ -231,13 +231,13 @@ if (!Object.prototype.toJSONString) {
 // m is a table of character substitutions.
 
         var m = {
-            '\b':'\\b',
-            '\t':'\\t',
-            '\n':'\\n',
-            '\f':'\\f',
-            '\r':'\\r',
-            '"' :'\\"',
-            '\\':'\\\\'
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
         };
 
 
@@ -270,8 +270,8 @@ if (!Object.prototype.toJSONString) {
 // remain. If so, then the text is safe for eval.
 
             if (/^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$/.test(this.
-                replace(/\\./g, '@').
-                replace(/"[^"\\\n\r]*"/g, ''))) {
+                    replace(/\\./g, '@').
+                    replace(/"[^"\\\n\r]*"/g, ''))) {
 
 // In the second stage we use the eval function to compile the text into a
 // JavaScript structure. The '{' operator is subject to a syntactic ambiguity

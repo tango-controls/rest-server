@@ -17,65 +17,63 @@
  * @init
  * @param {Object} options
  * <table class="options">
- <tbody><tr><th>Option</th><th>Default</th><th>Description</th></tr>
- <tr>
- <td>time</td>
- <td>500</td>
- <td>Time the timer runs in ms.
- </td>
- </tr>
- <tr>
- <td>from</td>
- <td>0</td>
- <td>The starting value of the timer
- </td>
- </tr>
- <tr>
- <td>to</td>
- <td>1</td>
- <td>The end value of the timer.
- </td>
- </tr>
- <tr>
- <td>interval</td>
- <td>1</td>
- <td>Millisecond time between calls.
- </td>
- </tr>
- <tr>
- <td>onUpdate</td>
- <td></td>
- <td>Called each time a new value is ready.
- </td>
- </tr>
- <tr>
- <td>onComplete</td>
- <td> </td>
- <td>Called when the timer is complete.
- </td>
- </tr>
- <tr>
- <td>easing</td>
- <td>"swing"</td>
- <td>The name of an easing or easing function.
- </td>
- </tr>
- </tbody></table>
+					<tbody><tr><th>Option</th><th>Default</th><th>Description</th></tr>
+					<tr>
+						<td>time</td>
+						<td>500</td>
+						<td>Time the timer runs in ms.
+						</td>
+					</tr>
+					<tr>
+						<td>from</td>
+						<td>0</td>
+						<td>The starting value of the timer
+						</td>
+					</tr>
+					<tr>
+						<td>to</td>
+						<td>1</td>
+						<td>The end value of the timer.
+						</td>
+					</tr>
+					<tr>
+						<td>interval</td>
+						<td>1</td>
+						<td>Millisecond time between calls.  
+						</td>
+					</tr>
+					<tr>
+						<td>onUpdate</td>
+						<td></td>
+						<td>Called each time a new value is ready.
+						</td>
+					</tr>
+					<tr>
+						<td>onComplete</td>
+						<td> </td>
+						<td>Called when the timer is complete.
+						</td>
+					</tr>
+					<tr>
+						<td>easing</td>
+						<td>"swing"</td>
+						<td>The name of an easing or easing function.
+						</td>
+					</tr>
+				</tbody></table>
  */
-MVC.Timer = function (options) {
+MVC.Timer = function(options){
     options = options || {};
     this.time = options.time || 500;
     this.from = options.from || 0;
     this.to = options.to || 1;
-    this.interval = options.interval || 1;
-    this.update_callback = options.onUpdate || function () {
-    };
-    this.complete_callback = options.onComplete || function () {
-    };
+    this.interval = options.interval||1;
+    this.update_callback = options.onUpdate || function(){};
+    this.complete_callback = options.onComplete || function(){};
     this.distance = this.to - this.from;
-    if (options.easing) {
+    if(options.easing){
         this.easing = typeof options.easing == 'string' ? MVC.Timer.Easings[options.easing] : options.easing;
-    } else {
+    }else{
         this.easing = MVC.Timer.Easings.swing
     }
 }
@@ -84,33 +82,33 @@ MVC.Timer.prototype = {
     /**
      * Starts the timer.
      */
-    start    :function () {
+    start: function(){
         this.start_time = new Date();
 
-        this.timer = setInterval(MVC.Function.bind(this.next_step, this), this.interval);
+        this.timer = setInterval(  MVC.Function.bind(this.next_step, this)  ,this.interval);
     },
     /**
      * Kills the timer.
      */
-    kill     :function () {
+    kill: function(){
         clearInterval(this.timer);
     },
-    next_step:function () {
+    next_step : function(){
         var now = new Date();
-        var time_passed = now - this.start_time;
+        var time_passed = now - this.start_time ;
         var current;
-        if (time_passed >= this.time) {
+        if(time_passed >= this.time){
             current = this.to;
             this.update_callback(current);
             this.complete_callback(current);
             this.kill();
-        } else {
+        }else{
             var percentage = time_passed / this.time;
-            current = this.easing(percentage, time_passed, this.from, this.distance);
+            current = this.easing(percentage, time_passed, this.from, this.distance  );
             //current = this.from + (how_far * this.distance);
             this.update_callback(current);
         }
-
+        
     }
 }
 /**
@@ -121,13 +119,13 @@ MVC.Timer.Easings = {
     /**
      * Linear easing
      */
-    linear:function (p, n, firstNum, diff) {
-        return firstNum + diff * p;
-    },
+	linear: function( p, n, firstNum, diff ) {
+		return firstNum + diff * p;
+	},
     /**
      * Sinusoidal easing
      */
-    swing :function (p, n, firstNum, diff) {
-        return ((-Math.cos(p * Math.PI) / 2) + 0.5) * diff + firstNum;
-    }
+	swing: function( p, n, firstNum, diff ) {
+		return ((-Math.cos(p*Math.PI)/2) + 0.5) * diff + firstNum;
+	}
 }

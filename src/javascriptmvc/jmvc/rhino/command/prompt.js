@@ -1,23 +1,23 @@
-prompt = function (question) {
+prompt = function(question){
     java.lang.System.out.print(question);
     var br = new java.io.BufferedReader(new java.io.InputStreamReader(java.lang.System["in"]));
     var response;
     try {
-        response = br.readLine();
+         response = br.readLine();
     } catch (e) {
-        System.out.println("IO error trying to read");
+         System.out.println("IO error trying to read");
     }
     return response;
 }
 /**
- *
+ * 
  * @param {String} question
  * @param {Boolean} true or false
  */
-prompt.yesno = function (question) {
+prompt.yesno = function(question){
     var response = "";
-    while (!response.match(/^\s*[yn]\s*$/i)) {
-        response = prompt("Install dependancy " + plug_name + "? (yN):")
+    while(! response.match(/^\s*[yn]\s*$/i)){
+        response = prompt("Install dependancy "+plug_name+"? (yN):")
     }
     return response.match(/[yn]/i)[0].toLowerCase() == "y";
 }

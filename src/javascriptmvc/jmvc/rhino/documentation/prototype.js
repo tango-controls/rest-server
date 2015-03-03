@@ -8,6 +8,6 @@
  * @code_end
  */
 MVC.Doc.Prototype = MVC.Doc.Static.extend('prototype',
-    {
-        name:'prototype'
-    });
+{
+    name: 'prototype'
+});
