@@ -1,0 +1,1 @@
+{"path_to_jmvc": "../../jmvc/include.js", "class_name": "adminka", "application_name": "adminka", "stylesheets": [], "resources": [], "plugins": ["controller", "view", "model"], "engines": [], "models": [], "controllers": ["adminka/main"], "views": [], "tests": {"unit": [], "functional": []}}
