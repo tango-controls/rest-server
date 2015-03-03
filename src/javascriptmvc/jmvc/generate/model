@@ -1,18 +1,25 @@
-if(_args.length < 2){
-	print("USAGE: js jmvc/generate/model type class_name\n")
-	print("types- ajax, cookie, json_p, json_rest, xml_rest")
+var model_types = ["ajax", "cookie", "json_p", "json_rest", "xml_rest"];
+
+//TODO types should be defined in MVC according to existing plugins
+
+if(!_args[0]){
+	print("USAGE: js jmvc/generate/model class_name type\n");
+	print("types:= " + model_types.join('|'));
 	print();
 	quit();
 }
 
 load('jmvc/generate/loader.js');
 
-var data = {class_name: _args[1]}
-data.name = MVC.String.classize(_args[1]);
-data.type = MVC.String.classize(_args[0]);
+var data = {class_name: _args[0]}
+data.name = _args[0];
+data.type = MVC.String.classize((_args[1]) ? _args[1]: "model");
 
 v = new View({absolute_url: "jmvc/rhino/command/templates/model.ejs"});
-MVCOptions.save("models/"+_args[1]+".js",  v.render(data)  );
+MVCOptions.save("models/"+_args[0]+".js",  v.render(data)  );
 
-print("Generating ... models/"+_args[1]+".js");
+t = new View({absolute_url: "jmvc/rhino/command/templates/unit_test.ejs"});
+MVCOptions.save("test/unit/"+_args[0]+"_test.js",  t.render(data)  );
+
+print("Generating ... models/"+_args[0]+".js");
 print("\n               Make sure to add to your application files!\n");

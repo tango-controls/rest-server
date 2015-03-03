@@ -1,83 +1,113 @@
-(function () {
-    var URLClassLoader = Packages.java.net.URLClassLoader
-    var URL = java.net.URL
-    var File = java.io.File
-
-    var ss = new File("jmvc/rhino/shrinksafe.jar")
-    var ssurl = ss.toURL()
-    //print(ssurl);
-    //quit();
-    var urls = java.lang.reflect.Array.newInstance(URL, 1)
-    urls[0] = new URL(ssurl);
-    var clazzLoader = new URLClassLoader(urls);
-    //importPackage(Packages.org.dojotoolkit.shrinksafe);
-    //importClass(Packages.org.dojotoolkit.shrinksafe.Compressor)
-    var Compressor = clazzLoader.loadClass("org.dojotoolkit.shrinksafe.Compressor")
-
-    var mthds = Compressor.getDeclaredMethods()
-    CompressorMethod = null;
-    for (var i = 0; i < mthds.length; i++) {
-        var meth = mthds[i];
-        if (meth.toString().match(/compressScript\(java.lang.String,int,int,boolean\)/))
-            CompressorMethod = meth;
-    }
+(function(){
+    importClass(Packages.org.bitbucket.ingvord.jmvc.Compiler);
 })();
 
-
-MVCOptions.save = function (path, src) {
-    var out = new java.io.FileWriter(new java.io.File(path)),
-        text = new java.lang.String(src || "");
-    out.write(text, 0, text.length());
-    out.flush();
-    out.close();
-};
-MVCOptions.create_folder = function (path) {
-    var out = new java.io.File(path)
-    out.mkdir();
+/**
+ *
+ * @param path
+ * @returns {boolean}
+ */
+MVCOptions.exists = function(path){
+    var file = new java.io.File(path);
+    return file.exists();
 };
 
-MVCOptions.compress = function (src) {
-    var zero = new java.lang.Integer(0);
-    var one = new java.lang.Integer(1);
-    var tru = new java.lang.Boolean(true);
-    var script = new java.lang.String(src);
-    return CompressorMethod.invoke(null, script, zero, one, tru);
-    //return Compressor.compressScript(script, zero, one, tru); 
+/**
+ *
+ * @param src what
+ * @param dst where
+ */
+MVCOptions.copy = function(src, dst){
+    var srcPath = java.nio.file.Paths.get(src);
+    var trgPath = java.nio.file.Paths.get(dst);
+    java.nio.file.Files.copy(srcPath,trgPath);
 };
-MVCOptions.collect = function (total) {
-    var collection = '', txt;
-    for (var s = 0; s < total.length; s++) {
-        var includer = total[s];
 
-        if (typeof includer == 'function') {
-            collection += "include.next_function();\n"
-        } else {
-            txt = includer.process ? includer.process(includer) : includer.text
-            collection += "include.set_path('" + includer.start + "')" + ";\n" + txt + ";\n";
+/**
+ *
+ * @param path
+ * @param dst must be a directory if does not exist will be created
+ */
+MVCOptions.move = function(path, dst){
+    var targetDir = new java.io.File(dst);
+    if(!targetDir.exists()) targetDir.mkdirs();
+    if(!targetDir.isDirectory()) throw "MVCOptions.move: dst must be a directory!";
+
+    var file = new java.io.File(path);
+    var targetFile = new java.io.File(targetDir.getAbsolutePath() + "/" + file.getName());
+    if(targetFile.exists()) targetFile["delete"]();
+    if(!file.renameTo(targetFile))
+        throw "MVCOptions.move: move has failed: can not move " + file.getAbsolutePath() + " to "+ targetFile.getAbsolutePath()
+};
+
+MVCOptions.save = function(path, src){
+    var out = new java.io.FileWriter( new java.io.File( path )),
+            text = new java.lang.String( src || "" );
+		out.write( text, 0, text.length() );
+		out.flush();
+		out.close();
+};
+MVCOptions.create_folder = function(path){
+    var out = new java.io.File( path );
+    out.mkdirs();
+};
+
+MVCOptions.remove = function(path){
+    var file = new java.io.File( path );
+    if(file.isDirectory()){
+        var dir = file;
+        var files = dir.listFiles();
+        for(var i = 0, size = files.length; i < size ; ++i){
+            MVCOptions.remove(files[i].getAbsolutePath());
         }
-
-
     }
-    collection += "include.end_of_production();";
+    file["delete"]();
+};
+
+MVCOptions.compress = function(input_path,output_path){
+    var args = java.lang.reflect.Array.newInstance(java.lang.String,4);
+    args[0] = new java.lang.String("--js");
+    args[1] = new java.lang.String(input_path);
+    args[2] = new java.lang.String("--js_output_file");
+    args[3] = new java.lang.String(output_path);
+
+    var compressor = new Compiler(args);
+    compressor.start();
+};
+MVCOptions.collect = function(total){
+    var collection = '', txt;
+	for(var s=0; s < total.length; s++){
+		var includer = total[s];
+        
+        if(typeof includer == 'function'){
+            collection += "include.next_function();\n"
+        }else{
+            txt = includer.process ? includer.process(includer) : includer.text
+		    collection += "include.set_path('"+includer.start+"')"+";\n"+txt + ";\n";
+        }
+        
+        
+	}
+	collection += "include.end_of_production();";
     return collection;
 };
 
 
-MVCOptions.collect_and_compress = function (total) {
+MVCOptions.collect_and_compress = function(total){
     var collection = '', script, txt, compressed;
-    for (var s = 0; s < total.length; s++) {
-        script = total[s];
-        if (typeof script == 'function') {
+	for(var s=0; s < total.length; s++){
+		script = total[s];
+        if(typeof script == 'function'){
             collection += "include.next_function();\n"
-        } else {
+        }else{
             txt = script.process ? script.process(total[s]) : script.text;
-            compressed = script.compress == false ? txt : MVCOptions.compress(txt, script.path);
-            collection += "include.set_path('" + script.start + "')" + ";\n" + compressed + ";\n";
-
-
+    		compressed = script.compress == false ? txt : MVCOptions.compress(txt, script.path);
+            collection += "include.set_path('"+script.start+"')"+";\n"+compressed + ";\n";
+            
+            
         }
-    }
-    collection += "include.end_of_production();";
+	}
+	collection += "include.end_of_production();";
     return collection;
 }
 

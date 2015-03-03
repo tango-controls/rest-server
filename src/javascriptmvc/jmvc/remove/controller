@@ -1,0 +1,37 @@
+if(!_args[0]){
+	print("Usage: js jmvc/remove/controller controller ?app_name")
+	quit();
+}
+
+load('jmvc/generate/loader.js');
+
+var data = {
+    name:_args[0],
+    class_name:MVC.String.classize(_args[0])
+}
+
+if(_args[1]){
+    print("Removing controller from app... ");
+    data.application_name = _args[1];
+
+    MVCOptions.remove("controllers/" + data.application_name + "/" + data.name + "_controller.js");
+    MVCOptions.remove("test/functional/" + data.application_name + "/" + data.name + "_controller_test.js");
+    MVCOptions.remove("test/unit/" + data.application_name + "/" + data.name + "_controller_test.js");
+    MVCOptions.remove("views/" + data.application_name + "/" + data.name);
+
+    var app = JSONparse(readFile("apps/" + data.application_name  + "/" + data.application_name  + ".json"));
+
+    app.controllers = MVC.Array.remove(app.controllers,data.name);
+    app.tests.functional = MVC.Array.remove(app.tests.functional,data.name + "_controller");
+    app.tests.unit = MVC.Array.remove(app.tests.unit,data.name + "_controller");
+    app.views = MVC.Array.remove(app.views,function(el){return el.indexOf("views/" + data.application_name + "/" + data.name) == 0;});
+
+    save_app_json(data.application_name, app);
+} else {
+    print("Removing controller from jmvc...");
+    MVCOptions.remove("controllers/" + data.name + "_controller.js");
+    MVCOptions.remove("test/functional/" + data.name + "_controller_test.js");
+    MVCOptions.remove("test/unit/" + data.name + "_controller_test.js");
+    MVCOptions.remove("views/" + data.name);
+}
+print("\n               Done!\n");

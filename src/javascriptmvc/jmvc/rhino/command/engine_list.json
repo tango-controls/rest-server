@@ -1,6 +1,5 @@
 {
-    "modal"   :"http://javascriptmvc.googlecode.com/svn/engines/1_5/modal/",
-    "slider"  :"http://javascriptmvc.googlecode.com/svn/engines/1_5/slider/",
-    "splitter":"http://javascriptmvc.googlecode.com/svn/engines/1_5/splitter/",
-    fixedbox  :"http://javascriptmvc.googlecode.com/svn/engines/1_5/fixedbox/"
+    "FileUpload" : "https://bitbucket.org/api/1.0/repositories/ingvord/jmvc-engines/src/default/engines/FileUpload",
+    "MdlDialog"  : "https://bitbucket.org/api/1.0/repositories/ingvord/jmvc-engines/src/default/engines/MdlDialog",
+    "Wizard"     : "https://bitbucket.org/api/1.0/repositories/ingvord/jmvc-engines/src/default/engines/Wizard"
 }

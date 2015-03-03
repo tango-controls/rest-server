@@ -1,0 +1,19 @@
+if(!_args[0]){
+	print("Usage: js jmvc/generate/app_js app_name")
+	quit();
+}
+
+load('jmvc/generate/loader.js');
+
+if(!MVCOptions.exists("apps/" + _args[0] + ".js")){
+    print("Application " + _args[0] + " does not exist. Create it first using `js jmvc/generate/app " + _args[0] + "`\n\n");
+    quit();
+}
+
+
+update_app_json(_args[0],{
+});
+
+print("\n               Done!\n");
+
+

@@ -14,6 +14,7 @@
  *
  * For example:
  @code_start
+ <pre>
  //instead of:
  new Ajax('/tasks.json', {onComplete: find_tasks_next_week })
  //do this:
@@ -23,6 +24,7 @@
  new Ajax('/tasks/'+id+'/complete.json',{onComplete: task_completed})
  //do this:
  task.complete(task_completed)
+ </pre>
  @code_end
  Typically there are two types of services any application connects to:
  <ul>
@@ -33,20 +35,22 @@
  <h3>Group Services</h3>
  Group services that request data should look like the following:
  @code_start
+ <pre>
  Task = MVC.Model.extend('task',
  {
- find : function(params, callback){
- new Ajax('/tasks.json', {onComplete: MVC.Function.bind(function(response){
- //get data into the right format for create_as_existing
- var data =  eval('('+json_string+')');
- //call create_as_existing to create instances
- var instances = this.create_many_as_existing(data);
- //call back with data.
- callback(instances)
- }) })
- }
+   find : function(params, callback){
+     new Ajax('/tasks.json', {onComplete: MVC.Function.bind(function(response){
+         //get data into the right format for create_as_existing
+         var data =  eval('('+json_string+')');
+         //call create_as_existing to create instances
+         var instances = this.create_many_as_existing(data);
+         //call back with data.
+         callback(instances)
+     }) })
+   }
  },
  {})
+ </pre>
  @code_end
  Note this function uses [MVC.Model.static.create_many_as_existing|create_many_as_existing]
  to create new instances.  By using create_many_as_existing, the model will also publish
@@ -54,31 +58,35 @@
  <h3>Singular Service</h3>
  Singular services that minipulate data might look like:
  @code_start
+ <pre>
  Task = MVC.Model.extend('task',
  {},
  {
- complete: function(callback){
- new Ajax('/tasks/'+this.id+'/complete.json', {onComplete: MVC.Function.bind(function(response){
- this.completed = true;
- callback(this)
- this.publish("completed")
- }) })
- }
+   complete: function(callback){
+     new Ajax('/tasks/'+this.id+'/complete.json', {onComplete: MVC.Function.bind(function(response){
+         this.completed = true;
+         callback(this)
+         this.publish("completed")
+     }) })
+   }
  })
+ </pre>
  @code_end
  <h2>Wrapping Data</h2>
  Now that you have instances, you can wrap their data in useful ways.  This is done by adding
  functions to the Model's prototype methods.  For example:
  @code_start
+ <pre>
  Task = MVC.Model.extend('task',
  {},
  {
- status : function(){
- return this.complete ? "COMPLETE" : "INCOMPLETE"
- }
+   status : function(){
+     return this.complete ? "COMPLETE" : "INCOMPLETE"
+   }
  })
+ </pre>
  @code_end
- <h3>P</h3>
+ * <h3>P</h3>
  * <ul>
  *     <li>Model.find_one(params, callbacks)</li>
  *     <li>Model.find_all(params, callbacks)</li>
@@ -86,6 +94,17 @@
  *     <li>Model.update(id, attributes, callbacks)</li>
  *     <li>Model.destroy(id, callbacks)</li>
  * </ul>
+ *
+ * There three are possible callbacks can be passed to the upper methods:
+ * <ul>
+ *     <li> onSuccess -- called after onComplete if request was successful
+ *     <li> onFailure -- called after onComplete if response has failed
+ *     <li> onComplete -- called after a response arrives, typically defined by the model, user should use two previous callbacks
+ * </ul>
+ *
+ * onComplete is 'reserved' for specialized models, like JsonP where status of the response is determined in this callback
+ * user though may overwrite this behavior by passing single onComplete callback
+ *
  *
  * <h2>Using Stores</h2>
  * Model keeps all instances of a class in a [MVC.Store|Store].  Stores provide an easy way of
@@ -99,24 +118,70 @@ MVC.Model = MVC.Class.extend(
     {
         store_type             : MVC.Store,
         /**
-         * Finds objects in this class
-         * @param {Object} id the id of a object
-         * @param {Object} params params passed to the
-         * @param {Object} callbacks a single onComplete callback or a hash of callbacks
-         * @return {Model} will return instances of the model if syncronous
+         * Creates this model Class instance
+         *
+         * @constructor
          */
         init                   : function () {
             if (!this.className) return;
             MVC.Model.models[this.className] = this;
             this.store = new this.store_type(this);
+
+            for (var association in this.associations) {
+                if (!this.associations.hasOwnProperty(association)) continue;
+
+                switch (association) {
+                    case 'has_many':
+                        this._has_many.apply(this, this.associations['has_many']);
+                        break;
+                    case 'has':
+                        this._has.apply(this, this.associations['has']);
+                        break;
+                    //TODO belongs_to
+                    default:
+                        throw 'Unknown association ' + association;
+                }
+            }
         },
-        find                   : function (id, params, callbacks) {
+        /**
+         * Creates an instance of this model from a json string
+         *
+         * @param {String} json
+         */
+        from_json              : function (json) {
+            var attributes = MVC.Object.from_json(json);
+            this.create_as_existing(attributes);
+        },
+        /**
+         * Finds objects in this class
+         *
+         * Inherited models may redefine this method to perform a request
+         *
+         * @param {Object} id the id of a object
+         * @param {Object} params params passed to the
+         * @param {Object} cbks callbacks object
+         * @return {Model} will return instances of the model if syncronous
+         */
+        find_one              : function (id, params, cbks) {
             if (!params)  params = {};
             if (typeof params == 'function') {
-                callbacks = params;
+                cbks = params;
                 params = {};
             }
-            return this.store.find_one(id, callbacks);
+            var callbacks = this._clean_callbacks(cbks);
+            var inst = this.store.find_one(id, callbacks);
+            if(inst) callbacks.onSuccess(inst);
+            return inst;
+        },
+        /**
+         * Lookups for data in the local storage
+         *
+         * @param {Function|string} f -- filter function or 'all'
+         * @return {Array}
+         */
+        find:function(f){
+            if(f == 'all') f = 0;
+            return this.store.find(f)
         },
         /**
          * Finds all instances that satisfies filter function or all, if no filter function is provided
@@ -124,16 +189,24 @@ MVC.Model = MVC.Class.extend(
          * @param {Function} f a filter function
          * @return {Array}
          */
-        find_all:function(params,callbacks){
+        find_all               : function (params, cbs) {
             var filter;
-            if(typeof params == 'function') filter = params;
-            if(params && params.filter && typeof params.filter == 'function') filter = params.filter;
-            return this.store.find(filter);
+            if (typeof params == 'function') filter = params;
+            if (params && params.filter && typeof params.filter == 'function') filter = params.filter;
+            var callbacks = this._clean_callbacks(cbs);
+            var result = this.store.find(filter);
+            callbacks.onSuccess(result);
+            return result;
         },
         asynchronous           : true,
-        create:function(attributes, cbks){
+        /**
+         * Creates an instance of this model asynchronously
+         *
+         * @param {Object} attributes -- new instance's attributes
+         * @param {Object} cbks -- callbacks. At least onSuccess must be provided
+         */
+        create                 : function (attributes, cbks) {
             var callbacks = this._clean_callbacks(cbks);
-            //TODO errors
             callbacks.onSuccess(this.create_as_existing(attributes));
         },
         /**
@@ -142,16 +215,22 @@ MVC.Model = MVC.Class.extend(
          *
          * @param id
          * @param attributes
-         * @param cbks
+         * @param {Object} cbks -- callbacks. At least onSuccess must be provided
          */
-        update:function(id,attributes,cbks){
+        update                 : function (id, attributes, cbks) {
+            var inst = this.find(id);
+            if (!inst) throw "Instance[id=" + id + "] was not found!";
             var callbacks = this._clean_callbacks(cbks);
-            callbacks.onSuccess(this.find(id));
+            this.publish("update", {data: inst});
+            callbacks.onSuccess(inst);
         },
         /**
          * Used to create an existing object from attributes
+         *
+         * Publishes 'create.as_existing' event
+         *
          * @param {Object} attributes
-         * @return {Model} an instance of the model
+         * @return {Model} an instance of this model
          */
         create_as_existing     : function (attributes) {
             if (!attributes) return null;
@@ -165,9 +244,10 @@ MVC.Model = MVC.Class.extend(
             return inst;
         },
         /**
-         * Creates many instances
-         * @param {Object} instances
-         * @return {Array} an array of instances of the model
+         * Creates instances of this model from an array of attributes
+         *
+         * @param {Array} instances
+         * @return {Array} an array of instances of this model
          */
         create_many_as_existing: function (instances) {
             var res = [];
@@ -183,16 +263,40 @@ MVC.Model = MVC.Class.extend(
         new_record_func        : function () {
             return false;
         },
+        /**
+         * An array of functions which will be applied to the instance of this model when validate method is invoked
+         *
+         * Each function returns an error (simply text) or nothing
+         *
+         */
         validations            : [],
-        has_many               : function () {
+        _validator             : function (inst) {
+            return function () {
+                for (var i = 0, size = this.validations.length, f; i < size; ++i) {
+                    f = this.validations[i];
+                    var error = f(inst);
+                    if (error && typeof error == 'string') inst.errors.push(error);
+                }
+            }
+        },
+        _has_many               : function () {
+            for (var i = 0; i < arguments.length; i++) {
+                this._associations.push(MVC.String.pluralize(arguments[i]));
+            }
+        },
+        _has                    : function () {
             for (var i = 0; i < arguments.length; i++) {
                 this._associations.push(arguments[i]);
             }
         },
-        belong_to              : function () {
+        _belongs_to             : function () {
             for (var i = 0; i < arguments.length; i++) {
                 this._associations.push(arguments[i]);
             }
+        },
+        associations           : {
+            has_many: [],
+            has     : []
         },
         _associations          : [],
         /**
@@ -238,6 +342,7 @@ MVC.Model = MVC.Class.extend(
          * Used for converting callbacks to to seperate failure and succcess
          * @param {Object} callbacks
          */
+        //TODO should we really always return onComplete and onFailure?
         _clean_callbacks       : function (callbacks) {
             if (!callbacks) {
                 callbacks = function () {
@@ -275,14 +380,16 @@ MVC.Model = MVC.Class.extend(
         /**
          * Namespaces are used to publish messages to a specific namespace.
          * @code_start
+         * <pre>
          * Org.Task = MVC.Model.extend('task',{
-         *   namespace: "org"
-         * },
+     *   namespace: "org"
+     * },
          * {
-         *   update: function(){
-         *     this.publish("update") // publishes 'this' to 'org.task.update'
-         *   }
-         * })
+     *   update: function(){
+     *     this.publish("update") // publishes 'this' to 'org.task.update'
+     *   }
+     * })
+         * </pre>
          * @code_end
          */
         namespace              : null
@@ -296,6 +403,10 @@ MVC.Model = MVC.Class.extend(
         init             : function (attributes) {
             //this._properties = [];
             this.errors = [];
+            if (attributes.errors) {
+                this.add_errors(attributes.errors);
+                delete attributes.errors;
+            }
 
             this.set_attributes(this.Class.default_attributes || {});
             this.set_attributes(attributes);
@@ -320,15 +431,19 @@ MVC.Model = MVC.Class.extend(
             this.set_attributes(attributes);
             return this.save(callback);
         },
+        /**
+         * Determines if this instance has no errors
+         *
+         * @returns {boolean}
+         */
         valid            : function () {
-            return  this.errors.length == 0;
+            return this.errors.length == 0;
         },
         /**
          * Validates this instance
          */
         validate         : function () {
-            //run validate function and any error functions
-
+            this.Class._validator(this)();
         },
         _setAttribute    : function (attribute, value) {
             if (MVC.Array.include(this.Class._associations, this.Class.attributes[attribute]))
@@ -364,21 +479,27 @@ MVC.Model = MVC.Class.extend(
 
             }
             //if (!(MVC.Array.include(this._properties,property))) this._properties.push(property);
-
-            this.Class.add_attribute(property, MVC.Object.guess_type(value));
+            else
+                this.Class.add_attribute(property, MVC.Object.guess_type(value));
         },
         _setAssociation  : function (attribute, values) {
-            var me = this;
-            me[attribute] = (function () {
-                var association = me.Class.attributes[attribute];
-                if (!MVC.String.is_singular(association)) association = MVC.String.singularize(association);
-                var associated_class = window[association];
-                if (!associated_class) return values;
-                return associated_class.create_as_existing(values);
-            })();
+            var association = this.Class.attributes[attribute];
+
+            var hasMany = !MVC.String.is_singular(association);
+
+            var associated_class = (hasMany) ? window[MVC.String.singularize(association)] : window[association];
+            if (!associated_class)
+                this[attribute] = values;
+            else if (hasMany)
+                this[attribute] = associated_class.create_many_as_existing(values);
+            else
+                this[attribute] = associated_class.create_as_existing(values);
         },
         /**
-         * Returns a list of attribues.
+         * Returns this model's attributes
+         *
+         * Associated models include their attributes as nested objects into the result
+         *
          * @return {Object}
          */
         attributes       : function () {
@@ -402,7 +523,7 @@ MVC.Model = MVC.Class.extend(
         },
         /**
          * Saves the instance
-         * @param {optional:Function} callbacks onComplete function or object of callbacks
+         * @param {Function} callbacks onComplete function or object of callbacks
          */
         save             : function (callbacks) {
             var result;
@@ -417,14 +538,21 @@ MVC.Model = MVC.Class.extend(
             return true;
         },
         /**
-         * Destroys the instance
-         * @param {optional:Function} callback or object of callbacks
+         * Destroys this instance
+         *
+         * @param {Function} callback or object of callbacks
          */
         destroy          : function (callback) {
             this.Class.store.destroy(this[this.Class.id]);
             this.Class.destroy(this[this.Class.id], callback);
         },
+        /**
+         * Add  errors to this instance
+         *
+         * @param {Array} errors
+         */
         add_errors       : function (errors) {
+            //TODO accept var args
             if (errors) this.errors = this.errors.concat(errors);
         },
         _resetAttributes : function (attributes) {
@@ -448,12 +576,19 @@ MVC.Model = MVC.Class.extend(
             return this.Class.className + '_' + this[this.Class.id];
         },
         /**
-         * Returns the element found by using element_id for this instance
+         * Returns an html element found by using element_id for this instance
+         *
+         * @returns {*}
          */
         element          : function () {
             return MVC.$E(this.element_id());
             ;
         },
+        /**
+         * Returns html elements with this element_id class
+         *
+         * @returns {*}
+         */
         elements         : function () {
             return MVC.Query("." + this.element_id());
         },

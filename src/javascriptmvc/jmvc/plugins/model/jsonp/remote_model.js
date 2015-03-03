@@ -1,19 +1,34 @@
 /**
  * Model for connecting to resources with JSONP
  *
- * Since JSONP does not really have a way to distinguish between timeout and any exception on the server
- * side usually onComplete serves as onFailure.
+ * Since JSONP does not really have a way to distinguish between timeout (server is not available) and any exception on the server
+ * side (Resource not found, unhandled ServletException etc) this model uses onComplete callback to decide between onSuccess and onFailure.
+ * Therefore user must not define onComplete callback in the request
  *
  * It is expected that if server answers in a normal way then instances of this model will be created and user
  * may verify that there is no errors by checking corresponding field of this model. onFailure may be also
  * called if response contains an array of errors.
  *
- * If there is no answer from the server a provided onFailure callback will be called with url as the argument
  */
 MVC.Model.JsonP = MVC.Model.extend(
     {
-        error_timeout          : 4,
-        init                   : function () {
+        _methods:{
+            find_one:'get',
+            find_all:'get',
+            create:'post',
+            update:'put',
+            destroy:'delete'
+        },
+        /**
+         * How long to wait before claiming "no response from server"
+         */
+        error_timeout: 3000,
+        /**
+         * Constructor for this model's Class
+         *
+         * @constructor
+         */
+        init: function () {
             if (!this.className) return;
             if (!this.domain) throw('a domain must be provided for remote model');
             if (!this.controller_name)
@@ -21,172 +36,199 @@ MVC.Model.JsonP = MVC.Model.extend(
             this.plural_controller_name = MVC.String.pluralize(this.controller_name);
             this._super();
         },
-        find_all               : function (params, cbs) {
-            var callbacks = this._clean_callbacks(cbs);
-            var callback = callbacks.onSuccess;
-            var error_callback = callbacks.onFailure;
+        /**
+         * Looks for an instance of this model in {MVC.Store},
+         * if not found -- requests server
+         *
+         * @param {*} id -- id to look up
+         * @param {Object} params
+         * @param {Object|Function} cbs -- callbacks
+         * @return {MVC.Model}
+         */
+        find_one: function (id, params, cbs) {
+            if(typeof params == 'function'){
+                cbs = params;
+                params = {};
+            }
+            var inst = this._super(id, params, cbs);
 
-            this.add_standard_params(params, 'find_all');
+            if(inst) return inst;
 
-            var n = parseInt(Math.random() * 100000);
-            //params.callback = MVC.String.classize(this.className)+'.listCallback'+n;
-            var url = this.find_url ? this.find_url + "?" : this.domain + '/' + this.plural_controller_name + '.json?';
-            //var url = url + MVC.Object.to_query_string(params)+'&'+n;
-            //make callback function create new and call the callback with them
-            if (!callback) callback = (function () {
-            });
-
-
-            new MVC.JsonP(url, {
-                error_timeout:this.error_timeout,
-                parameters: params,
-                onFailure : error_callback,
-                onComplete : MVC.Function.bind(function (callback_params) {
-                    var newObjects = this.create_many_as_existing(callback_params);
-                    if(callback_params.errors)
-                        error_callback(newObjects);
-                    else
-                        callback(newObjects);
-                }, this),
-                method    : 'get'
-            })
-
-
-            /*
-             var error_timer = this.check_error(url, error_callback);
-             this['listCallback'+n] = function(callback_params){
-             clearTimeout(error_timer);
-             var newObjects = this.create_many_as_existing( callback_params);
-             this.remove_scripts();
-             callback(newObjects);
-             delete this['listCallback'+n];
-             };
-             params['_method'] = 'GET';
-             clearTimeout(this.remove_scripts_timer);
-
-
-
-
-             include(url);*/
+            params[this.id] = id;
+            this._send_request('find_one',params, cbs);
         },
-        create                 : function (params, cbs) {
+        /**
+         * Wraps user defined onFailure
+         *
+         * @param error_callback
+         * @private
+         */
+        _error_callback:function(error_callback){
+            return function(response){
+                error_callback(MVC.Object.extend(response,{errors:response.responseText}));
+            }
+        },
+        /**
+         * Request all instances of this model from the server.
+         *
+         * Instances all looked up at this.find_url or this.domain/this.plural_controller_name
+         *
+         * One can provide the following callbacks:
+         * <ul>
+         *     <li> onSuccess -- invoked in case of a successful response, i.e. received in time and without errors
+         *     <li> onFailure -- invoked if response has errors. May not be provided -- in this case errors will be simply ignored
+         * </ul>
+         *
+         * @param {Object} params
+         * @param {Object} cbs
+         */
+        find_all: function (params, cbs) {
+            params = params || {};
+
+            this._send_request('find_all',params,cbs);
+        },
+        /**
+         * Same as this._onComplete but always passes an array of this model instances
+         *
+         * @param {Object} clean_callbacks -- user callbacks passed through _clean_callbacks
+         * @returns {Function}
+         * @private
+         */
+        _find_all_onComplete:function(clean_callbacks){
+            var me = this;
+            return function (response) {
+                var insts = me.create_many_as_existing(response);
+                if (response.errors)
+                    if(clean_callbacks.onFailure)
+                        clean_callbacks.onFailure(insts);
+                    else
+                        clean_callbacks.onSuccess(insts);
+            };
+        },
+        _onComplete:function(clean_callbacks, action){
+            var me = this;
+            return function (response) {
+                var inst = new me(response);
+                me.publish(action,{data:inst});
+                if (inst.valid())
+                    clean_callbacks.onSuccess(inst);
+                else
+                    if(clean_callbacks.onFailure) clean_callbacks.onFailure(inst);
+
+            };
+        },
+        /**
+         * Creates a new instance of this model on the server.
+         *
+         * The instance is created at this.create_url or this.domain/this.plural_controller_name
+         *
+         * One can provide the following callbacks:
+         * <ul>
+         *     <li> onSuccess -- invoked in case of a successful response, i.e. received in time and without errors
+         *     <li> onComplete -- invoked in both cases: success or failure
+         *     <li> onFailure -- invoked if response has errors. May not be provided -- in this case errors will be simply ignored
+         * </ul>
+         *
+         * @param {Object} params
+         * @param {Object} cbs
+         */
+        create: function (params, cbs) {
+            this._send_request('create', params, cbs);
+        },
+        /**
+         * Updates an instance of this model on the server
+         *
+         * @param id
+         * @param {Object} attributes
+         * @param {Object} cbs
+         */
+        update: function (id, attributes, cbs) {
+            var params = {};
+
+            params[this.id] = id;
+            MVC.Object.extend(params, attributes);
+
+            this._send_request('update',params,cbs);
+        },
+        /**
+         * Destroys an instance of this model on the server.
+         *
+         * Instance is destroyed at this.destroy_url or this.domain/this.plural_controller_name
+         *
+         * @param id
+         * @param {Object} cbs
+         */
+        destroy: function (id, cbs) {
+            var params = {};
+
+            params[this.id] = id;
+
+            this._send_request('destroy',params,cbs);
+        },
+        _send_request:function(action, params, cbs){
+            this._add_standard_params(params, action);
 
             var callbacks = this._clean_callbacks(cbs);
-            var callback = callbacks.onSuccess;
-            var error_callback = callbacks.onFailure;
+            var callback;
+            if(action == 'find_all')
+                callback = this._find_all_onComplete(callbacks);
+            else if(action == 'create')
+                callback = this._single_create_callback(callbacks);
+            else
+                callback = this._onComplete(callbacks,action);
+            var error_callback = this._error_callback(callback);
 
-            this.add_standard_params(params, 'create');
+            var url = this[action + '_url'] ? this[action + '_url'] : this.domain + '/' + this.plural_controller_name;
+            url += '?';
 
-
-            var klass = this, className = this.className,
-                url = this.create_url ? this.create_url + "?" : this.domain + '/' + this.plural_controller_name + '.json?';
             var tll = this.top_level_length(params, url);
-            var result = this.seperate(params[this.controller_name], tll, this.controller_name);
+            var result = this._separate(params[this.controller_name], tll, this.controller_name);
             var postpone_params = result.postpone, send_params = result.send;
 
-            if (!callback) callback = (function () {
-            });
-
-            params['_method'] = 'POST';
-
             if (result.send_in_parts) {
+                //TODO test
                 params[this.controller_name] = send_params;
                 params['_mutlirequest'] = 'true';
 
                 new MVC.JsonP(url, {
-                    error_timeout:this.error_timeout,
+                    error_timeout: this.error_timeout,
+                    callback_name: this.callback_name,
                     parameters: params,
-                    onComplete: MVC.Function.bind(this.parts_create_callback(params, callback, postpone_params), this),
-                    onFailure : error_callback,
-                    method    : 'post'
+                    onSuccess: MVC.Function.bind(this._parts_create_callback(params, callback, postpone_params), this),
+                    onFailure: error_callback,
+                    method: this._methods[action]
                 });
-
-                /*klass.createCallback = ;
-                 params[this.controller_name] = send_params;
-                 params['_mutlirequest'] = 'true';
-                 clearTimeout(this.remove_scripts_timer);
-                 include(url+MVC.Object.to_query_string(params)+'&'+Math.random());*/
-
             } else {
                 params['_mutlirequest'] = null;
 
                 new MVC.JsonP(url, {
-                    error_timeout:this.error_timeout,
+                    error_timeout: this.error_timeout,
+                    callback_name: this.callback_name,
                     parameters: params,
-                    onComplete: MVC.Function.bind(this.single_create_callback(callback, error_callback), this),
-                    onFailure : error_callback,
-                    method    : 'post'
+                    onSuccess: callback,
+                    onFailure: error_callback,
+                    method: this._methods[action]
                 });
-
-
-                //clearTimeout(this.remove_scripts_timer);
-                //include(url+MVC.Object.to_query_string(params)+'&'+Math.random());
             }
         },
-        update:function(id,attributes,cbks){
-            var params = {};
-
-            params[this.id] = id;
-            MVC.Object.extend(params,attributes);
-
-            this.add_standard_params(params, 'update');
-
-            this.create(params,cbks);
-        },
-        destroy:function(id,cbks){
-            var params = {};
-
-            params[this.id] = id;
-
-            var callbacks = this._clean_callbacks(cbks);
-            var callback = callbacks.onSuccess;
-            var error_callback = callbacks.onFailure;
-
-            //TODO synch server side delete->destroy
-            this.add_standard_params(params, 'delete');
-
-            var n = parseInt(Math.random() * 100000);
-            //params.callback = MVC.String.classize(this.className)+'.listCallback'+n;
-            var url = this.destroy_url ? this.destroy_url + "?" : this.domain + '/' + this.plural_controller_name + '.json?';
-            //var url = url + MVC.Object.to_query_string(params)+'&'+n;
-            //make callback function create new and call the callback with them
-            if (!callback) callback = (function () {
-            });
-
-
-            new MVC.JsonP(url, {
-                error_timeout:this.error_timeout,
-                parameters: params,
-                onFailure : error_callback,
-                onComplete : MVC.Function.bind(this.standard_callback(callback,error_callback),this),
-                method    : 'delete'
-            })
-        },
-        standard_callback:function(callback,error_callback){
-            return function (callback_params) {
-                if (callback_params.errors) {
-                    error_callback(callback_params.errors);
-                } else {
-                    callback(callback_params);
-                }
-            };
-        },
-        parts_create_callback  : function (params, callback, postpone_params) {
+        _parts_create_callback: function (params, callback, postpone_params) {
+            var me = this;
             return function (callback_params) {
                 if (!callback_params.id) throw 'Your server must callback with the id of the object.  It is used for the next request';
-                params[this.controller_name] = postpone_params;
+                params[me.controller_name] = postpone_params;
                 params.id = callback_params.id;
-                this.create(params, callback);
+                me.create(params, callback);
             };
         },
-        single_create_callback : function (callback, error_callback) {
-            return function (callback_params) {
-                if (callback_params.errors) {
-                    var inst = new this(callback_params[this.className] ? callback_params[this.className]: {});
-                    inst.add_errors(callback_params.errors);
-                    error_callback(inst);
+        _single_create_callback: function (clean_callbacks) {
+            var me = this;
+            return function (response) {
+                if (response.errors) {
+                    var inst = new me(response[me.className] ? response[me.className] : {});
+                    inst.add_errors(response.errors);
+                    clean_callbacks.onFailure(inst);
                 } else {
-                    callback(this.create_as_existing(callback_params));
+                    clean_callbacks.onSuccess(me.create_as_existing(response));
                 }
             };
         },
@@ -206,19 +248,19 @@ MVC.Model.JsonP = MVC.Model.extend(
 
             return this._super(instances);
         },
-        add_standard_params    : function (params, action) {
+        _add_standard_params: function (params, action) {
             if (!params.referer) params.referer = window.location.href;
             if (!params.action) params.action = action;
         },
-        callback_name          : 'callback',
-        domain                 : null,
-        top_level_length       : function (params, url) {
+        callback_name: 'cbk',
+        domain: null,
+        top_level_length: function (params, url) {
             var p = MVC.Object.extend({}, params);
             delete p[this.controller_name];
             return url.length + MVC.Object.to_query_string(p).length;
 
         },
-        seperate               : function (object, top_level_length, name) {
+        _separate: function (object, top_level_length, name) {
             var remainder = 2000 - 9 - top_level_length;
             var send = {};
             var postpone = {};
@@ -259,7 +301,7 @@ MVC.Model.JsonP = MVC.Model.extend(
             }
             return {send: send, postpone: postpone, send_in_parts: send_in_parts};
         },
-        random                 : parseInt(Math.random() * 1000000)
+        random: parseInt(Math.random() * 1000000)
     },
 //prototype functions
     {});

@@ -3,12 +3,12 @@ include(
     '../lang/standard_helpers',
     '../dom/query/standard')
 
-include.plugins('lang/class', 'lang/openajax')
+include.plugins('lang/class','lang/openajax')
 
-if (!window._rhino) {
+if(!window._rhino){
     include.plugins('debug')
-} else {
-    MVC.Console = {log:function (txt) {
+}else{
+    MVC.Console = {log: function(txt){
         print(txt);
     }}
 }

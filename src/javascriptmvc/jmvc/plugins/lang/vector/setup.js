@@ -1,2 +1,2 @@
-include.plugins('lang', 'dom/event');
+include.plugins('lang','dom/event');
 include('vector')

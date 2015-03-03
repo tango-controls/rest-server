@@ -1,0 +1,12 @@
+if(!_args[0]){
+	print("Usage: js jmvc/generate/view name")
+	quit();
+}
+
+load('jmvc/generate/loader.js');
+
+v = new View({absolute_url: "jmvc/rhino/command/templates/view.ejs"});
+MVCOptions.save("views/"+_args[0]+MVC.View.ext,  v.render()  );
+
+print("Generating ... views/"+_args[0]+MVC.View.ext);
+print("\n               Make sure to add to your application files!\n");
