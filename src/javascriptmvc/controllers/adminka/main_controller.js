@@ -10,6 +10,6 @@ AdminkaController = MVC.Controller.extend('main',{
     * @param {Object} params
     */
     load: function(params){
-    	document.body.innerHTML += "<h1 id='hello'>Hello World</h1>";
+    	document.body.innerHTML += "<h1 id='hello'>Under construction!!!</h1>";
     }
 });
