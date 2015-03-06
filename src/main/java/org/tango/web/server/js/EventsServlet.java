@@ -8,7 +8,7 @@ import org.tango.client.ez.proxy.EventData;
 import org.tango.client.ez.proxy.TangoEvent;
 import org.tango.client.ez.proxy.TangoEventListener;
 import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.web.rest.Responses;
+import org.tango.web.server.Responses;
 import org.tango.web.server.DeviceMapper;
 
 import javax.servlet.ServletException;
