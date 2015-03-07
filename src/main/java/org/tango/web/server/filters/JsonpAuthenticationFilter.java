@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class JsonpAuthenticationFilter implements Filter {
     //TODO customizable default user
-    public static final String DEFAULT_USER = "*";
+    public static final String DEFAULT_USER = "mtango-js";
 
     public void destroy() {
     }
