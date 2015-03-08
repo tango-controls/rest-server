@@ -106,7 +106,7 @@ render = function(options) {
 			else if(options.partial) {
                 var url = '../views/'+convert(options.partial);
         } else {
-                var url = '../views/'+controller_name+'/'+action_name.replace(/\.|#/g, '').replace(/ /g,'_')+MVC.View.ext;
+                var url = '../views/'+MVC.app_name+'/'+controller_name+'/'+action_name.replace(/\.|#/g, '').replace(/ /g,'_')+MVC.View.ext;
             }
 			var data_to_render = options.using || this;
 			if(options.locals) {
@@ -116,7 +116,14 @@ render = function(options) {
 			}
             var view;
             if(!plugin_url){
-                view = new MVC.View({url:  new MVC.File(url).join_from(this.Class._path)  }); //what about controllers in other folders?
+                try {
+                    view = new MVC.View({url: new MVC.File(url).join_from(this.Class._path)}); //what about controllers in other folders?
+                } catch (e) {
+                    if(e.type !='JMVC') throw e;
+                    //if we have not found .ejs in views/app_name folder try to lookup in views
+                    url = url.replace(MVC.app_name + '/','');
+                    view = new MVC.View({url: new MVC.File(url).join_from(this.Class._path)});
+                }
             }else{
                 //load plugin if it has been included
                 try{

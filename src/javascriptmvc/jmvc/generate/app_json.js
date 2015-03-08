@@ -1,3 +1,7 @@
+include.namespace = function(){
+    //TODO ?!
+};
+
 include.css = function(){
     for(var i = 0, size = arguments.length;i<size;++i){
         if(!MVC.Array.include(include.app().stylesheets,arguments[i]))
@@ -70,9 +74,24 @@ create_app_json = function(app_name){
  * @param app_name
  * @return {JSON} json structure of the app
  */
-load_app_json = function(app_name){
+read_app_json = function(app_name){
+    if(!MVCOptions.exists("apps/"+app_name+"/" + app_name + ".json")) {
+        throw "\n\n\tApplicationNotFound: application["+app_name+"] does not exist!\n\t\t Please creates it first executing 'js jmvc\\generate\\app "+app_name+"'(Windows) or './js jmvc/generate/app "+app_name+"'(Linux/Mac)";
+    }
+
     var appJson = readFile("apps/"+app_name+"/" + app_name + ".json");
     var app = JSONparse(appJson);
+    return app;
+};
+
+/**
+ * Reads json and applies app.js to it
+ *
+ * @param app_name
+ * @return {JSON} json structure of the app
+ */
+load_app_json = function(app_name){
+    var app = read_app_json(app_name);
     include.app = function(){
         return app;
     };
@@ -86,26 +105,37 @@ load_app_json = function(app_name){
     return app;
 };
 
-update_app_json = function(app_name, obj){
-    var app = load_app_json(app_name);
-    print("Parsing json... ");
+/**
+ *
+ * @param {JSON} app
+ * @param {Object} obj
+ */
+update_app_json = function(app, obj){
+    var app_name = app.application_name;
+    print("Merging obj into app... ");
     for(var a in obj){
         if(!obj.hasOwnProperty(a)) continue;
         if(a == 'tests'){
             //functional tests
             for(var i = 0, size = obj[a].functional.length;i<size;++i){
-                if(!MVC.Array.include(app[a].functional,obj[a].functional[i]))
+                if(!MVC.Array.include(app[a].functional,obj[a].functional[i])) {
                     app[a].functional.push(obj[a].functional[i]);
+                    print("Add tests/functional/"+i);
+                }
             }
             //unit tests
             for(var i = 0, size = obj[a].unit.length;i<size;++i){
-                if(!MVC.Array.include(app[a].unit,obj[a].unit[i]))
+                if(!MVC.Array.include(app[a].unit,obj[a].unit[i])) {
                     app[a].unit.push(obj[a].unit[i]);
+                    print("Add tests/unit/"+i);
+                }
             }
         } else {
             for(var i = 0, size = obj[a].length;i<size;++i){
-                if(!MVC.Array.include(app[a],obj[a][i]))
+                if(!MVC.Array.include(app[a],obj[a][i])) {
                     app[a].push(obj[a][i]);
+                    print("Add "+a+"/"+i);
+                }
             }
         }
     }
@@ -114,7 +144,7 @@ update_app_json = function(app_name, obj){
     MVCOptions.save(app_json,  MVC.Object.to_json(app)  );
     render_to("apps/"+app_name+".js", "jmvc/rhino/command/templates/application.ejs", app);
     render_to("apps/"+app_name+"/test.js", "jmvc/rhino/command/templates/test.ejs", app);
-    print("json file has been updated.\n")
+    print("               apps/"+app_name+"/"+app_name+".json\n")
 };
 
 save_app_json = function(app_name, app){
@@ -122,7 +152,7 @@ save_app_json = function(app_name, app){
     MVCOptions.save(app_json,  MVC.Object.to_json(app)  );
     render_to("apps/"+app_name+".js", "jmvc/rhino/command/templates/application.ejs", app);
     render_to("apps/"+app_name+"/test.js", "jmvc/rhino/command/templates/test.ejs", app);
-    print("json file has been saved.\n")
+    print("               apps/"+app_name+"/"+app_name+".json\n")
 };
 
 /**

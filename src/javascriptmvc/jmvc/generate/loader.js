@@ -14,6 +14,8 @@ include.get_env = function(){
     return 'development'
 }
 
+//TODO types should be defined in MVC according to existing plugins
+MVC.gModelTypes = ["ajax", "cookie", "json_p", "json_rest", "xml_rest"];
 
 load('jmvc/plugins/lang/standard_helpers.js');
 load('jmvc/plugins/lang/json/json.js');

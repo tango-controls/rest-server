@@ -18,9 +18,11 @@ MVCOptions.exists = function(path){
  * @param dst where
  */
 MVCOptions.copy = function(src, dst){
+    var Files = java.nio.file.Files;
     var srcPath = java.nio.file.Paths.get(src);
     var trgPath = java.nio.file.Paths.get(dst);
-    java.nio.file.Files.copy(srcPath,trgPath);
+    if(Files.isDirectory(trgPath)) trgPath = trgPath.resolve(srcPath.getFileName());
+    Files.copy(srcPath,trgPath);
 };
 
 /**
@@ -40,8 +42,24 @@ MVCOptions.move = function(path, dst){
         throw "MVCOptions.move: move has failed: can not move " + file.getAbsolutePath() + " to "+ targetFile.getAbsolutePath()
 };
 
+/**
+ * Creates all non existing parent directories.
+ *
+ * @param {string} path -- a path to a file
+ * @param {string} src -- text to save in the file
+ * @throw {string} if path is not a file
+ */
 MVCOptions.save = function(path, src){
-    var out = new java.io.FileWriter( new java.io.File( path )),
+    var Files = java.nio.file.Files;
+    var Paths = java.nio.file.Paths;
+
+    var path = Paths.get(path);
+    if(Files.exists(path) && !Files.isRegularFile(path)) throw "IllegalArgument: path can not be a directory";
+
+    var parent = path.getParent();
+    Files.createDirectories(parent);
+
+    var out = Files.newBufferedWriter(path,java.nio.charset.StandardCharsets.UTF_8),
             text = new java.lang.String( src || "" );
 		out.write( text, 0, text.length() );
 		out.flush();

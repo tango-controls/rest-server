@@ -141,6 +141,7 @@ MVC.Controller = MVC.Class.extend(
 			}
         }
         this._path =  include.get_path().match(/(.*?)controllers/)[1]+"controllers";
+        this.action_name = 'init';
     },
     _should_attach_actions : true,
     _create_actions : function(){

@@ -1,6 +1,7 @@
 if(_args.length < 2){
 	print("Creates an html page that loads one of your applications.\n")
 	print("USAGE: js jmvc/generate/test app_name page_location\n")
+	print("app_name := under_scoped_name\n");
 	print();
 	quit();
 }
@@ -44,3 +45,6 @@ try{
 }catch(e){
 	print("  ERROR! Unable to render to "+loc+". Make sure folder exists!");
 }
+
+print("\n               Done!\n");
+print("\n               Make sure to add to your application files!\n");
