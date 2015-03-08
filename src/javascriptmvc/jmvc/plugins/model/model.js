@@ -225,6 +225,15 @@ MVC.Model = MVC.Class.extend(
             callbacks.onSuccess(inst);
         },
         /**
+         *
+         */
+        destroy:function(id, cbks){
+            if(this.store.find_one(id)) this.store.destroy(id);
+            var callbacks = this._clean_callbacks(cbks);
+            this.publish("destroy", {});
+            callbacks.onSuccess();
+        },
+        /**
          * Used to create an existing object from attributes
          *
          * Publishes 'create.as_existing' event
@@ -271,13 +280,14 @@ MVC.Model = MVC.Class.extend(
          */
         validations            : [],
         _validator             : function (inst) {
-            return function () {
+            return MVC.Function.bind(
+                function () {
                 for (var i = 0, size = this.validations.length, f; i < size; ++i) {
                     f = this.validations[i];
                     var error = f(inst);
                     if (error && typeof error == 'string') inst.errors.push(error);
                 }
-            }
+            },this);
         },
         _has_many               : function () {
             for (var i = 0; i < arguments.length; i++) {

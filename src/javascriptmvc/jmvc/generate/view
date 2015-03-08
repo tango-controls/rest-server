@@ -1,12 +1,33 @@
 if(!_args[0]){
-	print("Usage: js jmvc/generate/view name")
+	print("Usage: js jmvc/generate/view name app_name[optional]")
+	print("name := under_scoped_name");
+	print("app_name := under_scoped_name. If present newly created view will be added to the application\n");
 	quit();
 }
 
 load('jmvc/generate/loader.js');
 
-v = new View({absolute_url: "jmvc/rhino/command/templates/view.ejs"});
-MVCOptions.save("views/"+_args[0]+MVC.View.ext,  v.render()  );
+var app;
+var app_path = '';
+if(_args[1]){
+	app = load_app_json(_args[1]);
+	app_path += app.application_name + '/';
+} else {
+	app = {views:[]}
+}
 
-print("Generating ... views/"+_args[0]+MVC.View.ext);
+v = new View({absolute_url: "jmvc/rhino/command/templates/view.ejs"});
+MVCOptions.save("views/"+app_path+_args[0]+MVC.View.ext,  v.render()  );
+
+app.views.push('views/'+app_path+_args[0]);
+
+print("Generating ... views/"+app_path+_args[0]+MVC.View.ext);
+
+if(_args[1]){
+	save_app_json(app.application_name, app);
+}
+
+print("\n               Done!\n");
+if(!_args[1]){
 print("\n               Make sure to add to your application files!\n");
+}

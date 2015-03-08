@@ -1,35 +1,22 @@
 if(!_args[0]){
-	print("Usage: js jmvc/remove/app app_name")
+	print("USAGE: js jmvc/remove/app name\n")
+	print("name     := under_scoped_name.\n");
 	quit();
 }
-
 load('jmvc/generate/loader.js');
 
-var data = {
-    path_to_jmvc:'../../jmvc/include.js',
-    class_name: _args[0],
-    application_name: _args[0]
-}
+var app_name = _args[0];
 
-print("Removing app "+_args[0]);
+var app = load_app_json(app_name);
 
-var app = JSONparse(readFile("apps/"+_args[0] + "/"+_args[0] + ".json"))
+MVCOptions.remove('apps/' + app.application_name);
+print("Deleting... apps/" + app.application_name);
+MVCOptions.remove('apps/' + app.application_name + '.js');
+print("            apps/" + app.application_name + ".js");
+['controllers','models','resources','stylesheets','test/unit','test/functional','test/fixtures','views'].forEach(function(entity){
+    MVCOptions.remove(entity + '/' + app.application_name);
+    print("            "+entity+"/"+ app.application_name);
+});
 
-print("Clearing jmvc...");
-//delete everything that belongs to the app
-for(var entities in app){
-    if(!app.hasOwnProperty(entities)) continue;
-    if(entities == "plugins" || entities == "engines") continue;
-    MVCOptions.remove(entities + "/" +_args[0]);
-}
+print("            Done!");
 
-print("Clearing tests...");
-MVCOptions.remove("test/functional/" +_args[0]);
-MVCOptions.remove("test/unit/" +_args[0]);
-
-print("Clearing apps...");
-//finally delete app from apps
-MVCOptions.remove("apps/"+_args[0]);
-MVCOptions.remove("apps/"+_args[0] + ".js");
-
-print("Done.");

@@ -1,18 +1,17 @@
 if(!_args[0]){
+    print("Regenerates apps/{app_name}.js file from apps/{app_name}/{app_name}.json\n\n");
 	print("Usage: js jmvc/generate/app_js app_name")
+	print("app_name := under_scoped_name\n");
 	quit();
 }
 
 load('jmvc/generate/loader.js');
 
-if(!MVCOptions.exists("apps/" + _args[0] + ".js")){
-    print("Application " + _args[0] + " does not exist. Create it first using `js jmvc/generate/app " + _args[0] + "`\n\n");
-    quit();
-}
+application_name = _args[0];
 
+var app = read_app_json(application_name);
 
-update_app_json(_args[0],{
-});
+update_app_json(app,{});
 
 print("\n               Done!\n");
 

@@ -1,37 +1,38 @@
 if(!_args[0]){
 	print("Usage: js jmvc/generate/app app_name")
+	print("app_name := under_scoped_name\n");
 	quit();
 }
 load('jmvc/generate/loader.js');
 
 var data = {
     path_to_jmvc:'../../jmvc/include.js',
-    class_name: _args[0],
+    class_name:       MVC.String.classize(_args[0]),
     application_name: _args[0]
 }
 
-create_app_json(_args[0]);
+create_app_json(data.application_name);
 
-var app = load_app_json(_args[0]);
+var app = load_app_json(data.application_name);
 
 MVC.Object.extend(data, app);
 
-MVCOptions.create_folder("controllers/"+_args[0]);
+MVCOptions.create_folder("controllers/"+data.application_name);
 
-print("               apps/"+_args[0]);
+print("               apps/"+data.application_name);
 
-MVCOptions.save("apps/"+_args[0]+"/" + _args[0] + ".json",  MVC.Object.to_json(data)  );
+MVCOptions.save("apps/"+data.application_name+"/" +data.application_name + ".json",  MVC.Object.to_json(data)  );
 
-render_to("apps/"+_args[0]+"/compress.js", "jmvc/rhino/command/templates/compress_script.ejs", data);
+render_to("apps/"+data.application_name+"/compress.js", "jmvc/rhino/command/templates/compress_script.ejs", data);
 
 
-render_to("apps/"+_args[0]+"/index.html", "jmvc/rhino/command/templates/compress_page.ejs", data);
-render_to("apps/"+_args[0]+"/run_unit.js", "jmvc/rhino/command/templates/unit_script.ejs", data);
+render_to("apps/"+data.application_name+"/index.html", "jmvc/rhino/command/templates/index_html.ejs", data);
+render_to("apps/"+data.application_name+"/run_unit.js", "jmvc/rhino/command/templates/unit_script.ejs", data);
 
-render_to("apps/"+_args[0]+"/test.js", "jmvc/rhino/command/templates/test.ejs", data);
+render_to("apps/"+data.application_name+"/test.js", "jmvc/rhino/command/templates/test.ejs", data);
 
-render_to("apps/"+_args[0]+".js", "jmvc/rhino/command/templates/application.ejs", data);
+render_to("apps/"+data.application_name+".js", "jmvc/rhino/command/templates/application.ejs", data);
 
-render_to("controllers/"+_args[0]+"/main_controller.js", "jmvc/rhino/command/templates/main_controller.ejs", data);
+render_to("controllers/"+data.application_name+"/main_controller.js", "jmvc/rhino/command/templates/main_controller.ejs", data);
 
 print("\nMake sure to add new files to your application and test file!\n");
