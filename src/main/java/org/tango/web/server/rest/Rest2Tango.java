@@ -9,12 +9,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrDataFormat;
-import fr.esrf.Tango.AttributeDataType;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
+import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
@@ -221,7 +221,7 @@ public class Rest2Tango {
             if(proxy.getAttributeInfo(member).getFormat().toAttrDataFormat() == AttrDataFormat.IMAGE){
                 new ImageAttributeHelper(proxy, ctx.getRealPath("/temp")).send(member,response.getOutputStream());
                 return null;
-            } if(AttributeDataType.from_int(proxy .getAttributeInfo(member).toAttributeInfo().data_type) == AttributeDataType.ATT_ENCODED) {
+            } if(proxy .getAttributeInfo(member).toAttributeInfo().data_type == TangoConst.Tango_DEV_ENCODED) {
                 new EncodedAttributeHelper(proxy, ctx.getRealPath("/temp")).send(member,response.getOutputStream());
                 return null;
             } else {
