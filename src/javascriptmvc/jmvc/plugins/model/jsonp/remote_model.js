@@ -57,6 +57,9 @@ MVC.Model.JsonP = MVC.Model.extend(
             params[this.id] = id;
             this._send_request('find_one',params, cbs);
         },
+        _default_onFailure:function(response){
+            console.error(response.errors);
+        },
         /**
          * Wraps user defined onFailure
          *
@@ -99,10 +102,9 @@ MVC.Model.JsonP = MVC.Model.extend(
             return function (response) {
                 var insts = me.create_many_as_existing(response);
                 if (response.errors)
-                    if(clean_callbacks.onFailure)
-                        clean_callbacks.onFailure(insts);
-                    else
-                        clean_callbacks.onSuccess(insts);
+                    clean_callbacks.onFailure(insts);
+                else
+                    clean_callbacks.onSuccess(insts);
             };
         },
         _onComplete:function(clean_callbacks, action){
@@ -169,6 +171,7 @@ MVC.Model.JsonP = MVC.Model.extend(
             this._add_standard_params(params, action);
 
             var callbacks = this._clean_callbacks(cbs);
+            if(!callbacks.onFailure) callbacks.onFailure = this._default_onFailure;
             var callback;
             if(action == 'find_all')
                 callback = this._find_all_onComplete(callbacks);
