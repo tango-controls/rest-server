@@ -54,7 +54,7 @@ MVCOptions.save = function(path, src){
     var Paths = java.nio.file.Paths;
 
     var path = Paths.get(path);
-    if(Files.exists(path) && !Files.isRegularFile(path)) throw "IllegalArgument: path can not be a directory";
+    if(Files.exists(path) && Files.isDirectory(path)) throw "IllegalArgument: path can not be a directory";
 
     var parent = path.getParent();
     Files.createDirectories(parent);

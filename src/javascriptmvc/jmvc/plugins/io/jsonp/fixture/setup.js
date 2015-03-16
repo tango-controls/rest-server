@@ -20,7 +20,7 @@ include.plugins('io/ajax/fixtures', 'io/jsonp');
 MVC.JsonP.prototype.send = (function (oldSend) {
     MVC.JsonP.prototype.send0 = oldSend;
     return function () {
-        var method = this.options.parameters.action || this.options.method;
+        var method = this.options.method || this.options.parameters.action;
         var options = MVC.Ajax.setup_request(this.url, {method:method,repeat_fixture:true});
         this.url = options.url;
         this.send0();
