@@ -46,4 +46,19 @@ public class DatabaseDs {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", "*");
         return Arrays.asList(result);
     }
+
+    public Collection<String> getDomainsList() throws TangoProxyException {
+        String[] result = proxy.executeCommand("DbGetDeviceDomainList","*");
+        return Arrays.asList(result);
+    }
+
+    public Collection<String> getFamiliesList(String domain) throws TangoProxyException {
+        String[] result = proxy.executeCommand("DbGetDeviceFamilyList", domain + "/*");
+        return Arrays.asList(result);
+    }
+
+    public Collection<String> getMembersList(String domain, String family) throws TangoProxyException {
+        String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/*");
+        return Arrays.asList(result);
+    }
 }

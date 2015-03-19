@@ -36,7 +36,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
@@ -58,6 +57,51 @@ public class Rest2Tango {
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
         try {
             Collection<String> deviceList = db.getDeviceList();
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
+    @GET
+    @Path("domains")
+    @Produces("application/json")
+    public Response getDomains(@Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        try {
+            Collection<String> deviceList = db.getDomainsList();
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
+    @GET
+    @Path("families")
+    @Produces("application/json")
+    public Response getDomains(@QueryParam("domain") String domain,
+                               @Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        try {
+            if(domain == null) domain = "*";
+            Collection<String> deviceList = db.getFamiliesList(domain);
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
+    @GET
+    @Path("members")
+    @Produces("application/json")
+    public Response getDomains(@QueryParam("domain") String domain,
+                               @QueryParam("family") String family,
+                               @Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        try {
+            if(domain == null) domain = "*";
+            if(family == null) family = "*";
+            Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
         } catch (TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
