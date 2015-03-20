@@ -77,19 +77,50 @@ public class Rest2Tango {
     }
 
     @GET
-    @Path("families")
+    @Path("device")
     @Produces("application/json")
-    public Response getDomains(@QueryParam("domain") String domain,
-                               @Context ServletContext ctx) {
+    public Response getDomains0(@Context ServletContext ctx) {
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
         try {
-            if(domain == null) domain = "*";
+            Collection<String> deviceList = db.getDomainsList();
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
+    @GET
+    @Path("families")
+    @Produces("application/json")
+    public Response getFamilies(@PathParam("domain") String ppDomain,
+                               @QueryParam("domain") String qpDomain,
+                               @Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        String domain = "*";
+        try {
+            if(ppDomain != null) domain = ppDomain;
+            if(qpDomain != null) domain = qpDomain;
             Collection<String> deviceList = db.getFamiliesList(domain);
             return Responses.createSuccessResult(deviceList);
         } catch (TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
+
+    @GET
+    @Path("device/{domain}")
+    @Produces("application/json")
+    public Response getFamilies(@PathParam("domain") String domain,
+                                @Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        try {
+            Collection<String> deviceList = db.getFamiliesList(domain);
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
 
     @GET
     @Path("members")
@@ -101,6 +132,21 @@ public class Rest2Tango {
         try {
             if(domain == null) domain = "*";
             if(family == null) family = "*";
+            Collection<String> deviceList = db.getMembersList(domain, family);
+            return Responses.createSuccessResult(deviceList);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+        }
+    }
+
+    @GET
+    @Path("device/{domain}/{family}")
+    @Produces("application/json")
+    public Response getMembers(@PathParam("domain") String domain,
+                               @PathParam("family") String family,
+                               @Context ServletContext ctx) {
+        DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
+        try {
             Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
         } catch (TangoProxyException e) {

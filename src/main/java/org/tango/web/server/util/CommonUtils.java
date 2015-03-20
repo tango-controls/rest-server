@@ -34,6 +34,9 @@ public class CommonUtils {
         List<String> partsList = Arrays.asList(parts);
         if (partsList.contains("devices")) return DatabaseDs.DEFAULT_ID;
         int marker = partsList.indexOf("device");
-        return Joiner.on('/').join(Arrays.copyOfRange(parts, marker + 1, marker + 4));
+        if(partsList.size() - marker > 3)
+            return Joiner.on('/').join(Arrays.copyOfRange(parts, marker + 1, marker + 4));
+        else
+            return DatabaseDs.DEFAULT_ID;
     }
 }
