@@ -457,6 +457,7 @@ public class Rest2Tango {
             writer.write("{\"argout\":\"data:/jpeg;base64,");
             writer.flush();
             if(ImageIO.write(image, "jpeg", out)) {
+                out.close();
                 writer.write("\",\"quality\":\"VALID\"");
             } else {
                 writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
