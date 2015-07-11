@@ -6,7 +6,7 @@
 
     <groupId>hzg.wpn</groupId>
     <artifactId>mtango.server</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.1a</version>
     <packaging>war</packaging>
 
     <developers>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>1.1.10</version>
+            <version>1.1.15a</version>
         </dependency>
     </dependencies>
 
