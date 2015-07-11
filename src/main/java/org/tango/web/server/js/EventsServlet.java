@@ -68,7 +68,7 @@ public class EventsServlet extends HttpServlet {
                 }
 
                 @Override
-                public void onError(Throwable cause) {
+                public void onError(Exception cause) {
                     LOG.error("TangoEvent#onError", cause);
 
                     try {

@@ -1,6 +1,7 @@
 package org.tango.web.server.rest;
 
 import com.google.gson.Gson;
+import org.apache.commons.codec.binary.Base64OutputStream;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.util.Base64;
 import org.junit.Test;
@@ -39,8 +40,8 @@ public class ImageAttributeHelperTest {
 
         //prepare expected
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
-        java.io.OutputStream encoded = new Base64.OutputStream(new BufferedOutputStream(out));
-        RenderedImage renderedImage = TangoImageUtils.toRenderedImage_sRGB(tangoImage.data, tangoImage.width, tangoImage.height);
+        java.io.OutputStream encoded = new Base64.OutputStream(out);
+        RenderedImage renderedImage = TangoImageUtils.toRenderedImage_sRGB(tangoImage.getData(), tangoImage.getWidth(), tangoImage.getHeight());
         ImageIO.write(renderedImage,"jpeg", Files.createTempFile("ImageAttributeHelperTest_testSend_", ".jpeg").toFile());
         ImageIO.write(renderedImage,"jpeg", encoded);
 

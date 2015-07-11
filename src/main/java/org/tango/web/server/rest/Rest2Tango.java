@@ -16,6 +16,7 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.codec.binary.Base64OutputStream;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.util.Base64;
@@ -452,7 +453,7 @@ public class Rest2Tango {
             if(image == null) return;
             //TODO if debug perform asynch write into the FileSystem
 
-            OutputStream out = new Base64.OutputStream(new BufferedOutputStream(responseStream));
+            OutputStream out = new Base64.OutputStream(responseStream);
 
             writer.write("{\"argout\":\"data:/jpeg;base64,");
             writer.flush();
@@ -474,14 +475,14 @@ public class Rest2Tango {
             //the first is a two dim array
             TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue0();
 
-            Class<?> componentType = tangoImage.data.getClass().getComponentType();
+            Class<?> componentType = tangoImage.getData().getClass().getComponentType();
             if(componentType != int.class) {
                 Responses.sendFailure(
                         new Exception("Unsupported image component type: " + componentType.getSimpleName()), writer);
                 writer.close();
                 return null;
             }
-            return TangoImageUtils.toRenderedImage_sRGB((int[]) tangoImage.data, tangoImage.width, tangoImage.height);
+            return TangoImageUtils.toRenderedImage_sRGB((int[]) tangoImage.getData(), tangoImage.getWidth(), tangoImage.getHeight());
         }
     }
 
@@ -572,7 +573,7 @@ public class Rest2Tango {
                 }
 
                 @Override
-                public void onError(Throwable cause) {
+                public void onError(Exception cause) {
                     log.debug(proxy.getName() +"/" + attribute + "." + evt +" onError!");
                     EventHelper.this.set(Responses.createFailureResult(cause));
                 }
