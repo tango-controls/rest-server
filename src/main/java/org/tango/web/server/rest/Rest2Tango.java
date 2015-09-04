@@ -439,7 +439,7 @@ public class Rest2Tango {
         }
 
         public void send(String attribute, OutputStream responseStream) throws IOException {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(responseStream, Charset.forName("UTF-8")));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(responseStream));
             Triplet<?,Long,Quality> valueTimeQuality = null;
             try {
                 valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
@@ -458,7 +458,6 @@ public class Rest2Tango {
             writer.write("{\"argout\":\"data:/jpeg;base64,");
             writer.flush();
             if(ImageIO.write(image, "jpeg", out)) {
-                out.close();
                 writer.write("\",\"quality\":\"VALID\"");
             } else {
                 writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
