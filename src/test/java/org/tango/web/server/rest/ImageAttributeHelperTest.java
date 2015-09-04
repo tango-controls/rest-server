@@ -39,13 +39,13 @@ public class ImageAttributeHelperTest {
         instance.send("any",baos);
 
         //prepare expected
-        ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         java.io.OutputStream encoded = new Base64.OutputStream(out);
         RenderedImage renderedImage = TangoImageUtils.toRenderedImage_sRGB(tangoImage.getData(), tangoImage.getWidth(), tangoImage.getHeight());
         ImageIO.write(renderedImage,"jpeg", Files.createTempFile("ImageAttributeHelperTest_testSend_", ".jpeg").toFile());
         ImageIO.write(renderedImage,"jpeg", encoded);
 
-        Response<String> expectedResponse = new Response<String>("data:/jpeg;base64," + out.toString("UTF-8"),null,Quality.VALID.name(),now);
+        Response<String> expectedResponse = new Response<String>("data:/jpeg;base64," + out.toString(),null,Quality.VALID.name(),now);
 
         Gson gson = new Gson();
 
