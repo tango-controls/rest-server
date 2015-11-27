@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 /**
  *
- * Deprecated use {@link org.tango.web.server.rest.Rest2Tango} instead
+ * Deprecated use {@link org.tango.rest.mtango.MtangoImpl} instead
  *
  * @author ingvord
  * @since 5/25/14@12:55 PM

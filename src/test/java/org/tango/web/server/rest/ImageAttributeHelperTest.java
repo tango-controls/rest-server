@@ -1,7 +1,6 @@
 package org.tango.web.server.rest;
 
 import com.google.gson.Gson;
-import org.apache.commons.codec.binary.Base64OutputStream;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.util.Base64;
 import org.junit.Test;
@@ -9,11 +8,11 @@ import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.util.TangoImageUtils;
+import org.tango.rest.mtango.MtangoImpl;
 import org.tango.web.rest.Response;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 
@@ -32,7 +31,7 @@ public class ImageAttributeHelperTest {
         TangoImage<int[]> tangoImage = new TangoImage<>(new int[]{0}, 1, 1); when(proxy.<TangoImage<int[]>>readAttributeValueTimeQuality(any(String.class)))
                 .thenReturn(new Triplet<>(tangoImage, now, Quality.VALID));
 
-        Rest2Tango.ImageAttributeHelper instance = new Rest2Tango.ImageAttributeHelper(proxy,System.getProperty("java.io.tmpdir"));
+        MtangoImpl.ImageAttributeHelper instance = new MtangoImpl.ImageAttributeHelper(proxy,System.getProperty("java.io.tmpdir"));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
