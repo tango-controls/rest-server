@@ -61,4 +61,9 @@ public class DatabaseDs {
         String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/*");
         return Arrays.asList(result);
     }
+
+    public Collection<String> getDeviceList(String wildcard) throws TangoProxyException {
+        String[] result = proxy.executeCommand("DbGetDeviceWideList", wildcard);
+        return Arrays.asList(result);
+    }
 }

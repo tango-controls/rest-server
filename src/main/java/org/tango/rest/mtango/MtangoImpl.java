@@ -1,4 +1,4 @@
-package org.tango.web.server.rest;
+package org.tango.rest.mtango;
 
 /**
  * @author Ingvord
@@ -48,9 +48,9 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
-@Path("/")
+@Path("/mtango")
 @NoCache
-public class Rest2Tango {
+public class MtangoImpl {
     @GET
     @Path("devices")
     @Produces("application/json")

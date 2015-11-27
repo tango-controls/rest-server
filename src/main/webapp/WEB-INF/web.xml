@@ -11,7 +11,11 @@
     </context-param>
     <context-param>
         <param-name>resteasy.resources</param-name>
-        <param-value>org.tango.web.server.rest.Rest2Tango</param-value>
+        <param-value>
+            org.tango.rest.EntryPoint,
+            org.tango.rest.mtango.MtangoImpl,
+            org.tango.rest.rc1.Rc1ApiImpl
+        </param-value>
     </context-param>
     <context-param>
         <param-name>resteasy.providers</param-name>
@@ -106,10 +110,6 @@
         <filter-name>ResponseCache</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-
-    <welcome-file-list>
-        <welcome-file>www/apps/adminka/index.html</welcome-file>
-    </welcome-file-list>
 
     <security-constraint>
         <web-resource-collection>

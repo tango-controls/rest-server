@@ -5,6 +5,7 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.servlet.ServletContext;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -90,5 +91,10 @@ public class DeviceMapper {
                 throw new TangoProxyException(e);
             }
         }
+    }
+
+    public static TangoProxy lookup(String domain, String family, String member, ServletContext context) throws TangoProxyException {
+        DeviceMapper mapper = (DeviceMapper) context.getAttribute(DeviceMapper.TANGO_MAPPER);
+        return mapper.map(domain + "/" + family + "/" + member);
     }
 }

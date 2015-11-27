@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 /**
  * This servlet serves attribute read/write and command execution service
  *
- * Deprecated use {@link org.tango.web.server.rest.Rest2Tango} instead
+ * Deprecated use {@link org.tango.rest.mtango.MtangoImpl} instead
  *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11.10.12
