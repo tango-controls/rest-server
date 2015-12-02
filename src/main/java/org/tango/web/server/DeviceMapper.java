@@ -1,5 +1,6 @@
 package org.tango.web.server;
 
+import com.google.common.base.Preconditions;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -29,6 +30,7 @@ public class DeviceMapper {
     private final DatabaseDs db;
 
     public DeviceMapper(DatabaseDs db) {
+        Preconditions.checkNotNull(db);
         this.db = db;
     }
 
