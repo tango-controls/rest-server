@@ -39,6 +39,10 @@ public class DeviceMapper {
         return proxy;
     }
 
+    public TangoProxy map(String domain, String family, String member) throws TangoProxyException {
+        return map(domain + "/" + family + "/" + member);
+    }
+
 
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
