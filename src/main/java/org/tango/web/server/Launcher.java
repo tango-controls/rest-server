@@ -1,6 +1,7 @@
 package org.tango.web.server;
 
 
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.servlet.ServletContextEvent;

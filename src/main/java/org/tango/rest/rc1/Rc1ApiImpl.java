@@ -8,13 +8,14 @@ import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceAttribute;
 import org.jboss.resteasy.annotations.cache.Cache;
-import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.Responses;
+import org.tango.web.server.providers.TangoDatabaseBackend;
+import org.tango.web.server.providers.TangoProxyBackend;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -32,11 +33,11 @@ import java.util.Arrays;
 public class Rc1ApiImpl {
     @GET
     @Cache(maxAge = 10)
+    @TangoDatabaseBackend
     @Path("devices")
     public Object devices(@QueryParam("wildcard") String wildcard,
-                            @Context final ServletContext context) {
-        DatabaseDs db = (DatabaseDs) context.getAttribute(DatabaseDs.TANGO_DB);
-
+                          @Context DatabaseDs db,
+                          @Context final ServletContext context) {
         try {
             Iterable<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
             Iterable<Object> transform = Iterables.transform(result, new Function<String, Object>() {
@@ -55,15 +56,13 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @TangoProxyBackend
     @Cache(maxAge = 10)
     @Path("devices/{domain}/{family}/{member}")
-    public Object device(@PathParam("domain") String domain,
-                         @PathParam("family") String family,
-                         @PathParam("member") String member,
+    public Object device(@Context TangoProxy proxy,
                          @Context final ServletContext context) {
         try {
             DatabaseDs db = (DatabaseDs) context.getAttribute(DatabaseDs.TANGO_DB);
-            final TangoProxy proxy = DeviceMapper.lookup(domain, family, member, context);
             final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
             return new Device(proxy.getName(), db.getDeviceInfo(proxy.getName()),
                     Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, NamedEntity>() {
@@ -92,13 +91,11 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @TangoProxyBackend
     @Path("devices/{domain}/{family}/{member}/state")
-    public Object deviceState(@PathParam("domain") String domain,
-                              @PathParam("family") String family,
-                              @PathParam("member") String member,
+    public Object deviceState(@Context TangoProxy proxy,
                               @Context ServletContext context){
         try {
-            final TangoProxy proxy = DeviceMapper.lookup(domain, family, member, context);
             final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
             final DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State","Status"});
             Object result = new Object(){
@@ -113,8 +110,6 @@ public class Rc1ApiImpl {
             };
 
             return result;
-        } catch (TangoProxyException e) {
-            return Responses.createFailureResult(e);
         } catch (DevFailed devFailed) {
             return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
         }

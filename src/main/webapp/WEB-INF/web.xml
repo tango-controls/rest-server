@@ -22,7 +22,9 @@
         <param-value>
             org.tango.web.server.rest.JsonResponseWriter,
             org.tango.web.server.rest.TangoExceptionMapper,
-            org.tango.web.server.rest.DevFailedMapper
+            org.tango.web.server.rest.DevFailedMapper,
+            org.tango.web.server.providers.TangoProxyProvider,
+            org.tango.web.server.providers.TangoDatabaseProvider,
         </param-value>
     </context-param>
 
