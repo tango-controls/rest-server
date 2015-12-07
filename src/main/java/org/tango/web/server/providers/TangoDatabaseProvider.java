@@ -11,12 +11,14 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 04.12.2015
  */
+@Provider
 @TangoDatabaseBackend
 public class TangoDatabaseProvider implements ContainerRequestFilter {
     @Override

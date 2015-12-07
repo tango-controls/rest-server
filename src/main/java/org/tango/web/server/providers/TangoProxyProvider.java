@@ -24,7 +24,6 @@ import java.io.IOException;
  * @since 04.12.2015
  */
 @Provider
-@TangoProxyBackend
 public class TangoProxyProvider implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
