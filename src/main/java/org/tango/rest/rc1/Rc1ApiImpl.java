@@ -15,13 +15,13 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.Responses;
 import org.tango.web.server.providers.TangoDatabaseBackend;
-import org.tango.web.server.providers.TangoProxyBackend;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.io.ObjectInputStream;
 import java.util.Arrays;
 
 /**
@@ -56,7 +56,6 @@ public class Rc1ApiImpl {
     }
 
     @GET
-    @TangoProxyBackend
     @Cache(maxAge = 10)
     @Path("devices/{domain}/{family}/{member}")
     public Object device(@Context TangoProxy proxy,
@@ -91,7 +90,6 @@ public class Rc1ApiImpl {
     }
 
     @GET
-    @TangoProxyBackend
     @Path("devices/{domain}/{family}/{member}/state")
     public Object deviceState(@Context TangoProxy proxy,
                               @Context ServletContext context){
@@ -99,13 +97,13 @@ public class Rc1ApiImpl {
             final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
             final DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State","Status"});
             Object result = new Object(){
-                public final String state = ss[0].extractDevState().toString();
-                public final String status = ss[1].extractString();
-                public final Object _links = new Object(){
-                    public final String _state = href + "/State";
-                    public final String _status = href + "/Status";
-                    public final String _parent = href;
-                    public final String _self = href + "/state";
+                public String state = ss[0].extractDevState().toString();
+                public String status = ss[1].extractString();
+                public Object _links = new Object(){
+                    public String _state = href + "/State";
+                    public String _status = href + "/Status";
+                    public String _parent = href;
+                    public String _self = href + "/state";
                 };
             };
 
@@ -114,4 +112,32 @@ public class Rc1ApiImpl {
             return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
         }
     }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/attributes")
+    public Object deviceAttributes(@Context final TangoProxy proxy,
+                                   @Context ServletContext context) throws Exception {
+        final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
+
+        return Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
+            @Override
+            public Object apply(final AttributeInfoEx input) {
+                try {
+                    return new Object(){
+                        public String name = input.name;
+                        public String value = href + "/attributes/" + name + "/value" ;
+                        public Object info = input;
+                        public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
+                        public Object _links = new Object(){
+                            //TODO use LinksProvider
+                        };
+                    };
+                } catch (DevFailed devFailed) {
+                    return null;
+                }
+            }
+        });
+
+    }
+
 }
