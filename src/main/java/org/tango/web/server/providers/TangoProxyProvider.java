@@ -16,6 +16,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
@@ -27,8 +28,7 @@ import java.io.IOException;
 public class TangoProxyProvider implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        HttpRequest httpRequest = ((PostMatchContainerRequestContext) requestContext).getHttpRequest();
-        ResteasyUriInfo uriInfo = (ResteasyUriInfo) httpRequest.getUri();
+        UriInfo uriInfo = requestContext.getUriInfo();
         MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
         String domain = pathParams.getFirst("domain");
         String family = pathParams.getFirst("family");
