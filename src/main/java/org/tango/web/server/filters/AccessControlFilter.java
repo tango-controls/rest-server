@@ -28,7 +28,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
         HttpServletRequest httpServletRequest = ResteasyProviderFactory.getContextData(HttpServletRequest.class);
         String user = httpServletRequest.getRemoteUser();
         if (user == null) {
-            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Anonymous access is restricted. Provide username and password.").build());
             return;
         }
 
@@ -53,7 +53,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
                 case "GET":
                     if (!accessControl.checkUserCanRead(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have read access to %s", user, device);
-                        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(msg).build());
+                        requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
                         LOG.info(msg);
                     }
 
@@ -61,7 +61,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
                 case "PUT":
                     if (!accessControl.checkUserCanWrite(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have write access to %s", user, device);
-                        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(msg).build());
+                        requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
                         LOG.info(msg);
                     }
                     break;
