@@ -114,15 +114,6 @@
             <role-name>mtango-rest</role-name>
         </auth-constraint>
     </security-constraint>
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Tango Admin panel</web-resource-name>
-            <url-pattern>/www/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>mtango-admin</role-name>
-        </auth-constraint>
-    </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>Basic Authentication</realm-name>
@@ -135,9 +126,5 @@
     <security-role>
         <description>mtango rest api user</description>
         <role-name>mtango-rest</role-name>
-    </security-role>
-    <security-role>
-        <description>mtango admin</description>
-        <role-name>mtango-admin</role-name>
     </security-role>
 </web-app>
