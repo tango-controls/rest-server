@@ -7,21 +7,23 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceAttribute;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.Cache;
+import org.tango.client.ez.attribute.Quality;
+import org.tango.client.ez.proxy.DeviceProxyWrapper;
+import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.Responses;
 import org.tango.web.server.providers.TangoDatabaseBackend;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 
 /**
@@ -119,25 +121,71 @@ public class Rc1ApiImpl {
                                    @Context ServletContext context) throws Exception {
         final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
 
-        return Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
+        return Collections2.transform(
+                Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
             @Override
             public Object apply(final AttributeInfoEx input) {
-                try {
-                    return new Object(){
-                        public String name = input.name;
-                        public String value = href + "/attributes/" + name + "/value" ;
-                        public Object info = input;
-                        public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
-                        public Object _links = new Object(){
-                            //TODO use LinksProvider
-                        };
-                    };
-                } catch (DevFailed devFailed) {
-                    return null;
-                }
+                return attributeInfoExToResponse(input, proxy, href);
             }
         });
-
     }
 
+    @GET
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}")
+    public Object deviceAttribute(@PathParam("attr") final String attrName,
+                                     @Context TangoProxy proxy,
+                                     @Context ServletContext context) throws Exception {
+        final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
+
+        return attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName), proxy, href);
+    }
+
+    private static Object attributeInfoExToResponse(final AttributeInfoEx input, final TangoProxy proxy, final String href) {
+        try {
+            return new Object(){
+                public String name = input.name;
+                public String value = href + "/attributes/" + name + "/value" ;
+                public Object info = input;
+                public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
+                public Object _links = new Object(){
+                    public String _parent = href + "/attributes/" + name;
+                    //TODO use LinksProvider
+                };
+            };
+        } catch (DevFailed devFailed) {
+            return null; //TODO error object
+        }
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}/value")
+    public Object deviceAttributeValueGet(@PathParam("attr") final String attrName,
+                                     @Context TangoProxy proxy) throws Exception {
+        final Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(attrName);
+
+
+        return new Object(){
+            public String name = attrName;
+            public Object value = result.getValue0();
+            public String quality = result.getValue2().name();
+            public long timestamp = result.getValue1();
+            public Object _links;
+        };
+    }
+
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}")
+    public Object deviceAttributeValuePut(@PathParam("attr") String attrName,
+                                          @QueryParam("value") String value,
+                                          @QueryParam("asynch") boolean asynch,
+                                          @Context TangoProxy proxy) throws Exception{
+        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+        Class<?> targetType = attributeInfo.getClazz();
+        Object converted = ConvertUtils.convert(value, targetType);
+
+        proxy.writeAttribute(attrName, converted);
+        if(asynch)
+            return deviceAttributeValueGet(attrName, proxy);
+        else return null;
+    }
 }

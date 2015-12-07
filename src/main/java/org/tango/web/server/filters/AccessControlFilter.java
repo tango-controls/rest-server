@@ -1,73 +1,77 @@
 package org.tango.web.server.filters;
 
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.AccessControl;
-import org.tango.web.server.util.CommonUtils;
+import org.tango.web.server.Responses;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 
 /**
  * @author Ingvord
  * @since 01.07.14
  */
-public class AccessControlFilter implements Filter {
+public class AccessControlFilter implements ContainerRequestFilter {
     private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
 
-    public void destroy() {
-        LOG.info("AccessControlFilter is destroyed.");
-    }
-
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
-        String user = ((HttpServletRequest) req).getRemoteUser();
+    @Override
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+        HttpServletRequest httpServletRequest = ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+        String user = httpServletRequest.getRemoteUser();
         if (user == null) {
-            ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized user!");
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
         }
 
-        AccessControl accessControl = (AccessControl) req.getServletContext().getAttribute(AccessControl.TANGO_ACCESS);
+        ServletContext servletContext = ResteasyProviderFactory.getContextData(ServletContext.class);
+
+        AccessControl accessControl = (AccessControl) servletContext.getAttribute(AccessControl.TANGO_ACCESS);
+        if(accessControl == null) return;//TODO configure via interface 'use AccessControl'
         try {
-            String requestURI = ((HttpServletRequest) req).getRequestURI();
-            String device = CommonUtils.parseDevice(requestURI);
+            UriInfo uriInfo = requestContext.getUriInfo();
+
+            MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
+            String domain = pathParams.getFirst("domain");
+            String family = pathParams.getFirst("family");
+            String member = pathParams.getFirst("member");
+
+            String device = domain + "/" + family + "/" + member;
             //workaround jsonp limitation
-            String method = req.getParameter("_method") != null ? req.getParameter("_method").toUpperCase() : ((HttpServletRequest) req).getMethod();
+            String method;
+            method = httpServletRequest.getParameter("_method");
+            if(method == null) method = requestContext.getMethod();
             switch (method) {
                 case "GET":
-                    if (accessControl.checkUserCanRead(user, req.getRemoteAddr(), device))
-                        chain.doFilter(req, resp);
-                    else {
+                    if (!accessControl.checkUserCanRead(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have read access to %s", user, device);
-                        ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, msg);
+                        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(msg).build());
                         LOG.info(msg);
                     }
 
                     break;
                 case "PUT":
-                    if (accessControl.checkUserCanWrite(user, req.getRemoteAddr(), device))
-                        chain.doFilter(req, resp);
-                    else {
+                    if (!accessControl.checkUserCanWrite(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have write access to %s", user, device);
-                        ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_UNAUTHORIZED, msg);
+                        requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(msg).build());
                         LOG.info(msg);
                     }
                     break;
                 default:
-                    ((HttpServletResponse) resp).sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-                    LOG.info("Method is not allowed: " + ((HttpServletRequest) req).getMethod());
+                    requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).build());
+                    LOG.info("Method is not allowed: " + method);
             }
 
         } catch (TangoProxyException e) {
-            throw new ServletException(e);
+            requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
         }
     }
-
-    public void init(FilterConfig config) throws ServletException {
-        if (config.getServletContext().getAttribute(AccessControl.TANGO_ACCESS) == null)
-            throw new ServletException("TangoAccessControl is null");
-    }
-
 }
