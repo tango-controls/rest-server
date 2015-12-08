@@ -7,6 +7,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceAttribute;
+import fr.esrf.TangoApi.DeviceData;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.Cache;
@@ -160,16 +161,16 @@ public class Rc1ApiImpl {
         try {
             return new Object() {
                 public String name = input.name;
-                public String value = href + "/attributes/" + name + "/value";
+                public String value = href + "/value";
                 public Object info = input;
                 public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
                 public Object _links = new Object() {
-                    public String _parent = href + "/attributes/" + name;
+                    public String _parent = href;
                     //TODO use LinksProvider
                 };
             };
         } catch (DevFailed devFailed) {
-            return null; //TODO error object
+            return Responses.createFailureResult(devFailed);
         }
     }
 
@@ -266,5 +267,71 @@ public class Rc1ApiImpl {
             }
         });
         else return null;
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/commands")
+    public Object deviceCommands(@Context TangoProxy proxy,
+                                 @Context UriInfo uriInfo) throws DevFailed {
+        final String href = uriInfo.getPath();
+        return Iterables.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
+            @Override
+            public Object apply(final CommandInfo input) {
+                return commandInfoToResponse(input, href);
+            }
+        });
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/commands/{command}")
+    public Object deviceCommand(@PathParam("command") String cmdName,
+                                @Context TangoProxy proxy,
+                                @Context UriInfo uriInfo) throws DevFailed {
+        return commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName),uriInfo.getPath());
+    }
+
+    private static Object commandInfoToResponse(final CommandInfo input, final String href) {
+        return new Object(){
+            public String name = input.cmd_name;
+            public Object info = input;
+            public Object _links = new Object(){
+                public String _self = href + "/" + name;
+            };
+        };
+    }
+
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/commands/{command}")
+    public Object deviceCommandPut(@PathParam("command") final String cmdName,
+                                   @QueryParam("value") String value,
+                                   @QueryParam("async") boolean async,
+                                   @Context TangoProxy proxy,
+                                   @Context UriInfo uriInfo) throws Exception {
+        final String href = uriInfo.getPath();
+
+        Class<?> type = proxy.getCommandInfo(cmdName).getArginType();
+
+        final Object converted = ConvertUtils.convert(value, type);
+
+        if(async) {
+            DeviceData data = new DeviceData();
+
+            ((TangoDataType<Object>)TangoDataTypes.forClass(type)).insert(TangoDataWrapper.create(data), converted);
+
+            proxy.toDeviceProxy().command_inout_asynch(cmdName, data);
+            return null;
+        }
+
+        else {
+            final Object result = proxy.executeCommand(cmdName, converted);
+            return new Object(){
+                public String name = cmdName;
+                public Object input = converted;
+                public Object output = result;
+                public Object _links = new Object(){
+                    public String _self = href;
+                };
+            };
+        }
     }
 }
