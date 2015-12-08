@@ -59,6 +59,8 @@ public class AccessControlFilter implements ContainerRequestFilter {
 
                     break;
                 case "PUT":
+                case "POST":
+                case "DELETE":
                     if (!accessControl.checkUserCanWrite(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have write access to %s", user, device);
                         requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());

@@ -3,6 +3,7 @@ package org.tango.web.server;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
+import com.sun.javafx.binding.StringFormatter;
 import com.sun.org.apache.xpath.internal.operations.*;
 import fr.esrf.Tango.DevError;
 import fr.esrf.Tango.DevFailed;
@@ -43,7 +44,7 @@ public class Responses {
         ArrayList<String> result = new ArrayList<String>();
         do {
             if (e.getLocalizedMessage() != null)
-                result.add(e.getLocalizedMessage());
+                result.add(String.format("%s: %s",e.getClass().getSimpleName(), e.getLocalizedMessage()));
         }
         while ((e = e.getCause()) != null);
         return result.toArray(new String[result.size()]);
