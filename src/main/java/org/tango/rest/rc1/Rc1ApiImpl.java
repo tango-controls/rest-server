@@ -3,6 +3,7 @@ package org.tango.rest.rc1;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.*;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -413,6 +414,45 @@ public class Rc1ApiImpl {
         return new Object(){
             public String name = dbDatum.name;
             public String[] values = dbDatum.extractStringArray();
+        };
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/pipes")
+    public Object devicePipes(  @Context UriInfo uriInfo,
+                                @Context TangoProxy proxy) throws DevFailed {
+        final String href =  uriInfo.getPath();
+        return Lists.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
+            @Override
+            public Object apply(final String input) {
+                return new Object(){
+                    public String name = input;
+                    public String value = href + "/" + name + "/value";
+                    public Object _links = new Object(){
+                        public String _self = href + "/" + name;
+                    };
+                };
+            }
+
+
+        });
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/pipes/{pipe}")
+    public Object devicePipe(@PathParam("pipe") final String pipeName,
+                             @Context UriInfo uriInfo,
+                             @Context TangoProxy proxy) throws DevFailed {
+        final String href = uriInfo.getPath();
+        final DevicePipe result = proxy.toDeviceProxy().readPipe(pipeName);
+        return new Object(){
+            public String name = pipeName;
+            public int size = result.getPipeBlob().size();
+            public long timestamp = result.getTimeValMillisSec();
+            public Object data = result.getPipeBlob();
+            public Object _links = new Object(){
+                public String _self = href;
+            };
         };
     }
 }
