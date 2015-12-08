@@ -4,10 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.AttributeInfoEx;
-import fr.esrf.TangoApi.CommandInfo;
-import fr.esrf.TangoApi.DeviceAttribute;
-import fr.esrf.TangoApi.DeviceData;
+import fr.esrf.TangoApi.*;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.Cache;
@@ -214,10 +211,7 @@ public class Rc1ApiImpl {
                                       @Context HttpServletRequest request) throws DevFailed {
         final String href = uriInfo.getPath();
         Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
-        boolean async = parametersMap.containsKey(ASYNC);//check if it is true?
-        if (async) {
-            parametersMap.remove(ASYNC);
-        }
+        boolean async = parametersMap.remove(ASYNC) != null;
         String[] attrNames = Iterables.toArray(parametersMap.keySet(), String.class);
         DeviceAttribute[] attrs = Iterables.toArray(
                 Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DeviceAttribute>() {
@@ -243,29 +237,30 @@ public class Rc1ApiImpl {
                 , DeviceAttribute.class);
 
         proxy.toDeviceProxy().write_attribute(attrs);
-        if (!async) return Iterables.transform(Arrays.asList(proxy.toDeviceProxy().read_attribute(attrNames)), new Function<DeviceAttribute, Object>() {
-            @Override
-            public Object apply(final DeviceAttribute input) {
-                try {
-                    return new Object(){
-                        public String name = input.getName();
-                        public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input));
-                        public String quality = input.getQuality().toString();
-                        public long timestamp = input.getTime();
-                        public Object _links = new Object(){
-                            public String _parent = href + "/" + name;
-                            public String _self = href + "/" + name + "/value";
+        if (!async)
+            return Iterables.transform(Arrays.asList(proxy.toDeviceProxy().read_attribute(attrNames)), new Function<DeviceAttribute, Object>() {
+                @Override
+                public Object apply(final DeviceAttribute input) {
+                    try {
+                        return new Object() {
+                            public String name = input.getName();
+                            public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input));
+                            public String quality = input.getQuality().toString();
+                            public long timestamp = input.getTime();
+                            public Object _links = new Object() {
+                                public String _parent = href + "/" + name;
+                                public String _self = href + "/" + name + "/value";
+                            };
                         };
-                    };
-                } catch (DevFailed devFailed) {
-                    return Responses.createFailureResult(devFailed);
-                } catch (ValueExtractionException e) {
-                    return Responses.createFailureResult(e);
-                } catch (UnknownTangoDataType unknownTangoDataType) {
-                    return Responses.createFailureResult(unknownTangoDataType);
+                    } catch (DevFailed devFailed) {
+                        return Responses.createFailureResult(devFailed);
+                    } catch (ValueExtractionException e) {
+                        return Responses.createFailureResult(e);
+                    } catch (UnknownTangoDataType unknownTangoDataType) {
+                        return Responses.createFailureResult(unknownTangoDataType);
+                    }
                 }
-            }
-        });
+            });
         else return null;
     }
 
@@ -287,14 +282,14 @@ public class Rc1ApiImpl {
     public Object deviceCommand(@PathParam("command") String cmdName,
                                 @Context TangoProxy proxy,
                                 @Context UriInfo uriInfo) throws DevFailed {
-        return commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName),uriInfo.getPath());
+        return commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getPath());
     }
 
     private static Object commandInfoToResponse(final CommandInfo input, final String href) {
-        return new Object(){
+        return new Object() {
             public String name = input.cmd_name;
             public Object info = input;
-            public Object _links = new Object(){
+            public Object _links = new Object() {
                 public String _self = href + "/" + name;
             };
         };
@@ -313,25 +308,111 @@ public class Rc1ApiImpl {
 
         final Object converted = ConvertUtils.convert(value, type);
 
-        if(async) {
+        if (async) {
             DeviceData data = new DeviceData();
 
-            ((TangoDataType<Object>)TangoDataTypes.forClass(type)).insert(TangoDataWrapper.create(data), converted);
+            ((TangoDataType<Object>) TangoDataTypes.forClass(type)).insert(TangoDataWrapper.create(data), converted);
 
             proxy.toDeviceProxy().command_inout_asynch(cmdName, data);
             return null;
-        }
-
-        else {
+        } else {
             final Object result = proxy.executeCommand(cmdName, converted);
-            return new Object(){
+            return new Object() {
                 public String name = cmdName;
                 public Object input = converted;
                 public Object output = result;
-                public Object _links = new Object(){
+                public Object _links = new Object() {
                     public String _self = href;
                 };
             };
         }
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/properties")
+    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
+        return Iterables.transform(
+                Arrays.asList(proxy.toDeviceProxy().get_property(proxy.toDeviceProxy().get_property_list("*"))),
+                new Function<DbDatum, Object>() {
+            @Override
+            public Object apply(final DbDatum input) {
+                return dbDatumToResponse(input);
+            }
+        });
+    }
+
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/properties")
+    public Object devicePropertiesPut(@Context HttpServletRequest request,
+                                      @Context TangoProxy proxy) throws DevFailed {
+        Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
+        boolean async = parametersMap.remove(ASYNC) != null;
+
+        DbDatum[] input = Iterables.toArray(Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DbDatum>() {
+            @Override
+            public DbDatum apply(Map.Entry<String, String[]> input) {
+                return new DbDatum(input.getKey(), input.getValue());
+            }
+        }), DbDatum.class);
+
+        proxy.toDeviceProxy().put_property(input);
+
+        if(async)
+            return null;
+        else return deviceProperties(proxy);
+    }
+
+    @POST
+    @Path("devices/{domain}/{family}/{member}/properties")
+    public Object devicePropertiesPost(@Context HttpServletRequest request,
+                                      @Context TangoProxy proxy) throws DevFailed {
+        return devicePropertiesPut(request, proxy);
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/properties/{property}")
+    public Object deviceProperty( @PathParam("property") String propName,
+                                    @Context TangoProxy proxy) throws DevFailed {
+        return dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
+    }
+
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/properties/{property}")
+    public Object devicePropertyPut(@PathParam("property") String propName,
+                                    @Context HttpServletRequest request,
+                                    @Context TangoProxy proxy) throws DevFailed {
+        Map<String, String[]> parametersMap = request.getParameterMap();
+        boolean async = parametersMap.containsKey(ASYNC);
+
+        DbDatum input = new DbDatum(propName, parametersMap.get("value"));
+
+        proxy.toDeviceProxy().put_property(input);
+
+        if(async)
+            return null;
+        else return dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
+    }
+
+    @POST
+    @Path("devices/{domain}/{family}/{member}/properties/{property}")
+    public Object devicePropertyPost(@PathParam("property") String propName,
+                                    @Context HttpServletRequest request,
+                                    @Context TangoProxy proxy) throws DevFailed {
+        return devicePropertyPut(propName, request, proxy);
+    }
+
+    @DELETE
+    @Path("devices/{domain}/{family}/{member}/properties/{property}")
+    public void devicePropertyDelete(@PathParam("property") String propName,
+                                     @Context HttpServletRequest request,
+                                     @Context TangoProxy proxy) throws DevFailed {
+        proxy.toDeviceProxy().delete_property(propName);
+    }
+
+    private static Object dbDatumToResponse(final DbDatum dbDatum){
+        return new Object(){
+            public String name = dbDatum.name;
+            public String[] values = dbDatum.extractStringArray();
+        };
     }
 }
