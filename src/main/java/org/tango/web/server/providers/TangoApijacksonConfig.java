@@ -8,18 +8,18 @@ import fr.esrf.TangoApi.PipeBlob;
 import fr.esrf.TangoApi.PipeDataElement;
 import fr.esrf.TangoDs.TangoConst;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.std.ContainerDeserializerBase;
 import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.type.JavaType;
 import org.jacorb.notification.util.WeakHashSet;
 import org.tango.client.ez.util.TangoUtils;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -38,13 +38,11 @@ import java.util.Set;
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
-public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper>
-{
+public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper> {
     private ObjectMapper objectMapper;
 
 
-    public TangoApiJacksonConfig() throws Exception
-    {
+    public TangoApiJacksonConfig() throws Exception {
         objectMapper = new ObjectMapper();
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
@@ -56,8 +54,7 @@ public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper>
     }
 
 
-    public ObjectMapper getContext(Class<?> objectType)
-    {
+    public ObjectMapper getContext(Class<?> objectType) {
         return objectMapper;
     }
 
@@ -136,10 +133,10 @@ public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper>
         public void serialize(PipeBlob value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             try {
                 jgen.writeStartArray();
-                for(PipeDataElement element : value){
+                for (PipeDataElement element : value) {
                     jgen.writeStartObject();
                     jgen.writeObjectField("name", element.getName());
-                    switch (element.getType()){
+                    switch (element.getType()) {
                         case TangoConst.Tango_DEV_PIPE_BLOB:
                             jgen.writeObjectField("value", element.extractPipeBlob());
                             break;
