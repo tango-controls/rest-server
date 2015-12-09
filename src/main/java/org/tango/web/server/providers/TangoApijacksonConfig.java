@@ -7,26 +7,29 @@ import fr.esrf.Tango.DispLevel;
 import fr.esrf.TangoApi.PipeBlob;
 import fr.esrf.TangoApi.PipeDataElement;
 import fr.esrf.TangoDs.TangoConst;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.Version;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.std.ContainerDeserializerBase;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.map.ser.std.RawSerializer;
 import org.codehaus.jackson.type.JavaType;
 import org.jacorb.notification.util.WeakHashSet;
+import org.jboss.resteasy.util.Base64;
+import org.tango.client.ez.data.type.TangoImage;
+import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
+import sun.misc.OSEnvironment;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.awt.image.RenderedImage;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.HashSet;
@@ -50,6 +53,7 @@ public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new AttrDataFormatSerializer(AttrDataFormat.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
+        tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
         objectMapper.registerModule(tangoModule);
     }
 
@@ -182,5 +186,35 @@ public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper> {
                 throw new IOException(TangoUtils.convertDevFailedToException(devFailed));
             }
         }
+    }
+
+    private class TangoImageSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<TangoImage> {
+
+        public TangoImageSerializer(Class<TangoImage> t) {
+            super(t);
+        }
+
+        public TangoImageSerializer(JavaType type) {
+            super(type);
+        }
+
+        public TangoImageSerializer(Class<?> t, boolean dummy) {
+            super(t, dummy);
+        }
+
+        @Override
+        public void serialize(TangoImage value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            RenderedImage image = TangoImageUtils.toRenderedImage_sRGB((int[]) value.getData(), value.getWidth(), value.getHeight());
+            jgen.flush();
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(value.getWidth()*value.getHeight()*4);
+            OutputStream out = new Base64.OutputStream(bos);
+            ImageIO.write(image, "jpeg", out); //TODO write directly to output stream produces exception: org.codehaus.jackson.JsonGenerationException: Can not write a field name, expecting a value
+            jgen.writeString("data:/jpeg;base64," + new String(bos.toByteArray()));
+
+            jgen.flush();
+        }
+
+
     }
 }
