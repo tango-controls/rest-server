@@ -14,12 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
-import org.tango.client.ez.proxy.DeviceProxyWrapper;
-import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
-import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.DeviceMapper;
+import org.tango.web.server.EventHelper;
 import org.tango.web.server.Responses;
 import org.tango.web.server.providers.TangoDatabaseBackend;
 
@@ -29,6 +28,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -263,6 +264,38 @@ public class Rc1ApiImpl {
                 }
             });
         else return null;
+    }
+
+    @GET
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}/{event}")
+    public Object deviceAttributeEvent(@PathParam("domain") String domain,
+                                       @PathParam("family") String family,
+                                       @PathParam("member") String member,
+                                       @PathParam("attr") final String attrName,
+                                       @PathParam("event") String event,
+                                       @QueryParam("timeout") long timeout,
+                                       @QueryParam("state") EventHelper.State state,
+                                       @Context ServletContext context,
+                                       @Context final UriInfo uriInfo) throws InterruptedException, URISyntaxException {
+        TangoProxy proxy = null;
+        try {
+            proxy = ((DeviceMapper)context.getAttribute(DeviceMapper.TANGO_MAPPER)).lookup(domain, family, member, context);
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult(e);
+        }
+
+        TangoEvent tangoEvent;
+        try {
+            tangoEvent = TangoEvent.valueOf(event.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Responses.createFailureResult("Unsupported event: " + event);
+        }
+        try {
+            final org.tango.web.rest.Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
+            return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getPath(), "TODO");
+        } catch (TangoProxyException e) {
+            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(),e);
+        }
     }
 
     @GET

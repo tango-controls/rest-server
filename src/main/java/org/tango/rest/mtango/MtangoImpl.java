@@ -7,7 +7,6 @@ package org.tango.rest.mtango;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
@@ -16,12 +15,9 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.codec.binary.Base64OutputStream;
 import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.util.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.*;
@@ -31,10 +27,10 @@ import org.tango.web.rest.DeviceState;
 import org.tango.web.rest.Response;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
+import org.tango.web.server.EventHelper;
 import org.tango.web.server.Responses;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
@@ -43,10 +39,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import java.awt.image.*;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
 
 @Path("/mtango")
 @NoCache
@@ -324,11 +318,6 @@ public class MtangoImpl {
             return Responses.createFailureResult(String.format("Device[%s] does not have neither attribute nor command[%s]", proxy.getName(), member));
     }
 
-    public static final long CAPACITY = 1000L;//TODO parameter
-    private static final ConcurrentMap<String, EventHelper> event_helpers = new ConcurrentLinkedHashMap.Builder<String, EventHelper>()
-            .maximumWeightedCapacity(CAPACITY)
-            .build();
-
     @GET
     @Path("device/{domain}/{name}/{instance}/{attr}.{evt}")
     @Produces("application/json")
@@ -361,36 +350,7 @@ public class MtangoImpl {
         }
         device_member += '.' + evt;
         try {
-            if (state == EventHelper.State.INITIAL) {
-                EventHelper helper;
-                helper = new EventHelper(member, event, proxy);
-                EventHelper oldHelper = event_helpers.putIfAbsent(device_member, helper);
-                if (oldHelper == null) {
-                    //read initial value from the proxy
-                    Triplet<?,Long, Quality> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
-                    Response<?> result = Responses.createAttributeSuccessResult(
-                                    attrTimeQuality.getValue0(),
-                                    attrTimeQuality.getValue1(),
-                                    attrTimeQuality.getValue2().name()
-                            );
-
-                    helper.set(result);
-                    helper.subscribe();
-                    return result;
-                } else {
-                    //block this servlet until event or timeout if it has no value
-                    return oldHelper.hasValue() ? oldHelper.get() : oldHelper.get(timeout);
-                }
-            } else if(state == EventHelper.State.CONTINUATION){
-                //block this servlet until event or timeout
-                //TODO could throw NPE if cached value is garbage collected
-                return event_helpers.get(device_member).get(timeout);
-            } else {
-            EventHelper helper = new EventHelper(member,event,proxy);
-            helper.subscribe();
-            //block this servlet until event or timeout
-            return helper.get(timeout);
-            }
+            return EventHelper.handleEvent(member, timeout, state, proxy, event);
         } catch (TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + device_member,e);
         }
@@ -493,91 +453,6 @@ public class MtangoImpl {
         @Override
         RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer){
             return (RenderedImage) valueTimeQuality.getValue0();
-        }
-    }
-
-    /**
-     * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
-     * @since 20.02.2015
-     */
-    @ThreadSafe
-    public static class EventHelper {
-        //TODO parameters
-        private static final long MAX_AWAIT = 30000L;
-        private static final long DELTA = 256L;
-
-        private static final Logger log = LoggerFactory.getLogger(EventHelper.class);
-
-        public static enum State {
-            UNDEFINED,
-            INITIAL,
-            CONTINUATION
-        }
-
-        private final String attribute;
-        private final TangoEvent evt;
-        private final TangoProxy proxy;
-
-        private volatile Response<?> value;
-
-        private final Object guard = new Object();
-        EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
-            this.attribute = attribute;
-            this.evt = evt;
-            this.proxy = proxy;
-        }
-
-        void set(Response<?> value) {
-            synchronized (guard){
-                this.value = value;
-                guard.notifyAll();
-            }
-        }
-
-        boolean hasValue(){
-            return value != null;
-        }
-
-        Response<?> get(){
-            return value;
-        }
-
-        /**
-         * Waits for value to be set
-         *
-         * If value is not set before timeout then returns stored value
-         *
-         * @param timeout
-         * @return
-         * @throws InterruptedException
-         */
-        Response<?> get(long timeout) throws InterruptedException{
-            synchronized (guard){
-                do
-                    guard.wait((timeout = timeout - DELTA) > 0 ? timeout : MAX_AWAIT);
-                while (value == null);
-            }
-            return value;
-        }
-
-        private TangoEventListener<Object> listener;
-        void subscribe() throws TangoProxyException{
-            proxy.subscribeToEvent(attribute, evt);
-
-            listener = new TangoEventListener<Object>() {
-                @Override
-                public void onEvent(EventData<Object> data) {
-                    log.debug(proxy.getName() +"/" + attribute + "." + evt +" onEvent!");
-                    EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), Quality.VALID.name()));
-                }
-
-                @Override
-                public void onError(Exception cause) {
-                    log.debug(proxy.getName() +"/" + attribute + "." + evt +" onError!");
-                    EventHelper.this.set(Responses.createFailureResult(cause));
-                }
-            };
-            proxy.addEventListener(attribute, evt, listener);
         }
     }
 
