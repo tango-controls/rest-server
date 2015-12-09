@@ -473,7 +473,7 @@ public class Rc1ApiImpl {
 
     @GET
     @Path("devices/{domain}/{family}/{member}/pipes/{pipe}")
-    public Object devicePipe(@PathParam("pipe") final String pipeName,
+    public Object devicePipeGet(@PathParam("pipe") final String pipeName,
                              @Context UriInfo uriInfo,
                              @Context TangoProxy proxy) throws DevFailed {
         final String href = uriInfo.getPath();
@@ -487,5 +487,18 @@ public class Rc1ApiImpl {
                 public String _self = href;
             };
         };
+    }
+
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/pipes/{pipe}")
+    @Consumes("application/json")
+    public Object devicePipePut(@PathParam("pipe") String pipeName,
+                                @QueryParam("async") boolean async,
+                                @Context UriInfo info,
+                                @Context TangoProxy proxy,
+                                PipeBlob blob) throws DevFailed {
+        proxy.toDeviceProxy().writePipe(pipeName, blob);
+        if(async) return null;
+        else return devicePipeGet(pipeName, info, proxy);
     }
 }

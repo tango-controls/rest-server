@@ -21,6 +21,7 @@
         <param-name>resteasy.providers</param-name>
         <param-value>
             org.tango.web.server.rest.JsonResponseWriter,
+            org.tango.web.server.rest.PipeBlobMessageBodyReader,
             org.tango.web.server.rest.TangoExceptionMapper,
             org.tango.web.server.rest.DevFailedMapper,
             org.tango.web.server.filters.AccessControlFilter,
