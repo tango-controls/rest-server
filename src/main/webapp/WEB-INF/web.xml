@@ -27,8 +27,9 @@
             org.tango.web.server.filters.AccessControlFilter,
             org.tango.web.server.providers.TangoProxyProvider,
             org.tango.web.server.providers.TangoDatabaseProvider,
-            org.tango.web.server.providers.TangoApiJacksonConfig,
-            org.tango.web.server.providers.PartitionProvider
+            org.tango.web.server.resolvers.JacksonConfiguration,
+            org.tango.web.server.providers.PartitionProvider,
+            org.tango.web.server.providers.TangoRestFilterProvider
         </param-value>
     </context-param>
 
