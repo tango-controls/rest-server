@@ -1,4 +1,4 @@
-package org.tango.web.server.providers;
+package org.tango.web.server.resolvers;
 
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
@@ -8,32 +8,30 @@ import fr.esrf.TangoApi.PipeBlob;
 import fr.esrf.TangoApi.PipeDataElement;
 import fr.esrf.TangoDs.TangoConst;
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.deser.std.ContainerDeserializerBase;
+import org.codehaus.jackson.map.annotate.JsonFilter;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.std.RawSerializer;
+import org.codehaus.jackson.map.ser.FilterProvider;
+import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
+import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.codehaus.jackson.type.JavaType;
-import org.jacorb.notification.util.WeakHashSet;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
-import sun.misc.OSEnvironment;
+import org.tango.web.server.providers.TangoRestFilterProvider;
 
 import javax.imageio.ImageIO;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import java.awt.image.RenderedImage;
 import java.io.*;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -41,12 +39,17 @@ import java.util.Set;
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
-public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper> {
-    private ObjectMapper objectMapper;
+public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
+    @JsonFilter("json-response-fields-filter")
+    class JsonResponseFieldFilterMixIn
+    {
 
+    }
 
-    public TangoApiJacksonConfig() throws Exception {
-        objectMapper = new ObjectMapper();
+    public ObjectMapper getContext(Class<?> objectType) {
+        TangoRestFilterProvider.JsonFieldFilter filter = ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
+
+        ObjectMapper objectMapper = new ObjectMapper();
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
@@ -54,11 +57,22 @@ public class TangoApiJacksonConfig implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
+
         objectMapper.registerModule(tangoModule);
-    }
 
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
 
-    public ObjectMapper getContext(Class<?> objectType) {
+        if(filter != null) {
+            FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
+                    filter.inverse ?
+                    SimpleBeanPropertyFilter.serializeAllExcept(filter.fieldNames):
+                    SimpleBeanPropertyFilter.filterOutAllExcept(filter.fieldNames)
+            );
+            objectMapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+            objectMapper.getSerializationConfig().addMixInAnnotations(Object.class, JsonResponseFieldFilterMixIn.class);
+            objectMapper.setFilters(fp);
+        }
+
         return objectMapper;
     }
 
