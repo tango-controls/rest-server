@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,8 +55,8 @@ public class Rc1ApiImpl {
                           @Context DatabaseDs db,
                           @Context final ServletContext context) {
         try {
-            Iterable<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
-            Iterable<Object> transform = Iterables.transform(result, new Function<String, Object>() {
+            List<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
+            List<Object> transform = Lists.transform(result, new Function<String, Object>() {
                 @Override
                 public Object apply(final String input) {
                     return new Object() {
