@@ -1,5 +1,7 @@
 package org.tango.web.server.resolvers;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
@@ -14,6 +16,8 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.map.ser.BeanPropertyFilter;
+import org.codehaus.jackson.map.ser.BeanPropertyWriter;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
@@ -32,6 +36,9 @@ import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import java.awt.image.RenderedImage;
 import java.io.*;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -41,8 +48,7 @@ import java.io.*;
 @Produces(MediaType.APPLICATION_JSON)
 public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     @JsonFilter("json-response-fields-filter")
-    class JsonResponseFieldFilterMixIn
-    {
+    class JsonResponseFieldFilterMixIn {
 
     }
 
@@ -62,11 +68,11 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
 
-        if(filter != null) {
+        if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
                     filter.inverse ?
-                    SimpleBeanPropertyFilter.serializeAllExcept(filter.fieldNames):
-                    SimpleBeanPropertyFilter.filterOutAllExcept(filter.fieldNames)
+                            SimpleBeanPropertyFilter.serializeAllExcept(filter.fieldNames) :
+                            new CustomFilterOutAllExceptFilter(filter.fieldNames)
             );
             objectMapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
             objectMapper.getSerializationConfig().addMixInAnnotations(Object.class, JsonResponseFieldFilterMixIn.class);
@@ -74,6 +80,36 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
 
         return objectMapper;
+    }
+
+    public static class CustomFilterOutAllExceptFilter implements BeanPropertyFilter {
+
+        private Set<String> fieldNames;
+
+        public CustomFilterOutAllExceptFilter(Set<String> fieldNames) {
+            this.fieldNames = fieldNames;
+        }
+
+        @Override
+        public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider provider, BeanPropertyWriter writer) throws Exception {
+            if (!writer.getPropertyType().isPrimitive()
+                    && !String.class.isAssignableFrom(writer.getPropertyType())
+                    && !writer.getPropertyType().isEnum()) {
+                Object o = writer.get(bean);
+                if (o != null && Iterables.any(
+                        Arrays.asList(o.getClass().getFields()), new Predicate<Field>() {
+                            @Override
+                            public boolean apply(Field input) {
+                                return fieldNames.contains(input.getName());
+                            }
+                        })) {
+                    jgen.writeFieldName(writer.getName());
+                    provider.defaultSerializeValue(o, jgen);
+                }
+
+            } else if (fieldNames.contains(writer.getName()))
+                writer.serializeAsField(bean, jgen, provider);
+        }
     }
 
     public static class AttrWriteTypeSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttrWriteType> {
@@ -221,7 +257,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             RenderedImage image = TangoImageUtils.toRenderedImage_sRGB((int[]) value.getData(), value.getWidth(), value.getHeight());
             jgen.flush();
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream(value.getWidth()*value.getHeight()*4);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(value.getWidth() * value.getHeight() * 4);
             OutputStream out = new Base64.OutputStream(bos);
             ImageIO.write(image, "jpeg", out); //TODO write directly to output stream produces exception: org.codehaus.jackson.JsonGenerationException: Can not write a field name, expecting a value
             jgen.writeString("data:/jpeg;base64," + new String(bos.toByteArray()));
