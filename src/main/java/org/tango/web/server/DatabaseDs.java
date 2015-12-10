@@ -9,6 +9,7 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -42,27 +43,27 @@ public class DatabaseDs {
         return "tango://" + tangoHost + "/" + info.name;
     }
 
-    public Collection<String> getDeviceList() throws TangoProxyException {
+    public List<String> getDeviceList() throws TangoProxyException {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", "*");
         return Arrays.asList(result);
     }
 
-    public Collection<String> getDomainsList() throws TangoProxyException {
+    public List<String> getDomainsList() throws TangoProxyException {
         String[] result = proxy.executeCommand("DbGetDeviceDomainList","*");
         return Arrays.asList(result);
     }
 
-    public Collection<String> getFamiliesList(String domain) throws TangoProxyException {
+    public List<String> getFamiliesList(String domain) throws TangoProxyException {
         String[] result = proxy.executeCommand("DbGetDeviceFamilyList", domain + "/*");
         return Arrays.asList(result);
     }
 
-    public Collection<String> getMembersList(String domain, String family) throws TangoProxyException {
+    public List<String> getMembersList(String domain, String family) throws TangoProxyException {
         String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/*");
         return Arrays.asList(result);
     }
 
-    public Collection<String> getDeviceList(String wildcard) throws TangoProxyException {
+    public List<String> getDeviceList(String wildcard) throws TangoProxyException {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", wildcard);
         return Arrays.asList(result);
     }
