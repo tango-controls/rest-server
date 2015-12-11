@@ -1,11 +1,8 @@
 package org.tango.web.server;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
-import com.sun.javafx.binding.StringFormatter;
-import com.sun.org.apache.xpath.internal.operations.*;
 import fr.esrf.Tango.DevError;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.ErrSeverity;
