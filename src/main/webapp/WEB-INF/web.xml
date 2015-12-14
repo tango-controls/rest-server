@@ -83,6 +83,17 @@
         </init-param>
     </servlet>
 
+    <servlet>
+        <servlet-name>TangoServlet</servlet-name>
+        <servlet-class>org.tango.web.server.tango.TangoServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>TangoServlet</servlet-name>
+        <url-pattern>/tango/*</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
         <url-pattern>/rest/*</url-pattern>
