@@ -66,7 +66,7 @@ public class Rc1ApiImpl {
                 }
             });
             return transform;
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Response.ok(Responses.createFailureResult(e)).build();
         }
     }
@@ -101,7 +101,7 @@ public class Rc1ApiImpl {
                     }), href);
         } catch (DevFailed devFailed) {
             return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult(e);
         }
     }
@@ -294,7 +294,7 @@ public class Rc1ApiImpl {
         try {
             final org.tango.web.rest.Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
             return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getPath(), "TODO");
-        } catch (TangoProxyException e) {
+        } catch (NoSuchAttributeException|TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(),e);
         }
     }

@@ -1,5 +1,7 @@
 package org.tango.web.server.command;
 
+import org.tango.client.ez.proxy.NoSuchAttributeException;
+import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.util.Json;
@@ -46,7 +48,7 @@ public class Commands {
             Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataType());
 
             return new Command(proxy, method, attributeName, arg);
-        } catch (NoSuchMethodException | TangoProxyException e) {
+        } catch (NoSuchAttributeException| NoSuchMethodException | TangoProxyException e) {
             throw new AssertionError(e);
         }
     }
@@ -58,7 +60,7 @@ public class Commands {
             Object arg = Json.GSON.fromJson(info.argin, proxy.getCommandInfo(cmdName).getArginType());
 
             return new Command(proxy, method, cmdName, arg);
-        } catch (NoSuchMethodException | TangoProxyException e) {
+        } catch (NoSuchCommandException|NoSuchMethodException | TangoProxyException e) {
             throw new AssertionError(e);
         }
     }

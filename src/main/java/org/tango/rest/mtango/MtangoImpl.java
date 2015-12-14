@@ -53,7 +53,7 @@ public class MtangoImpl {
         try {
             Collection<String> deviceList = db.getDeviceList();
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -66,7 +66,7 @@ public class MtangoImpl {
         try {
             Collection<String> deviceList = db.getDomainsList();
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -79,7 +79,7 @@ public class MtangoImpl {
         try {
             Collection<String> deviceList = db.getDomainsList();
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -97,7 +97,7 @@ public class MtangoImpl {
             if(qpDomain != null) domain = qpDomain;
             Collection<String> deviceList = db.getFamiliesList(domain);
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -111,7 +111,7 @@ public class MtangoImpl {
         try {
             Collection<String> deviceList = db.getFamiliesList(domain);
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -129,7 +129,7 @@ public class MtangoImpl {
             if(family == null) family = "*";
             Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -144,7 +144,7 @@ public class MtangoImpl {
         try {
             Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
@@ -173,7 +173,7 @@ public class MtangoImpl {
     public DeviceInfo getDeviceInfo(@PathParam("domain") String domain,
                                     @PathParam("name") String name,
                                     @PathParam("instance") String instance,
-                                    @Context ServletContext ctx) throws TangoProxyException {
+                                    @Context ServletContext ctx) throws TangoProxyException, NoSuchCommandException {
         DatabaseDs db = (DatabaseDs) ctx.getAttribute(DatabaseDs.TANGO_DB);
         DeviceInfo info = db.getDeviceInfo(domain + "/" + name + "/" + instance);
         return info;
@@ -250,7 +250,7 @@ public class MtangoImpl {
                                  @PathParam("instance") String instance,
                                  @PathParam("member") String member,
                                  @PathParam("arg") String arg,
-                                 @Context ServletContext ctx) throws TangoProxyException {
+                                 @Context ServletContext ctx) throws TangoProxyException, NoSuchAttributeException {
         TangoProxy proxy = null;
         try {
             proxy = lookupTangoProxy(domain, name, instance, ctx);
@@ -275,7 +275,7 @@ public class MtangoImpl {
                                             @PathParam("name") String name,
                                             @PathParam("instance") String instance,
                                             @PathParam("cmd_or_attr") String member,
-                                            @Context ServletContext ctx) throws TangoProxyException {
+                                            @Context ServletContext ctx) throws TangoProxyException, NoSuchAttributeException, NoSuchCommandException {
         TangoProxy proxy = lookupTangoProxy(domain, name, instance, ctx);
         if (proxy.hasAttribute(member))
             return proxy.getAttributeInfo(member).toAttributeInfo();
@@ -291,7 +291,7 @@ public class MtangoImpl {
                                         @PathParam("instance") String instance,
                                         @PathParam("cmd_or_attr") String member,
                                         @Context ServletContext ctx,
-                                        @Context HttpServletResponse response) throws TangoProxyException, IOException {
+                                        @Context HttpServletResponse response) throws TangoProxyException, IOException, NoSuchCommandException, NoSuchAttributeException {
 
         TangoProxy proxy = null;
         try {
@@ -351,7 +351,7 @@ public class MtangoImpl {
         device_member += '.' + evt;
         try {
             return EventHelper.handleEvent(member, timeout, state, proxy, event);
-        } catch (TangoProxyException e) {
+        } catch (NoSuchAttributeException|TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + device_member,e);
         }
     }
@@ -365,7 +365,7 @@ public class MtangoImpl {
                              @PathParam("cmd_or_attr") String cmd,
                              @PathParam("arg") String arg,
                              @QueryParam("_method") String method,
-                             @Context ServletContext ctx) throws TangoProxyException {
+                             @Context ServletContext ctx) throws TangoProxyException, NoSuchAttributeException {
         TangoProxy proxy = null;
         try {
             proxy = lookupTangoProxy(domain, name, instance, ctx);
@@ -403,7 +403,7 @@ public class MtangoImpl {
             Triplet<?,Long,Quality> valueTimeQuality = null;
             try {
                 valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
-            } catch (TangoProxyException e) {
+            } catch (NoSuchAttributeException|TangoProxyException e) {
                 Responses.sendFailure(
                         new Exception(String.format("Failed to read image[%s/%s]",proxy.getName(),attribute),e), writer);
                 writer.close();
@@ -468,7 +468,7 @@ public class MtangoImpl {
             Class<?> targetType = null;
             try {
                 targetType = proxy.getCommandInfo(member).getArginType();
-            } catch (TangoProxyException e) {
+            } catch (NoSuchCommandException|TangoProxyException e) {
                 return Responses.createFailureResult(
                         String.format("Can not get info for command[%s/%s]",proxy.getName(),member),e);
             }
@@ -478,7 +478,7 @@ public class MtangoImpl {
 
             try {
                 return Responses.createSuccessResult(proxy.executeCommand(member, argin));
-            } catch (TangoProxyException e){
+            } catch (NoSuchCommandException|TangoProxyException e){
                 return Responses.createFailureResult(
                         String.format("Can not execute command[%s/%s]", proxy.getName(), member), e);
             }
@@ -498,7 +498,7 @@ public class MtangoImpl {
                 result = proxy.readAttributeValueTimeQuality(attr);
                 return Responses.createAttributeSuccessResult(
                         result.getValue0(), result.getValue1(), result.getValue2().name());
-            } catch (TangoProxyException e) {
+            } catch (NoSuchAttributeException|TangoProxyException e) {
                 return Responses.createFailureResult(
                         String.format("Can not read attribute[%s/%s]",proxy.getName(),attr),e);
             }
@@ -513,7 +513,7 @@ public class MtangoImpl {
             this.proxy = proxy;
         }
 
-        Response<Void> write(String attrName, String arg) throws TangoProxyException {
+        Response<Void> write(String attrName, String arg) throws TangoProxyException, NoSuchAttributeException {
             TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
             Class<?> targetType = attributeInfo.getClazz();
             Object converted = ConvertUtils.convert(arg, targetType);

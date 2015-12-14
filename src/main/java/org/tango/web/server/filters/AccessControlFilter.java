@@ -3,6 +3,7 @@ package org.tango.web.server.filters;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.AccessControl;
 import org.tango.web.server.Responses;
@@ -72,7 +73,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
                     LOG.info("Method is not allowed: " + method);
             }
 
-        } catch (TangoProxyException e) {
+        } catch (NoSuchCommandException|TangoProxyException e) {
             requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
         }
     }

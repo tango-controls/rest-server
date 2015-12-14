@@ -29,7 +29,7 @@ public class EventHelper {
     private static final Logger log = LoggerFactory.getLogger(EventHelper.class);
 
     public static Response<?> handleEvent(String member, long timeout, State state, TangoProxy proxy,
-                                     TangoEvent event) throws TangoProxyException, InterruptedException {
+                                     TangoEvent event) throws TangoProxyException, InterruptedException, NoSuchAttributeException {
         String eventKey = proxy.getName() + "/" + member + "." + event.name();
         if (state == State.INITIAL) {
             EventHelper helper;
@@ -116,7 +116,7 @@ public class EventHelper {
     }
 
     private TangoEventListener<Object> listener;
-    public void subscribe() throws TangoProxyException {
+    public void subscribe() throws TangoProxyException, NoSuchAttributeException {
         proxy.subscribeToEvent(attribute, evt);
 
         listener = new TangoEventListener<Object>() {
