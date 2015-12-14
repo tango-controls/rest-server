@@ -7,6 +7,8 @@ import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletContext;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -27,11 +29,11 @@ public class DeviceMapper {
 
     private final TangoProxyPool proxyPool = new TangoProxyPool();
 
-    private final DatabaseDs db;
+    private final TangoContext ctx;
 
-    public DeviceMapper(DatabaseDs db) {
-        Preconditions.checkNotNull(db);
-        this.db = db;
+    public DeviceMapper(TangoContext ctx) {
+        Preconditions.checkNotNull(ctx.databaseDs);
+        this.ctx = ctx;
     }
 
     public TangoProxy map(String devname) throws TangoProxyException {
@@ -41,6 +43,10 @@ public class DeviceMapper {
 
     public TangoProxy map(String domain, String family, String member) throws TangoProxyException {
         return map(domain + "/" + family + "/" + member);
+    }
+
+    public List<TangoProxy> proxies() throws TangoProxyException {
+        return proxyPool.proxies();
     }
 
 
@@ -58,12 +64,12 @@ public class DeviceMapper {
                 public void run() {
                     long current = System.currentTimeMillis();
                     for (Map.Entry<String, Long> entry : timestamps.entrySet()) {
-                        if ((current - entry.getValue().longValue()) > TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES)) {
+                        if ((current - entry.getValue().longValue()) > TimeUnit.MILLISECONDS.convert(DeviceMapper.this.ctx.tangoProxyKeepAliveDelay, DeviceMapper.this.ctx.tangoProxyKeepAliveDelayTimeUnit)) {
                             cache.remove(entry.getKey());
                         }
                     }
                 }
-            }, DELAY, TimeUnit.MINUTES);
+            }, DELAY, TimeUnit.SECONDS);
         }
 
         /**
@@ -73,12 +79,12 @@ public class DeviceMapper {
          * @return a Launcher
          * @throws TangoProxyException
          */
-        public TangoProxy getProxy(final String devname) {
+        public TangoProxy getProxy(final String devname) throws TangoProxyException {
             FutureTask<TangoProxy> ft = cache.get(devname);
             if (ft == null) {
                 Callable<TangoProxy> callable = new Callable<TangoProxy>() {
                     public TangoProxy call() throws Exception {
-                        String url = db.getDeviceAddress(devname);//TODO db NPE?
+                        String url = DeviceMapper.this.ctx.databaseDs.getDeviceAddress(devname);//TODO db NPE?
                         return TangoProxies.newDeviceProxyWrapper(url);
                     }
                 };
@@ -94,8 +100,18 @@ public class DeviceMapper {
                 timestamps.put(devname, System.currentTimeMillis());
                 return ft.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new TangoProxyException("Can not get proxy for " + devname, e);
             }
+        }
+
+        public List<TangoProxy> proxies() throws TangoProxyException {
+            List<TangoProxy> result = new ArrayList<>();
+
+            for(String name : cache.keySet()){
+                result.add(getProxy(name));
+            }
+
+            return result;
         }
     }
 
