@@ -73,7 +73,7 @@ public class DeviceMapper {
          * @return a Launcher
          * @throws TangoProxyException
          */
-        public TangoProxy getProxy(final String devname) throws TangoProxyException {
+        public TangoProxy getProxy(final String devname) {
             FutureTask<TangoProxy> ft = cache.get(devname);
             if (ft == null) {
                 Callable<TangoProxy> callable = new Callable<TangoProxy>() {
@@ -94,7 +94,7 @@ public class DeviceMapper {
                 timestamps.put(devname, System.currentTimeMillis());
                 return ft.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new TangoProxyException(e);
+                throw new RuntimeException(e);
             }
         }
     }

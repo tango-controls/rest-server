@@ -2,6 +2,7 @@ package org.tango.web.server;
 
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
+import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -32,38 +33,38 @@ public class DatabaseDs {
         this.proxy = TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + devname);
     }
 
-    public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException {
+    public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException, NoSuchCommandException {
         DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo", devname);
         DeviceInfo deviceInfo = new DeviceInfo(info);
         return deviceInfo;
     }
 
-    public String getDeviceAddress(String devname) throws TangoProxyException {
+    public String getDeviceAddress(String devname) throws TangoProxyException, NoSuchCommandException {
         DeviceInfo info = getDeviceInfo(devname);
         return "tango://" + tangoHost + "/" + info.name;
     }
 
-    public List<String> getDeviceList() throws TangoProxyException {
+    public List<String> getDeviceList() throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", "*");
         return Arrays.asList(result);
     }
 
-    public List<String> getDomainsList() throws TangoProxyException {
+    public List<String> getDomainsList() throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceDomainList","*");
         return Arrays.asList(result);
     }
 
-    public List<String> getFamiliesList(String domain) throws TangoProxyException {
+    public List<String> getFamiliesList(String domain) throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceFamilyList", domain + "/*");
         return Arrays.asList(result);
     }
 
-    public List<String> getMembersList(String domain, String family) throws TangoProxyException {
+    public List<String> getMembersList(String domain, String family) throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/*");
         return Arrays.asList(result);
     }
 
-    public List<String> getDeviceList(String wildcard) throws TangoProxyException {
+    public List<String> getDeviceList(String wildcard) throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", wildcard);
         return Arrays.asList(result);
     }

@@ -1,5 +1,6 @@
 package org.tango.web.server;
 
+import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -36,18 +37,18 @@ public class AccessControl {
         this.proxy = proxy;
     }
 
-    public boolean checkUserCanRead(String userName, String IP, String devName) throws TangoProxyException {
+    public boolean checkUserCanRead(String userName, String IP, String devName) throws TangoProxyException, NoSuchCommandException {
         String access = getAccess(userName, IP, devName);
         return READ.equals(access) || WRITE.equals(access);
     }
 
-    public boolean checkUserCanWrite(String userName, String IP, String devName) throws TangoProxyException {
+    public boolean checkUserCanWrite(String userName, String IP, String devName) throws TangoProxyException, NoSuchCommandException {
         String access = getAccess(userName, IP, devName);
         return WRITE.equals(access);
     }
 
     //TODO basically we must subscribe to the events of AddUser etc and cache these values
-    private String getAccess(final String userName, final String IP, final String devName) throws TangoProxyException {
+    private String getAccess(final String userName, final String IP, final String devName) throws TangoProxyException, NoSuchCommandException {
         return proxy.executeCommand("GetAccess", new String[]{userName, IP, devName});
 //        final String userKey = userName + "@" + IP;
 //        Future<String> f = accessMap.get(userKey);
