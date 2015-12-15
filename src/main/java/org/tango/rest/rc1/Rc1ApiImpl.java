@@ -20,20 +20,19 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
 import org.tango.web.server.Responses;
+import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -48,7 +47,7 @@ public class Rc1ApiImpl {
     public static final String ASYNC = "async";
 
     @GET
-    @Cache(maxAge = 10)
+    @StaticValue
     @TangoDatabaseBackend
     @Path("devices")
     public Object devices(@QueryParam("wildcard") String wildcard,
@@ -72,7 +71,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
-    @Cache(maxAge = 10)
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}")
     public Object device(@Context TangoProxy proxy,
                          @Context UriInfo uriInfo,
@@ -107,6 +106,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/state")
     public Object deviceState(@Context TangoProxy proxy,
                               @Context ServletContext context) {
@@ -131,6 +131,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}/attributes")
     public Object deviceAttributes(@Context final TangoProxy proxy,
                                    @Context UriInfo uriInfo,
@@ -147,6 +148,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}")
     public Object deviceAttribute(@PathParam("attr") final String attrName,
                                   @Context UriInfo uriInfo,
@@ -175,6 +177,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/value")
     public Object deviceAttributeValueGet(@PathParam("attr") final String attrName,
                                           @Context TangoProxy proxy) throws Exception {
@@ -300,6 +303,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}/commands")
     public Object deviceCommands(@Context TangoProxy proxy,
                                  @Context UriInfo uriInfo) throws DevFailed {
@@ -313,6 +317,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}/commands/{command}")
     public Object deviceCommand(@PathParam("command") String cmdName,
                                 @Context TangoProxy proxy,
@@ -364,6 +369,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/properties")
     public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
         return Iterables.transform(
@@ -405,6 +411,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/properties/{property}")
     public Object deviceProperty( @PathParam("property") String propName,
                                     @Context TangoProxy proxy) throws DevFailed {
@@ -452,6 +459,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @StaticValue
     @Path("devices/{domain}/{family}/{member}/pipes")
     public Object devicePipes(  @Context UriInfo uriInfo,
                                 @Context TangoProxy proxy) throws DevFailed {
@@ -473,6 +481,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/pipes/{pipe}")
     public Object devicePipeGet(@PathParam("pipe") final String pipeName,
                              @Context UriInfo uriInfo,

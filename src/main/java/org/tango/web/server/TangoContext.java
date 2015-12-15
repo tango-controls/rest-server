@@ -14,6 +14,9 @@ public class TangoContext {
     public volatile long tangoProxyKeepAliveDelay = 30L;
     public volatile TimeUnit tangoProxyKeepAliveDelayTimeUnit = TimeUnit.MINUTES;
 
+    public volatile long attributeValueExpirationDelay = 200L;
+    public volatile long staticDataExpirationDelay = 30000L;
+
     public volatile DatabaseDs databaseDs;
     public volatile DeviceMapper deviceMapper;
     public volatile AccessControl accessControl;
