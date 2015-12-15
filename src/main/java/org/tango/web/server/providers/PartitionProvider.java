@@ -24,7 +24,7 @@ public class PartitionProvider implements ContainerResponseFilter {
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         final UriInfo uriInfo = requestContext.getUriInfo();
-        if (!List.class.isAssignableFrom(responseContext.getEntity().getClass())
+        if (responseContext.getEntity() == null || !List.class.isAssignableFrom(responseContext.getEntity().getClass())
                 || !uriInfo.getQueryParameters().containsKey(RANGE)) {
             return;
         }
