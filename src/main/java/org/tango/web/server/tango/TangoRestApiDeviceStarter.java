@@ -146,6 +146,31 @@ public class TangoRestApiDeviceStarter implements ServletContextListener {
             ctx.tangoProxyKeepAliveDelay = ctx.tangoProxyKeepAliveDelayTimeUnit.convert(millis, TimeUnit.MILLISECONDS);
         }
 
+        @Attribute
+        @AttributeProperties(unit = "millis")
+        public long getAttributeValueExpirationDelay(){
+            return ctx.attributeValueExpirationDelay;
+        }
+
+        @Attribute
+        @AttributeProperties(unit = "millis")
+        public void setAttributeValueExpirationDelay(long v){
+            ctx.attributeValueExpirationDelay = v;
+        }
+
+
+        @Attribute
+        @AttributeProperties(unit = "millis")
+        public long getStaticValueExpirationDelay(){
+            return ctx.staticDataExpirationDelay;
+        }
+
+        @Attribute
+        @AttributeProperties(unit = "millis")
+        public void setStaticValueExpirationDelay(long v){
+            ctx.staticDataExpirationDelay = v;
+        }
+
         @Delete
         @StateMachine(endState = DeviceState.OFF)
         public void delete() {
