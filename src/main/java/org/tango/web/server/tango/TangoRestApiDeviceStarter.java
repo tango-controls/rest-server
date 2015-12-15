@@ -17,6 +17,7 @@ import org.tango.server.annotation.*;
 import org.tango.server.export.IExporter;
 import org.tango.server.servant.DeviceImpl;
 import org.tango.web.server.TangoContext;
+import org.tango.web.server.TangoProxyCreationPolicy;
 
 import javax.servlet.*;
 import java.io.IOException;
@@ -127,7 +128,9 @@ public class TangoRestApiDeviceStarter implements ServletContextListener {
             for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
                 String device = svalue[i];
                 TangoProxy proxy = ctx.deviceMapper.map(device);
-                proxy.toDeviceProxy().set_source(DevSource.from_int(input.lvalue[i]));
+                DevSource new_src = DevSource.from_int(input.lvalue[i]);
+                proxy.toDeviceProxy().set_source(new_src);
+                ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
             }
         }
 
