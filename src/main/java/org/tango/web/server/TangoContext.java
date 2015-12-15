@@ -1,5 +1,7 @@
 package org.tango.web.server;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -15,4 +17,6 @@ public class TangoContext {
     public volatile DatabaseDs databaseDs;
     public volatile DeviceMapper deviceMapper;
     public volatile AccessControl accessControl;
+
+    public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
 }
