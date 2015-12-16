@@ -5,8 +5,8 @@ import com.google.gson.GsonBuilder;
 import fr.esrf.TangoApi.AttributeInfo;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
-import org.tango.web.rest.DeviceState;
-import org.tango.web.rest.Response;
+import org.tango.rest.entities.DeviceState;
+import org.tango.rest.response.Response;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;

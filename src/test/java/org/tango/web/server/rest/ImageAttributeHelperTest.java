@@ -9,7 +9,7 @@ import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.rest.mtango.MtangoImpl;
-import org.tango.web.rest.Response;
+import org.tango.rest.response.Response;
 
 import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;

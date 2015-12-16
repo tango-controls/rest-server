@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.AccessControl;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

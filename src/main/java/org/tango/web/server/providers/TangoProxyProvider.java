@@ -1,20 +1,15 @@
 package org.tango.web.server.providers;
 
-import org.jboss.resteasy.core.interception.PostMatchContainerRequestContext;
-import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.jboss.resteasy.spi.ResteasyUriInfo;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;

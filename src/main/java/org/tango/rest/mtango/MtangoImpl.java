@@ -23,12 +23,12 @@ import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.web.rest.DeviceState;
-import org.tango.web.rest.Response;
+import org.tango.rest.entities.DeviceState;
+import org.tango.rest.response.Response;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;

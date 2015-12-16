@@ -3,7 +3,7 @@ package org.tango.web.server.js;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.command.Command;
 import org.tango.web.server.command.CommandInfo;

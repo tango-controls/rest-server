@@ -1,4 +1,4 @@
-package org.tango.web.server;
+package org.tango.rest.response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import fr.esrf.Tango.DevError;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.ErrSeverity;
-import org.tango.web.rest.Response;
 
 import java.io.Writer;
 import java.lang.String;
