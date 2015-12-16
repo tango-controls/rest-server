@@ -1,7 +1,7 @@
 package org.tango.web.server.rest;
 
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

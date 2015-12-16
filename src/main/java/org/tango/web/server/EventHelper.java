@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.*;
-import org.tango.rest.mtango.MtangoImpl;
-import org.tango.web.rest.Response;
+import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentMap;

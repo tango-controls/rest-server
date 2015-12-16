@@ -2,7 +2,7 @@ package org.tango.web.server.rest;
 
 import fr.esrf.Tango.DevFailed;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

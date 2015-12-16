@@ -1,7 +1,15 @@
 package org.tango.web.server.rest;
 
 import org.junit.Test;
-import org.tango.web.rest.*;
+import org.tango.rest.ClientHelper;
+import org.tango.rest.entities.AttributeInfo;
+import org.tango.rest.entities.CommandInfo;
+import org.tango.rest.entities.DeviceInfo;
+import org.tango.rest.entities.DeviceState;
+import org.tango.rest.response.IntegerResponse;
+import org.tango.rest.response.ListStringResponse;
+import org.tango.rest.response.Response;
+import org.tango.rest.response.StringResponse;
 
 import javax.ws.rs.client.Client;
 import java.util.List;

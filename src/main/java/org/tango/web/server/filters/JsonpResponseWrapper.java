@@ -1,6 +1,6 @@
 package org.tango.web.server.filters;
 
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;

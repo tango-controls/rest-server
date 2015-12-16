@@ -5,10 +5,11 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.*;
+import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.javatuples.Triplet;
-import org.jboss.resteasy.annotations.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
@@ -16,21 +17,21 @@ import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.entities.*;
+import org.tango.rest.entities.DeviceInfo;
+import org.tango.rest.response.Response;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.web.server.Responses;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -55,18 +56,15 @@ public class Rc1ApiImpl {
                           @Context final ServletContext context) {
         try {
             List<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
-            List<Object> transform = Lists.transform(result, new Function<String, Object>() {
+            List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
                 @Override
-                public Object apply(final String input) {
-                    return new Object() {
-                        public final String name = input;
-                        public final String href = context.getContextPath() + "/rest/rc1/devices/" + input;
-                    };
+                public NamedEntity apply(final String input) {
+                    return new NamedEntity(input, context.getContextPath() + "/rest/rc1/devices/" + input);
                 }
             });
             return transform;
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Response.ok(Responses.createFailureResult(e)).build();
+            return Responses.createFailureResult(e);
         }
     }
 
@@ -79,7 +77,8 @@ public class Rc1ApiImpl {
         try {
             DatabaseDs db = (DatabaseDs) context.getAttribute(DatabaseDs.TANGO_DB);
             final String href = uriInfo.getPath();
-            return new Device(proxy.getName(), db.getDeviceInfo(proxy.getName()),
+            return new Device(proxy.getName(),
+                    DeviceInfo.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
                     Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, NamedEntity>() {
                         @Override
                         public NamedEntity apply(AttributeInfoEx input) {
@@ -113,20 +112,16 @@ public class Rc1ApiImpl {
         try {
             final String href = context.getContextPath() + "/rest/rc1/" + proxy.getName();
             final DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
-            Object result = new Object() {
-                public String state = ss[0].extractDevState().toString();
-                public String status = ss[1].extractString();
-                public Object _links = new Object() {
-                    public String _state = href + "/State";
-                    public String _status = href + "/Status";
-                    public String _parent = href;
-                    public String _self = href + "/state";
-                };
-            };
+            DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString(), new Object() {
+                public String _state = href + "/State";
+                public String _status = href + "/Status";
+                public String _parent = href;
+                public String _self = href + "/state";
+            });
 
             return result;
         } catch (DevFailed devFailed) {
-            return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
+            return new DeviceState(DevState.UNKNOWN.toString(),String.format("Failed to read state&status from %s", proxy.getName()));
         }
     }
 
@@ -204,7 +199,7 @@ public class Rc1ApiImpl {
         Object converted = ConvertUtils.convert(value, targetType);
 
         proxy.writeAttribute(attrName, converted);
-        if (async)
+        if (!async)
             return deviceAttributeValueGet(attrName, proxy);
         else return null;
     }
@@ -295,7 +290,7 @@ public class Rc1ApiImpl {
             return Responses.createFailureResult("Unsupported event: " + event);
         }
         try {
-            final org.tango.web.rest.Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
+            final Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
             return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getPath(), "TODO");
         } catch (NoSuchAttributeException|TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(),e);
