@@ -3,6 +3,7 @@ package org.tango.web.server.filters;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.web.server.TangoContext;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +33,11 @@ public class SimpleCacheFilter implements Filter {
 
     //TODO race conditions
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
+        if(!tangoContext.isCacheEnabled) {
+            chain.doFilter(req, resp);
+            return;
+        }
+
         HttpServletRequest httpReq = (HttpServletRequest) req;
         HttpServletResponse httpResp = (HttpServletResponse) resp;
 
@@ -61,8 +67,10 @@ public class SimpleCacheFilter implements Filter {
         outputStream.write(cacheEntry.value);
     }
 
-    public void init(FilterConfig config) throws ServletException {
+    private TangoContext tangoContext;
 
+    public void init(FilterConfig config) throws ServletException {
+        tangoContext = (TangoContext) config.getServletContext().getAttribute(TangoContext.TANGO_CONTEXT);
     }
 
     private static class CachedResponseWrapper extends HttpServletResponseWrapper {

@@ -32,7 +32,7 @@ public abstract class AbstractCacheProvider implements ContainerResponseFilter {
         if(responseContext.getStatus() != 200) return;
 
         TangoContext context = ResteasyProviderFactory.getContextData(TangoContext.class);
-
+        if(!context.isCacheEnabled) return;
         responseContext.getHeaders().putSingle("Expires",
                 DATE_FORMAT.format(new Date(System.currentTimeMillis() + getDelay(context))));
         responseContext.getHeaders().putSingle("Cache-Control", String.format("public, max-age=%d",
