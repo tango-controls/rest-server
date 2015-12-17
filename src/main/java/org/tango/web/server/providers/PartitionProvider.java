@@ -1,5 +1,8 @@
 package org.tango.web.server.providers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
@@ -13,19 +16,22 @@ import java.util.List;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 10.12.2015
  */
+@Partitionable
 @Provider
 public class PartitionProvider implements ContainerResponseFilter {
+    private static final Logger LOG = LoggerFactory.getLogger(PartitionProvider.class);
 
     public static final String RANGE = "range";
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         final UriInfo uriInfo = requestContext.getUriInfo();
-        if (responseContext.getEntity() == null || !List.class.isAssignableFrom(responseContext.getEntity().getClass())
-                || !uriInfo.getQueryParameters().containsKey(RANGE)) {
+        if (!uriInfo.getQueryParameters().containsKey(RANGE)) {
             return;
         }
 
+
+        LOG.debug("Start partitioning...");
         String[] split = uriInfo.getQueryParameters().getFirst(RANGE).split("-");
         final int start = Integer.parseInt(split[0]);
         final int end =  Integer.parseInt(split[1]);
@@ -40,7 +46,7 @@ public class PartitionProvider implements ContainerResponseFilter {
         List<Object> partition = new ArrayList<>(entity.subList(start, _limit));
 
         partition.add(new Object(){
-            public String name = "partial content";
+            public String name = "partial_content";
             public int total = size;
             public int offset = start;
             public int limit = _limit;
@@ -54,5 +60,6 @@ public class PartitionProvider implements ContainerResponseFilter {
 
         responseContext.setStatus(206);
         responseContext.setEntity(partition);
+        LOG.debug("Done partitioning.");
     }
 }

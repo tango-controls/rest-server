@@ -23,6 +23,7 @@ public class TimeWatcher implements Filter {
             chain.doFilter(req, resp);
             return;
         }
+        LOG.info("Serving request. Stopwatch is active.");
         long start = System.nanoTime();
         chain.doFilter(req, resp);
         long end = System.nanoTime();
