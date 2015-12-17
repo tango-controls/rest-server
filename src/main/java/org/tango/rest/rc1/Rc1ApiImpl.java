@@ -333,7 +333,7 @@ public class Rc1ApiImpl {
     @PUT
     @Path("devices/{domain}/{family}/{member}/commands/{command}")
     public Object deviceCommandPut(@PathParam("command") final String cmdName,
-                                   @QueryParam("value") String value,
+                                   @QueryParam("input") String value,
                                    @QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo) throws Exception {
