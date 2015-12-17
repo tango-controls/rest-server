@@ -22,4 +22,5 @@ public class TangoContext {
     public volatile AccessControl accessControl;
 
     public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
+    public volatile boolean isCacheEnabled;
 }

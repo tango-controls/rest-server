@@ -27,6 +27,7 @@ import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
+import org.tango.web.server.util.DeviceInfos;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -80,7 +81,7 @@ public class Rc1ApiImpl {
             DatabaseDs db = (DatabaseDs) context.getAttribute(DatabaseDs.TANGO_DB);
             final String href = uriInfo.getPath();
             return new Device(proxy.getName(),
-                    DeviceInfo.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
+                    DeviceInfos.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
                     Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, NamedEntity>() {
                         @Override
                         public NamedEntity apply(AttributeInfoEx input) {

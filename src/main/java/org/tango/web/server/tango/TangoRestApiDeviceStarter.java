@@ -135,9 +135,13 @@ public class TangoRestApiDeviceStarter implements ServletContextListener {
         }
 
         @Attribute
-        @AttributeProperties(unit = "millis")
-        public long getProxyKeepAliveDelay(){
-            return TimeUnit.MILLISECONDS.convert(ctx.tangoProxyKeepAliveDelay, ctx.tangoProxyKeepAliveDelayTimeUnit);
+        public boolean isCacheEnabled(){
+            return ctx.isCacheEnabled;
+        }
+
+        @Attribute
+        public void setCacheEnabled(boolean v){
+            ctx.isCacheEnabled = v;
         }
 
         @Attribute
