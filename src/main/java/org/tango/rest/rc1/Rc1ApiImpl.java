@@ -24,6 +24,7 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
 import org.tango.rest.response.Responses;
+import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
 
@@ -48,6 +49,7 @@ public class Rc1ApiImpl {
     public static final String ASYNC = "async";
 
     @GET
+    @Partitionable
     @StaticValue
     @TangoDatabaseBackend
     @Path("devices")
@@ -126,6 +128,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @Partitionable
     @StaticValue
     @Path("devices/{domain}/{family}/{member}/attributes")
     public Object deviceAttributes(@Context final TangoProxy proxy,
@@ -133,7 +136,7 @@ public class Rc1ApiImpl {
                                    @Context ServletContext context) throws Exception {
         final String href = uriInfo.getPath();
 
-        return Collections2.transform(
+        return Lists.transform(
                 Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
                     @Override
                     public Object apply(final AttributeInfoEx input) {
@@ -298,12 +301,13 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @Partitionable
     @StaticValue
     @Path("devices/{domain}/{family}/{member}/commands")
     public Object deviceCommands(@Context TangoProxy proxy,
                                  @Context UriInfo uriInfo) throws DevFailed {
         final String href = uriInfo.getPath();
-        return Iterables.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
+        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
             @Override
             public Object apply(final CommandInfo input) {
                 return commandInfoToResponse(input, href);
@@ -364,6 +368,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @Partitionable
     @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/properties")
     public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
@@ -454,6 +459,7 @@ public class Rc1ApiImpl {
     }
 
     @GET
+    @Partitionable
     @StaticValue
     @Path("devices/{domain}/{family}/{member}/pipes")
     public Object devicePipes(  @Context UriInfo uriInfo,
