@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.rest.mtango.MtangoImpl;
 import org.tango.rest.response.Response;
@@ -29,7 +30,7 @@ public class ImageAttributeHelperTest {
 
         //fake TangoImage - single black pixel image
         TangoImage<int[]> tangoImage = new TangoImage<>(new int[]{0}, 1, 1); when(proxy.<TangoImage<int[]>>readAttributeValueTimeQuality(any(String.class)))
-                .thenReturn(new Triplet<>(tangoImage, now, Quality.VALID));
+                .thenReturn(new ValueTimeQuality<TangoImage<int[]>>(tangoImage, now, Quality.VALID));
 
         MtangoImpl.ImageAttributeHelper instance = new MtangoImpl.ImageAttributeHelper(proxy,System.getProperty("java.io.tmpdir"));
 

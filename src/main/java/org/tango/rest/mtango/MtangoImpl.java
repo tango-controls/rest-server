@@ -400,7 +400,7 @@ public class MtangoImpl {
 
         public void send(String attribute, OutputStream responseStream) throws IOException {
             Writer writer = new BufferedWriter(new OutputStreamWriter(responseStream));
-            Triplet<?,Long,Quality> valueTimeQuality = null;
+            ValueTimeQuality<?> valueTimeQuality = null;
             try {
                 valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
             } catch (NoSuchAttributeException|TangoProxyException e) {
@@ -423,16 +423,16 @@ public class MtangoImpl {
                 writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
             }
             writer.write(",\"timestamp\":");
-            writer.write(Long.toString(valueTimeQuality.getValue1()));
+            writer.write(Long.toString(valueTimeQuality.getTime()));
             writer.write("}");
 
             writer.flush();
             writer.close();
         }
 
-        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer) throws IOException{
+        RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer) throws IOException{
             //the first is a two dim array
-            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue0();
+            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue();
 
             Class<?> componentType = tangoImage.getData().getClass().getComponentType();
             if(componentType != int.class) {
@@ -451,8 +451,8 @@ public class MtangoImpl {
         }
 
         @Override
-        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer){
-            return (RenderedImage) valueTimeQuality.getValue0();
+        RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer){
+            return (RenderedImage) valueTimeQuality.getValue();
         }
     }
 
@@ -493,11 +493,11 @@ public class MtangoImpl {
         }
 
         Response read(String attr){
-            Triplet<Object, Long, Quality> result = null;
+            ValueTimeQuality<Object> result = null;
             try {
                 result = proxy.readAttributeValueTimeQuality(attr);
                 return Responses.createAttributeSuccessResult(
-                        result.getValue0(), result.getValue1(), result.getValue2().name());
+                        result.getValue(), result.getTime(), result.getQuality().name());
             } catch (NoSuchAttributeException|TangoProxyException e) {
                 return Responses.createFailureResult(
                         String.format("Can not read attribute[%s/%s]",proxy.getName(),attr),e);

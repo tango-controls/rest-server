@@ -180,14 +180,14 @@ public class Rc1ApiImpl {
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/value")
     public Object deviceAttributeValueGet(@PathParam("attr") final String attrName,
                                           @Context TangoProxy proxy) throws Exception {
-        final Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(attrName);
+        final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(attrName);
 
 
         return new Object() {
             public String name = attrName;
-            public Object value = result.getValue0();
-            public String quality = result.getValue2().name();
-            public long timestamp = result.getValue1();
+            public Object value = result.getValue();
+            public String quality = result.getQuality().name();
+            public long timestamp = result.getTime();
             public Object _links;
         };
     }

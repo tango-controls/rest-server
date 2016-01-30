@@ -37,11 +37,11 @@ public class EventHelper {
             EventHelper oldHelper = event_helpers.putIfAbsent(eventKey, helper);
             if (oldHelper == null) {
                 //read initial value from the proxy
-                Triplet<?,Long, Quality> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
+                ValueTimeQuality<?> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
                 Response<?> result = Responses.createAttributeSuccessResult(
-                        attrTimeQuality.getValue0(),
-                        attrTimeQuality.getValue1(),
-                        attrTimeQuality.getValue2().name()
+                        attrTimeQuality.getValue(),
+                        attrTimeQuality.getTime(),
+                        attrTimeQuality.getQuality().name()
                 );
 
                 helper.set(result);
