@@ -9,9 +9,11 @@ import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.*;
 import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.omg.dds.RESOURCELIMITS_QOS_POLICY_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
+import org.tango.client.ez.data.TangoDeviceDataHistoryWrapper;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
@@ -153,6 +155,35 @@ public class Rc2ApiImpl {
         final String href = uriInfo.getPath();
 
         return attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName).name, href);
+    }
+
+    @GET
+
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}/history")
+    public Object deviceAttributeHistory(@PathParam("attr") final String attrName,
+                                  @Context UriInfo uriInfo,
+                                  @Context TangoProxy proxy,
+                                  @Context ServletContext context) throws Exception {
+        final String href = uriInfo.getPath();
+
+        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(attrName)), new Function<DeviceDataHistory, Object>() {
+            @Override
+            public Object apply(DeviceDataHistory input) {
+                if(!input.hasFailed()){
+                    try {
+                        TangoDataWrapper wrapper = TangoDataWrapper.create(input);
+
+                        TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
+
+                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), "VALID", input.getTime(), null, null);
+                    } catch (UnknownTangoDataType|DevFailed|ValueExtractionException e) {
+                        return Responses.createFailureResult(e);
+                    }
+                } else {
+                    return Responses.createFailureResult(new DevFailed(input.getErrStack()));
+                }
+            }
+        });
     }
 
     private static Object attributeInfoExToResponse(final String attrName, final String href) {
@@ -393,7 +424,32 @@ public class Rc2ApiImpl {
     public Object deviceCommandHistory(@PathParam("command") String cmdName,
                                 @Context TangoProxy proxy,
                                 @Context UriInfo uriInfo) throws DevFailed {
-        return proxy.toDeviceProxy().command_history(cmdName);
+        return Lists.transform(
+                Arrays.asList(proxy.toDeviceProxy().command_history(cmdName)), new Function<DeviceDataHistory, Object>() {
+            @Override
+            public Object apply(DeviceDataHistory input) {
+                if(!input.hasFailed()) {
+                    try {
+                        TangoDataWrapper wrapper = TangoDataWrapper.create(input);
+
+                        TangoDataType type = TangoDataTypes.forTangoDevDataType(input.getType());
+
+                        CommandResult<Object, Object> result = new CommandResult<>();
+
+                        result.name = input.getName();
+                        result.input = null;
+                        result.output = type.extract(wrapper);
+
+
+                        return result;
+                    } catch (UnknownTangoDataType|DevFailed|ValueExtractionException e) {
+                        return Responses.createFailureResult(e);
+                    }
+                } else {
+                    return Responses.createFailureResult(new DevFailed(input.getErrStack()));
+                }
+            }
+        });
     }
 
     private static Object commandInfoToResponse(final CommandInfo input, final String href) {
