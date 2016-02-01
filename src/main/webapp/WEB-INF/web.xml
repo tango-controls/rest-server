@@ -14,7 +14,7 @@
         <param-value>
             org.tango.rest.EntryPoint,
             org.tango.rest.mtango.MtangoImpl,
-            org.tango.rest.rc1.Rc1ApiImpl
+            org.tango.rest.rc2.Rc2ApiImpl
         </param-value>
     </context-param>
     <context-param>

@@ -5,11 +5,11 @@ package org.tango.rest;
 * @since 27.11.2015
 */
 public class SupportedVersions {
-    public final String rc1;
+    public final String rc2;
     public final String mtango;
 
     SupportedVersions(String contextRoot) {
-        this.rc1 = contextRoot + "/rest/rc1";
+        this.rc2 = contextRoot + "/rest/rc2";
         this.mtango = contextRoot + "/rest/mtango";
     }
 }
