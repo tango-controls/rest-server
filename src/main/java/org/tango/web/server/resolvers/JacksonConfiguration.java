@@ -63,10 +63,14 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
+        tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
+        tangoModule.addDeserializer(AttrDataFormat.class, new AttrDataFormatDeserializer());
+        tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
 
         objectMapper.registerModule(tangoModule);
 
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
@@ -266,5 +270,60 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
 
 
+    }
+
+    private class AttrWriteTypeDeserializer extends JsonDeserializer<AttrWriteType> {
+        @Override
+        public AttrWriteType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            String attrWriteType = jp.readValueAs(String.class).toUpperCase();
+            switch (attrWriteType){
+                case "READ":
+                    return AttrWriteType.READ;
+                case "WRITE":
+                    return AttrWriteType.WRITE;
+                case "READ_WRITE":
+                    return AttrWriteType.READ_WRITE;
+                case "READ_WITH_WRITE":
+                    return AttrWriteType.READ_WITH_WRITE;
+                default:
+                    throw new JsonParseException("Unknown AttrWriteType:" + attrWriteType, jp.getCurrentLocation());
+            }
+        }
+    }
+
+    private class AttrDataFormatDeserializer extends JsonDeserializer<AttrDataFormat> {
+        @Override
+        public AttrDataFormat deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            String attrDataFormat = jp.readValueAs(String.class).toUpperCase();
+            switch (attrDataFormat){
+                case "IMAGE":
+                    return AttrDataFormat.IMAGE;
+                case "SPECTRUM":
+                    return AttrDataFormat.SPECTRUM;
+                case "SCALAR":
+                    return AttrDataFormat.SCALAR;
+                case "FMT_UNKNOWN":
+                    return AttrDataFormat.FMT_UNKNOWN;
+                default:
+                    throw new JsonParseException("Unknown AttrWriteType:" + attrDataFormat, jp.getCurrentLocation());
+            }
+        }
+    }
+
+    private class DispLevelDeserializer extends JsonDeserializer<DispLevel> {
+        @Override
+        public DispLevel deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            String dispLevel = jp.readValueAs(String.class).toUpperCase();
+            switch (dispLevel){
+                case "OPERATOR":
+                    return DispLevel.OPERATOR;
+                case "EXPERT":
+                    return DispLevel.EXPERT;
+                case "DL_UNKNOWN":
+                    return DispLevel.DL_UNKNOWN;
+                default:
+                    throw new JsonParseException("Unknown AttrWriteType:" + dispLevel, jp.getCurrentLocation());
+            }
+        }
     }
 }
