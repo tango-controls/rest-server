@@ -4,9 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.*;
+import fr.esrf.TangoApi.AttributeInfo;
 import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.omg.dds.RESOURCELIMITS_QOS_POLICY_ID;
@@ -158,14 +160,11 @@ public class Rc2ApiImpl {
     }
 
     @GET
-
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/history")
     public Object deviceAttributeHistory(@PathParam("attr") final String attrName,
                                   @Context UriInfo uriInfo,
                                   @Context TangoProxy proxy,
                                   @Context ServletContext context) throws Exception {
-        final String href = uriInfo.getPath();
-
         return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(attrName)), new Function<DeviceDataHistory, Object>() {
             @Override
             public Object apply(DeviceDataHistory input) {
@@ -209,21 +208,21 @@ public class Rc2ApiImpl {
 
     @GET
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/info")
-    public AttributeInfoEx deviceAttributeInfo(@PathParam("attr") final String attrName,
+    public AttributeInfo deviceAttributeInfo(@PathParam("attr") final String attrName,
                                                @Context TangoProxy proxy) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_info_ex(attrName);
+        return proxy.toDeviceProxy().get_attribute_info(attrName);
     }
 
-//    @PUT
-//    @Path("devices/{domain}/{family}/{member}/attributes/{attr}/info")
-//    public AttributeInfoEx deviceAttributeInfo(@PathParam("attr") final String attrName,
-//                                               @QueryParam("info") AttributeInfoEx info,
-//                                               @QueryParam(ASYNC) boolean async,
-//                                               @Context TangoProxy proxy) throws DevFailed {
-//        proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{info});
-//        if (async) return null;
-//        return proxy.toDeviceProxy().get_attribute_info_ex(attrName);
-//    }
+    @PUT
+    @Path("devices/{domain}/{family}/{member}/attributes/{attr}/info")
+    public AttributeInfo deviceAttributeInfoPut(@PathParam("attr") final String attrName,
+                                               @QueryParam(ASYNC) boolean async,
+                                               @Context TangoProxy proxy,
+                                               AttributeConfig config) throws DevFailed {
+        proxy.toDeviceProxy().set_attribute_info(new AttributeInfo[]{new AttributeInfo(config)});
+        if (async) return null;
+        return proxy.toDeviceProxy().get_attribute_info(attrName);
+    }
 
     @GET
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/properties")
