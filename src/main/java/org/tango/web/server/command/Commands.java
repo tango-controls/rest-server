@@ -45,7 +45,7 @@ public class Commands {
         try {
             Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
-            Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataType());
+            Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataTypeClass());
 
             return new Command(proxy, method, attributeName, arg);
         } catch (NoSuchAttributeException| NoSuchMethodException | TangoProxyException e) {

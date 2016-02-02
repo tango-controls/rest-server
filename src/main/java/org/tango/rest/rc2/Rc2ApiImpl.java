@@ -214,6 +214,7 @@ public class Rc2ApiImpl {
     }
 
     @PUT
+    @Consumes("application/json")
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/info")
     public AttributeInfo deviceAttributeInfoPut(@PathParam("attr") final String attrName,
                                                @QueryParam(ASYNC) boolean async,
