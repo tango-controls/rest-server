@@ -1,14 +1,15 @@
 package org.tango.web.server.resolvers;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import fr.esrf.Tango.AttrDataFormat;
-import fr.esrf.Tango.AttrWriteType;
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.Tango.DispLevel;
+import fr.esrf.Tango.*;
 import fr.esrf.TangoApi.PipeBlob;
+import fr.esrf.TangoApi.PipeBlobBuilder;
 import fr.esrf.TangoApi.PipeDataElement;
+import fr.esrf.TangoApi.StateUtilities;
 import fr.esrf.TangoDs.TangoConst;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -24,7 +25,10 @@ import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.codehaus.jackson.type.JavaType;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.TangoImage;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.providers.TangoRestFilterProvider;
@@ -66,6 +70,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
         tangoModule.addDeserializer(AttrDataFormat.class, new AttrDataFormatDeserializer());
         tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
+        tangoModule.addDeserializer(PipeBlob.class, new PipeBlobDeserializer());
 
         objectMapper.registerModule(tangoModule);
 
@@ -276,18 +281,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         @Override
         public AttrWriteType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
             String attrWriteType = jp.readValueAs(String.class).toUpperCase();
-            switch (attrWriteType){
-                case "READ":
-                    return AttrWriteType.READ;
-                case "WRITE":
-                    return AttrWriteType.WRITE;
-                case "READ_WRITE":
-                    return AttrWriteType.READ_WRITE;
-                case "READ_WITH_WRITE":
-                    return AttrWriteType.READ_WITH_WRITE;
-                default:
-                    throw new JsonParseException("Unknown AttrWriteType:" + attrWriteType, jp.getCurrentLocation());
-            }
+            return TangoUtils.attrWriteTypeFromString(attrWriteType);
         }
     }
 
@@ -295,18 +289,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         @Override
         public AttrDataFormat deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
             String attrDataFormat = jp.readValueAs(String.class).toUpperCase();
-            switch (attrDataFormat){
-                case "IMAGE":
-                    return AttrDataFormat.IMAGE;
-                case "SPECTRUM":
-                    return AttrDataFormat.SPECTRUM;
-                case "SCALAR":
-                    return AttrDataFormat.SCALAR;
-                case "FMT_UNKNOWN":
-                    return AttrDataFormat.FMT_UNKNOWN;
-                default:
-                    throw new JsonParseException("Unknown AttrWriteType:" + attrDataFormat, jp.getCurrentLocation());
-            }
+            return TangoUtils.attrDataFormatFromString(attrDataFormat);
         }
     }
 
@@ -314,15 +297,73 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         @Override
         public DispLevel deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
             String dispLevel = jp.readValueAs(String.class).toUpperCase();
-            switch (dispLevel){
-                case "OPERATOR":
-                    return DispLevel.OPERATOR;
-                case "EXPERT":
-                    return DispLevel.EXPERT;
-                case "DL_UNKNOWN":
-                    return DispLevel.DL_UNKNOWN;
+            return TangoUtils.displayLevelFromString(dispLevel);
+        }
+    }
+
+    private class PipeBlobDeserializer extends JsonDeserializer<PipeBlob> {
+        @Override
+        public PipeBlob deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            JsonNode root = jp.getCodec().readTree(jp);
+
+            PipeBlobBuilder bld = new PipeBlobBuilder(root.get("name").asText());
+
+            for (JsonNode dataItem : root.get("data")) {
+                String dataItemName = dataItem.get("name").asText();
+                JsonNode dataItemValue = dataItem.get("value");
+                String dataItemDataType = dataItem.get("type").asText();
+                try {
+                    deserializeArray(bld, dataItemValue, dataItemName, dataItemDataType, ctxt);
+                } catch (UnknownTangoDataType unknownTangoDataType) {
+                    throw new JsonParseException("Failed to deserialize pipe data:" + dataItemValue.asText(), jp.getCurrentLocation());
+                }
+            }
+
+            return bld.build();
+        }
+
+        private void deserializeArray(PipeBlobBuilder bld, final JsonNode dataItemValue, String dataItemName, String dataItemDataType, DeserializationContext ctxt) throws IOException, UnknownTangoDataType {
+            switch (dataItemDataType) {
+                case "DevPipeBlob":
+                    bld.add(dataItemName, dataItemValue.traverse().readValueAs(PipeBlob.class));
+                    return;
+                case "DevString":
+                    bld.add(dataItemName, Iterables.toArray(Iterables.transform(dataItemValue, new Function<JsonNode, String>() {
+                        @Override
+                        public String apply(JsonNode input) {
+                            return input.asText();
+                        }
+                    }), String.class));
+                    return;
+                case "DevState":
+                    bld.add(dataItemName, Iterables.toArray(
+                            Iterables.transform(dataItemValue, new Function<JsonNode, DevState>() {
+                                @Override
+                                public DevState apply(JsonNode input) {
+                                    return StateUtilities.getStateForName(input.asText());
+                                }
+                            }),
+                            DevState.class));
+                    return;
+                case "DevBoolean":
+                    boolean[] result = new boolean[dataItemValue.size()];
+
+                    for (int i = 0, size = dataItemValue.size(); i < size; i++) {
+                        result[i] = dataItemValue.get(i).asBoolean();
+                    }
+
+                    bld.add(dataItemName, result);
+                    return;
                 default:
-                    throw new JsonParseException("Unknown AttrWriteType:" + dispLevel, jp.getCurrentLocation());
+                    final TangoDataType tangoDataType = TangoDataTypes.forString(dataItemDataType);
+                    bld.add(dataItemName, (Object) (Iterables.toArray(
+                            Iterables.transform(dataItemValue, new Function<JsonNode, Object>() {
+                                @Override
+                                public Object apply(JsonNode input) {
+                                    return ConvertUtils.convert(input.asText(), tangoDataType.getDataTypeClassBoxed());
+                                }
+                            }),
+                            tangoDataType.getDataTypeClassBoxed())));
             }
         }
     }
