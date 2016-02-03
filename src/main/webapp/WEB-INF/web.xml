@@ -33,24 +33,12 @@
             org.tango.web.server.providers.TangoRestFilterProvider
         </param-value>
     </context-param>
-    <!-- Tango REST tango interface related params -->
-    <context-param>
-        <param-name>org.tango.rest.server.tango.start</param-name>
-        <param-value>false</param-value>
-    </context-param>
-    <context-param>
-        <param-name>org.tango.rest.server.tango.instance</param-name>
-        <param-value>development</param-value>
-    </context-param>
 
     <listener>
         <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
     </listener>
     <listener>
         <listener-class>org.tango.web.server.Launcher</listener-class>
-    </listener>
-    <listener>
-        <listener-class>org.tango.web.server.tango.TangoRestApiDeviceStarter</listener-class>
     </listener>
 
     <filter>

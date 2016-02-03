@@ -12,8 +12,6 @@ import java.util.concurrent.*;
  * @since 01.07.14
  */
 public class AccessControl {
-    public static final String DEFAULT_ID = "sys/access_control/1";
-
     public static final String READ = "read";
     public static final String WRITE = "write";
     public static final String TANGO_ACCESS = "tango.access_control";
@@ -24,14 +22,6 @@ public class AccessControl {
     private static final ScheduledExecutorService EXEC = Executors.newScheduledThreadPool(1);
 
     private final ConcurrentMap<String, Future<String>> accessMap = new ConcurrentHashMap<>();
-
-    public AccessControl(String tangoHost) throws TangoProxyException {
-        this(tangoHost, DEFAULT_ID);
-    }
-
-    public AccessControl(String tangoHost, String devId) throws TangoProxyException {
-        this(TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + devId));
-    }
 
     public AccessControl(TangoProxy proxy) {
         this.proxy = proxy;
