@@ -1,11 +1,13 @@
 package org.tango.web.server;
 
+import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
@@ -18,19 +20,18 @@ import java.util.List;
  */
 @ThreadSafe
 public class DatabaseDs {
-    public static final String DEFAULT_ID = "sys/database/2";
     public static final String TANGO_DB = "tango.db";
 
     private final String tangoHost;
     private final TangoProxy proxy;
 
-    public DatabaseDs(String tangoHost) throws TangoProxyException {
-        this(tangoHost, DEFAULT_ID);
-    }
-
-    public DatabaseDs(String tangoHost, String devname) throws TangoProxyException {
-        this.tangoHost = tangoHost;
-        this.proxy = TangoProxies.newDeviceProxyWrapper("tango://" + tangoHost + "/" + devname);
+    public DatabaseDs(TangoProxy dbProxy) throws TangoProxyException{
+        try {
+            tangoHost = dbProxy.toDeviceProxy().getFullTangoHost();
+            proxy = dbProxy;
+        } catch (DevFailed devFailed) {
+            throw new TangoProxyException(dbProxy.getName(), devFailed);
+        }
     }
 
     public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException, NoSuchCommandException {
@@ -67,5 +68,9 @@ public class DatabaseDs {
     public List<String> getDeviceList(String wildcard) throws TangoProxyException, NoSuchCommandException {
         String[] result = proxy.executeCommand("DbGetDeviceWideList", wildcard);
         return Arrays.asList(result);
+    }
+
+    public String getDbURL(){
+        return "tango://" + tangoHost + "/" + proxy.getName();
     }
 }

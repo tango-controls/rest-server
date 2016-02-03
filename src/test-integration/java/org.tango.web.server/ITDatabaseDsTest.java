@@ -1,6 +1,9 @@
 package org.tango.web.server;
 
 import org.junit.Test;
+import org.tango.TangoRestServer;
+import org.tango.client.ez.proxy.TangoProxies;
+import org.tango.client.ez.proxy.TangoProxy;
 
 import java.util.Collection;
 
@@ -20,7 +23,8 @@ public class ITDatabaseDsTest {
 
     @Test
     public void testGetDeviceAddress() throws Exception {
-        DatabaseDs instance = new DatabaseDs(TANGO_HOST);
+        TangoProxy proxy = TangoProxies.newDeviceProxyWrapper("tango://" + TANGO_HOST + "/" + TangoRestServer.SYS_DATABASE_2);
+        DatabaseDs instance = new DatabaseDs(proxy);
 
         String result = instance.getDeviceAddress("sys/tg_test/1");
 
@@ -30,7 +34,8 @@ public class ITDatabaseDsTest {
 
     @Test
     public void testGetDeviceList() throws Exception {
-        DatabaseDs instance = new DatabaseDs(TANGO_HOST);
+        TangoProxy proxy = TangoProxies.newDeviceProxyWrapper("tango://" + TANGO_HOST + "/" + TangoRestServer.SYS_DATABASE_2);
+        DatabaseDs instance = new DatabaseDs(proxy);
 
         Collection<String> result = instance.getDeviceList();
 

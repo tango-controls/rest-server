@@ -54,7 +54,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getDeviceList();
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -67,7 +67,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getDomainsList();
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -80,7 +80,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getDomainsList();
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -98,7 +98,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getFamiliesList(domain);
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -112,7 +112,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getFamiliesList(domain);
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -130,7 +130,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 
@@ -145,7 +145,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getMembersList(domain, family);
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
         }
     }
 

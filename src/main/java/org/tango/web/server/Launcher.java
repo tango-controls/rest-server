@@ -1,30 +1,47 @@
 package org.tango.web.server;
 
 
+import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tango.TangoRestServer;
+import org.tango.client.database.DatabaseFactory;
+import org.tango.client.ez.proxy.TangoProxies;
+import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
+import org.tango.server.ServerManager;
+import org.tango.server.export.IExporter;
+import org.tango.server.servant.DeviceImpl;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import java.lang.reflect.Field;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 23.05.14
  */
 public class Launcher implements ServletContextListener {
+    private final static Logger logger = LoggerFactory.getLogger(Launcher.class);
+
     public static final String TANGO_HOST = "TANGO_HOST";
     public static final String TANGO_LOCALHOST = "localhost:10000";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         String tangoHost = System.getProperty(TANGO_HOST, System.getenv(TANGO_HOST));
-        if (tangoHost == null) tangoHost = TANGO_LOCALHOST;
+        if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TANGO_LOCALHOST);
+        logger.info("TANGO_HOST={}", tangoHost);
 
         try {
             TangoContext context = new TangoContext();
 
+            String tangoDb = System.getProperty(TangoRestServer.TANGO_DB, TangoRestServer.SYS_DATABASE_2);
 
-            DatabaseDs db = new DatabaseDs(tangoHost);
+            TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDb);
+            DatabaseDs db = new DatabaseDs(dbProxy);
             context.databaseDs = db;
 
 
@@ -35,17 +52,47 @@ public class Launcher implements ServletContextListener {
 
             sce.getServletContext().setAttribute(DeviceMapper.TANGO_MAPPER, mapper);
 
-            AccessControl accessControl = new AccessControl(tangoHost);
+            String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.SYS_ACCESS_CONTROL_1);
+
+            TangoProxy accessCtlProxy = TangoProxies.newDeviceProxyWrapper(accessControlProp);
+            AccessControl accessControl = new AccessControl(accessCtlProxy);
 
             sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
             context.accessControl = accessControl;
 
-            //TODO read properties
-
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
+
+            setContextToTangoServer(context);
+
             System.out.println("MTango is initialized.");
         } catch (TangoProxyException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void setContextToTangoServer(TangoContext ctx) {
+        try {
+            Field tangoExporterField = ServerManager.getInstance().getClass().getDeclaredField("tangoExporter");
+            tangoExporterField.setAccessible(true);
+            IExporter tangoExporter = (IExporter) tangoExporterField.get(ServerManager.getInstance());
+
+            String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
+            final String[] deviceList = DatabaseFactory.getDatabase().getDeviceList(
+                    TangoRestServer.class.getSimpleName() + "/" + instance, TangoRestServer.class.getSimpleName());
+
+            if (deviceList.length == 0) //No tango devices were found. Simply skip the following
+                return;
+
+            for(String device : deviceList){
+                DeviceImpl deviceImpl = tangoExporter.getDevice(TangoRestServer.class.getSimpleName(), device);
+                ((TangoRestServer) deviceImpl.getBusinessObject()).ctx = ctx;
+            }
+
+            logger.info("Done.");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (DevFailed devFailed) {
+            throw new RuntimeException(TangoUtils.convertDevFailedToException(devFailed));
         }
     }
 
