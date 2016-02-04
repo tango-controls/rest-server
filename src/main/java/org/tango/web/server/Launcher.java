@@ -1,23 +1,18 @@
 package org.tango.web.server;
 
 
-import fr.esrf.Tango.DevFailed;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.client.database.DatabaseFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.client.ez.util.TangoUtils;
 import org.tango.server.ServerManager;
-import org.tango.server.export.IExporter;
-import org.tango.server.servant.DeviceImpl;
+import org.tango.server.ServerManagerUtils;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -62,42 +57,27 @@ public class Launcher implements ServletContextListener {
 
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
 
-            setContextToTangoServer(context);
+            startTangoServer(context);
 
-            System.out.println("MTango is initialized.");
+            logger.info("MTango is initialized.");
         } catch (TangoProxyException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void setContextToTangoServer(TangoContext ctx) {
-        try {
-            Field tangoExporterField = ServerManager.getInstance().getClass().getDeclaredField("tangoExporter");
-            tangoExporterField.setAccessible(true);
-            IExporter tangoExporter = (IExporter) tangoExporterField.get(ServerManager.getInstance());
+    private void startTangoServer(TangoContext ctx) {
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
 
-            String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
-            final String[] deviceList = DatabaseFactory.getDatabase().getDeviceList(
-                    TangoRestServer.class.getSimpleName() + "/" + instance, TangoRestServer.class.getSimpleName());
+        ServerManager.getInstance().start(new String[]{instance}, TangoRestServer.class);
 
-            if (deviceList.length == 0) //No tango devices were found. Simply skip the following
-                return;
-
-            for(String device : deviceList){
-                DeviceImpl deviceImpl = tangoExporter.getDevice(TangoRestServer.class.getSimpleName(), device);
-                ((TangoRestServer) deviceImpl.getBusinessObject()).ctx = ctx;
-            }
-
-            logger.info("Done.");
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (DevFailed devFailed) {
-            throw new RuntimeException(TangoUtils.convertDevFailedToException(devFailed));
+        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
+        for (TangoRestServer tangoRestServer : tangoRestServers) {
+            tangoRestServer.ctx = ctx;
         }
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("MTango is destroyed.");
+        logger.info("MTango is destroyed.");
     }
 }
