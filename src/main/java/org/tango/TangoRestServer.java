@@ -11,24 +11,17 @@ import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.database.DatabaseFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.client.ez.util.TangoUtils;
 import org.tango.server.ServerManager;
+import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
-import org.tango.server.export.IExporter;
-import org.tango.server.servant.DeviceImpl;
-import org.tango.web.server.AccessControl;
-import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.TangoContext;
-import org.tango.web.server.TangoProxyCreationPolicy;
+import org.tango.web.server.*;
 
 import javax.servlet.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -45,6 +38,8 @@ public class TangoRestServer {
 
     private static final Path tomcatBaseDir;
 
+    public static final String WEBAPP_WAR = "webapp.war";
+
     static {
 
         try {
@@ -57,7 +52,7 @@ public class TangoRestServer {
             InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
 
 
-            Files.copy(webapp, tomcatBaseDir.resolve("webapp.war"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("Can not extract webapp.war to a temp dir", e);
         }
@@ -66,9 +61,13 @@ public class TangoRestServer {
     public static final String TANGO_DB = "TANGO_DB";
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
     public static final String TOMCAT_PORT = "TOMCAT_PORT";
+    public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_CONFIG_CLASS";
+
     public static final String SYS_DATABASE_2 = "sys/database/2";
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
     public static final String TANGO_INSTANCE = "org.tango.rest.server.tango.instance";
+    public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
+
 
     @DeviceProperty(name = TANGO_DB, defaultValue = SYS_DATABASE_2)
     private String tangoDbProp;
@@ -79,8 +78,13 @@ public class TangoRestServer {
     @DeviceProperty(name = TOMCAT_PORT, defaultValue = "8844")
     private int tomcatPort = 8844;
 
+    @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
+    private String tomcatAuthConfigurationClass;
+
     @State
     private DevState state = DevState.OFF;
+
+    private String tangoDbHost;
 
 
     public void setState(DevState state) {
@@ -108,45 +112,18 @@ public class TangoRestServer {
         TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
         DatabaseDs databaseDs = new DatabaseDs(dbProxy);
 
-        String tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
+        tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
         logger.debug("TANGO_DB_HOST={}", tangoDbHost);
         if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
-
-
-        tomcat = new Tomcat();
-        tomcat.setPort(tomcatPort);
-        tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
-
-
-        org.apache.catalina.Context context = tomcat.addWebapp(tangoDbHost, tomcatBaseDir.resolve("webapp.war").toAbsolutePath().toString());
-        WebappLoader loader =
-                new WebappLoader(Thread.currentThread().getContextClassLoader());
-        context.setLoader(loader);
-
-        //TODO configure auth
-        tomcat.addUser("ingvord", "test");
-        tomcat.addRole("ingvord","mtango-rest");
-    }
-
-    @Command
-    @StateMachine(endState = DeviceState.RUNNING, deniedStates = DeviceState.RUNNING)
-    public void start() throws LifecycleException {
-        tomcat.start();
-    }
-
-    @Command
-    @StateMachine(endState = DeviceState.ON)
-    public void stop() throws LifecycleException {
-        tomcat.stop();
     }
 
     @Delete
     @StateMachine(endState = DeviceState.OFF)
     public void delete() throws LifecycleException {
-        stop();
-        tomcat.destroy();
+        if(tomcat != null)
+            tomcat.destroy();
     }
 
     public static void main(String[] args) throws Exception {
@@ -154,22 +131,35 @@ public class TangoRestServer {
         System.setProperty(TANGO_INSTANCE, instance);
         ServerManager.getInstance().start(args, TangoRestServer.class);
 
-        //We need this hack because when tomcat starts in this#init method Launcher#setContextToTangoDevice fails due to empty list of devices
-        logger.trace("Starting tomcat of each device...");
-        Field tangoExporterField = ServerManager.getInstance().getClass().getDeclaredField("tangoExporter");
-        tangoExporterField.setAccessible(true);
-        IExporter tangoExporter = (IExporter) tangoExporterField.get(ServerManager.getInstance());
+        startTomcat(instance);
+    }
 
+    private static void startTomcat(String instance) throws Exception {
+        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
 
-        final String[] deviceList = DatabaseFactory.getDatabase().getDeviceList(
-                TangoRestServer.class.getSimpleName() + "/" + instance, TangoRestServer.class.getSimpleName());
+        for (TangoRestServer tangoRestServer : tangoRestServers) {
+            logger.trace("Configure tomcat for device");
+            tangoRestServer.tomcat = new Tomcat();
+            tangoRestServer.tomcat.setPort(tangoRestServer.tomcatPort);
+            tangoRestServer.tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
 
-        if (deviceList.length == 0) //No tango devices were found. Simply skip the following
-            return;
+            logger.trace("Add webapp[{}] tomcat for device", tangoRestServer.tangoDbHost);
+            org.apache.catalina.Context context =
+                    tangoRestServer.tomcat.addWebapp(tangoRestServer.tangoDbHost, tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
 
-        for (String device : deviceList) {
-            DeviceImpl deviceImpl = tangoExporter.getDevice(TangoRestServer.class.getSimpleName(), device);
-            ((TangoRestServer) deviceImpl.getBusinessObject()).start();
+            WebappLoader loader =
+                    new WebappLoader(Thread.currentThread().getContextClassLoader());
+            context.setLoader(loader);
+
+            logger.trace("Configure tomcat auth for device");
+            Object authConfig =
+                    TangoRestServer.class.getClassLoader().loadClass(tangoRestServer.tomcatAuthConfigurationClass).newInstance();
+
+            authConfig.getClass().getMethod("configure", Tomcat.class)
+                    .invoke(authConfig, tangoRestServer.tomcat);
+
+            logger.trace("Start tomcat of device");
+            tangoRestServer.tomcat.start();
         }
 
         logger.trace("Done.");
@@ -255,5 +245,9 @@ public class TangoRestServer {
 
     public void setTomcatPort(int tomcatPort) {
         this.tomcatPort = tomcatPort;
+    }
+
+    public void setTomcatAuthConfigurationClass(String tomcatAuthConfig) {
+        this.tomcatAuthConfigurationClass = tomcatAuthConfig;
     }
 }
