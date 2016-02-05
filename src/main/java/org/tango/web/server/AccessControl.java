@@ -16,11 +16,8 @@ public class AccessControl {
     public static final String READ = "read";
     public static final String WRITE = "write";
     public static final String TANGO_ACCESS = "tango.access_control";
-    private static final long DEFAULT_CACHE_DELAY = 5;
 
     private final TangoProxy proxy;
-
-    private static final ScheduledExecutorService EXEC = Executors.newScheduledThreadPool(1);
 
     private final ConcurrentMap<String, Future<String>> accessMap = new ConcurrentHashMap<>();
 

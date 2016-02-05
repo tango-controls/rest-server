@@ -24,8 +24,6 @@ public class EntryPoint {
         SUPPORTED_VERSIONS.add("mtango");
     }
 
-    private static final String SUPPORTED_AUTHENTICATION = "basic";
-
     @GET
     public Map<String,String> versions(@Context ServletContext context){
         Map<String,String> result = new HashMap<>();
@@ -36,16 +34,4 @@ public class EntryPoint {
 
         return result;
     }
-
-    @GET
-    @Path("/{version}")
-    public Map<String, String> authentication(@PathParam("version") String version, @Context ServletContext context){
-        Map<String, String> result = new HashMap<>();
-
-        result.put("devices", context.getContextPath() + "/rest/" + version + "/devices");
-        result.put("x-auth-method", SUPPORTED_AUTHENTICATION);
-
-        return result;
-    }
-
 }

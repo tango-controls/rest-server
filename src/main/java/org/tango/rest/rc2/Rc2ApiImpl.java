@@ -46,9 +46,20 @@ import java.util.*;
 @Produces("application/json")
 public class Rc2ApiImpl {
     private static final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
+    private static final String SUPPORTED_AUTHENTICATION = "basic";
 
 
     public static final String ASYNC = "async";
+
+    @GET
+    public Map<String, String> authentication(@Context ServletContext context){
+        Map<String, String> result = new HashMap<>();
+
+        result.put("devices", context.getContextPath() + "/rest/rc2/devices");
+        result.put("x-auth-method", SUPPORTED_AUTHENTICATION);
+
+        return result;
+    }
 
     @GET
     @Partitionable
