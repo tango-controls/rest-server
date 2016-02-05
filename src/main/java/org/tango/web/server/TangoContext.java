@@ -1,5 +1,7 @@
 package org.tango.web.server;
 
+import com.google.common.base.Objects;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -23,4 +25,19 @@ public class TangoContext {
 
     public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
     public volatile boolean isCacheEnabled;
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("accessControl", accessControl)
+                .add("tangoProxyKeepAliveDelay", tangoProxyKeepAliveDelay)
+                .add("tangoProxyKeepAliveDelayTimeUnit", tangoProxyKeepAliveDelayTimeUnit)
+                .add("attributeValueExpirationDelay", attributeValueExpirationDelay)
+                .add("staticDataExpirationDelay", staticDataExpirationDelay)
+                .add("databaseDs", databaseDs)
+                .add("deviceMapper", deviceMapper)
+                .add("tangoProxyCreationPolicies", tangoProxyCreationPolicies)
+                .add("isCacheEnabled", isCacheEnabled)
+                .toString();
+    }
 }

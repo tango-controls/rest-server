@@ -1,5 +1,6 @@
 package org.tango.web.server;
 
+import com.google.common.base.Objects;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
@@ -72,5 +73,13 @@ public class DatabaseDs {
 
     public String getDbURL(){
         return "tango://" + tangoHost + "/" + proxy.getName();
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("proxy", proxy)
+                .add("tangoHost", tangoHost)
+                .toString();
     }
 }
