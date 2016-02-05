@@ -6,7 +6,7 @@
 
     <groupId>hzg.wpn</groupId>
     <artifactId>mtango.server</artifactId>
-    <version>rc2-0.2-SNAPSHOT</version>
+    <version>rc2-0.2</version>
     <packaging>war</packaging>
 
     <developers>
