@@ -1,5 +1,6 @@
 package org.tango.web.server;
 
+import com.google.common.base.Objects;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -69,5 +70,13 @@ public class AccessControl {
 //        } catch (InterruptedException | ExecutionException e) {
 //            throw new TangoProxyException(e);
 //        }
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("accessMap", accessMap)
+                .add("proxy", proxy)
+                .toString();
     }
 }

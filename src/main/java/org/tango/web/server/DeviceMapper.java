@@ -1,5 +1,6 @@
 package org.tango.web.server;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -121,5 +122,12 @@ public class DeviceMapper {
     public static TangoProxy lookup(String domain, String family, String member, ServletContext context) throws TangoProxyException {
         DeviceMapper mapper = (DeviceMapper) context.getAttribute(DeviceMapper.TANGO_MAPPER);
         return mapper.map(domain + "/" + family + "/" + member);
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("proxyPool", proxyPool)
+                .toString();
     }
 }

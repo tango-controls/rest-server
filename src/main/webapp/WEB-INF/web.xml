@@ -79,6 +79,11 @@
         </init-param>
     </servlet>
 
+    <servlet>
+        <servlet-name>GroovyConsole</servlet-name>
+        <servlet-class>org.tango.web.server.groovy.GroovyConsole</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
         <url-pattern>/rest/*</url-pattern>
@@ -87,6 +92,11 @@
     <servlet-mapping>
         <servlet-name>JsTangoService</servlet-name>
         <url-pattern>/js/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>GroovyConsole</servlet-name>
+        <url-pattern>/groovy</url-pattern>
     </servlet-mapping>
 
     <filter-mapping>
@@ -118,6 +128,15 @@
             <role-name>mtango-rest</role-name>
         </auth-constraint>
     </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango REST groovy consolw</web-resource-name>
+            <url-pattern>/groovy</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>mtango-groovy</role-name>
+        </auth-constraint>
+    </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>Basic Authentication</realm-name>
@@ -130,5 +149,9 @@
     <security-role>
         <description>mtango rest api user</description>
         <role-name>mtango-rest</role-name>
+    </security-role>
+    <security-role>
+        <description>mtango groovy user</description>
+        <role-name>mtango-groovy</role-name>
     </security-role>
 </web-app>
