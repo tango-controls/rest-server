@@ -122,8 +122,10 @@ public class TangoRestServer {
     @Delete
     @StateMachine(endState = DeviceState.OFF)
     public void delete() throws LifecycleException {
-        if(tomcat != null)
+        if(tomcat != null) {
+            tomcat.stop();
             tomcat.destroy();
+        }
     }
 
     public static void main(String[] args) throws Exception {
