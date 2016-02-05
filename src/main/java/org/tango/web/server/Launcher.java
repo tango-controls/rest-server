@@ -30,7 +30,12 @@ public class Launcher implements ServletContextListener {
         if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TANGO_LOCALHOST);
         logger.info("TANGO_HOST={}", tangoHost);
 
+        logger.info("TANGO_INSTANCE={}", System.getProperty(TangoRestServer.TANGO_INSTANCE,
+                sce.getServletContext().getInitParameter(TangoRestServer.TANGO_INSTANCE)));
+
         try {
+            startTangoServer();
+
             TangoContext context = new TangoContext();
 
             String tangoDb = System.getProperty(TangoRestServer.TANGO_DB, TangoRestServer.SYS_DATABASE_2);
@@ -57,7 +62,7 @@ public class Launcher implements ServletContextListener {
 
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
 
-            startTangoServer(context);
+            setTangoRestServerContext(context);
 
             logger.info("MTango is initialized.");
         } catch (TangoProxyException e) {
@@ -65,10 +70,14 @@ public class Launcher implements ServletContextListener {
         }
     }
 
-    private void startTangoServer(TangoContext ctx) {
+    private void startTangoServer() {
         String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
 
         ServerManager.getInstance().start(new String[]{instance}, TangoRestServer.class);
+    }
+
+    private void setTangoRestServerContext(TangoContext ctx){
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
 
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
         for (TangoRestServer tangoRestServer : tangoRestServers) {

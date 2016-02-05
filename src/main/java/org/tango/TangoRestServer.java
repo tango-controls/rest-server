@@ -65,7 +65,7 @@ public class TangoRestServer {
 
     public static final String SYS_DATABASE_2 = "sys/database/2";
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
-    public static final String TANGO_INSTANCE = "org.tango.rest.server.tango.instance";
+    public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
 
 
@@ -197,7 +197,7 @@ public class TangoRestServer {
     }
 
     @Attribute
-    public boolean isCacheEnabled() {
+    public boolean getCacheEnabled() {
         return ctx.isCacheEnabled;
     }
 
