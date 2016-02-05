@@ -2,6 +2,7 @@ package org.tango.web.server;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -51,7 +52,10 @@ public class DeviceMapper {
     }
 
 
-    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactoryBuilder()
+                    .setNameFormat("tango-proxies-pool-manager")
+                    .build());
 
     @ThreadSafe
     public class TangoProxyPool {
@@ -129,5 +133,11 @@ public class DeviceMapper {
         return Objects.toStringHelper(this)
                 .add("proxyPool", proxyPool)
                 .toString();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        scheduler.shutdownNow();
     }
 }

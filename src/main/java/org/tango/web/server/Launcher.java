@@ -78,6 +78,7 @@ public class Launcher implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        DeviceMapper.scheduler.shutdownNow();
         logger.info("MTango is destroyed.");
     }
 }
