@@ -66,6 +66,7 @@ public class Launcher implements ServletContextListener {
 
             logger.info("MTango is initialized.");
         } catch (TangoProxyException e) {
+            logger.error("MTango has failed to initialize: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
