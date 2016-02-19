@@ -427,7 +427,6 @@ public class MtangoImpl {
             writer.write("}");
 
             writer.flush();
-            writer.close();
         }
 
         RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer) throws IOException{
