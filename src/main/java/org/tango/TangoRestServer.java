@@ -36,27 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class TangoRestServer {
     private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
 
-    private static final Path tomcatBaseDir;
-
     public static final String WEBAPP_WAR = "webapp.war";
-
-    static {
-
-        try {
-            tomcatBaseDir = Files.createTempDirectory("tomcat_");
-            Files.createDirectory(tomcatBaseDir.resolve("webapps"));
-        } catch (IOException e) {
-            throw new RuntimeException("Can not create tomcat temp dir", e);
-        }
-        try {
-            InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
-
-
-            Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("Can not extract webapp.war to a temp dir", e);
-        }
-    }
 
     public static final String TANGO_DB = "TANGO_DB";
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
@@ -141,6 +121,23 @@ public class TangoRestServer {
 
         for (TangoRestServer tangoRestServer : tangoRestServers) {
             logger.trace("Configure tomcat for device");
+
+            Path tomcatBaseDir;
+            try {
+                tomcatBaseDir = Files.createTempDirectory("tomcat_");
+                Files.createDirectory(tomcatBaseDir.resolve("webapps"));
+            } catch (IOException e) {
+                throw new RuntimeException("Can not create tomcat temp dir", e);
+            }
+            try {
+                InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
+
+
+                Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException("Can not extract webapp.war to a temp dir", e);
+            }
+
             tangoRestServer.tomcat = new Tomcat();
             tangoRestServer.tomcat.setPort(tangoRestServer.tomcatPort);
             tangoRestServer.tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
