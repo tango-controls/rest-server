@@ -67,6 +67,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
+        tangoModule.addSerializer(new DevStateSerializer(DevState.class));
         tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
         tangoModule.addDeserializer(AttrDataFormat.class, new AttrDataFormatDeserializer());
         tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
@@ -175,6 +176,25 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         @Override
         public void serialize(DispLevel value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeString(value.toString());
+        }
+    }
+
+    public static class DevStateSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<DevState> {
+        public DevStateSerializer(Class<DevState> t) {
+            super(t);
+        }
+
+        public DevStateSerializer(JavaType type) {
+            super(type);
+        }
+
+        public DevStateSerializer(Class<?> t, boolean dummy) {
+            super(t, dummy);
+        }
+
+        @Override
+        public void serialize(DevState value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeString(value.toString());
         }
     }
