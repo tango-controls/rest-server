@@ -485,8 +485,9 @@ public class Rc2ApiImpl {
 
         Class<?> type = proxy.getCommandInfo(cmdName).getArginType();
 
-        final Object converted = ConvertUtils.convert(value, type);
-
+        final Object converted;
+        if(type == Void.class) converted = null;
+        else converted = ConvertUtils.convert(value, type);
         if (async) {
             DeviceData data = new DeviceData();
 
