@@ -51,15 +51,11 @@ import java.util.Set;
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
-    @JsonFilter("json-response-fields-filter")
-    class JsonResponseFieldFilterMixIn {
 
-    }
+    private ObjectMapper mapper;
 
-    public ObjectMapper getContext(Class<?> objectType) {
-        TangoRestFilterProvider.JsonFieldFilter filter = ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
-
-        ObjectMapper objectMapper = new ObjectMapper();
+    {
+        mapper = new ObjectMapper();
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
@@ -73,10 +69,19 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
         tangoModule.addDeserializer(PipeBlob.class, new PipeBlobDeserializer());
 
-        objectMapper.registerModule(tangoModule);
+        mapper.registerModule(tangoModule);
 
-        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    @JsonFilter("json-response-fields-filter")
+    class JsonResponseFieldFilterMixIn {
+
+    }
+
+    public ObjectMapper getContext(Class<?> objectType) {
+        TangoRestFilterProvider.JsonFieldFilter filter = ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
 
         if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
@@ -84,12 +89,14 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                             SimpleBeanPropertyFilter.serializeAllExcept(filter.fieldNames) :
                             new CustomFilterOutAllExceptFilter(filter.fieldNames)
             );
-            objectMapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
-            objectMapper.getSerializationConfig().addMixInAnnotations(Object.class, JsonResponseFieldFilterMixIn.class);
-            objectMapper.setFilters(fp);
+            mapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+            mapper.getSerializationConfig().addMixInAnnotations(Object.class, JsonResponseFieldFilterMixIn.class);
+            mapper.setFilters(fp);
+        } else {
+            mapper.setFilters(new SimpleFilterProvider());
         }
 
-        return objectMapper;
+        return mapper;
     }
 
     public static class CustomFilterOutAllExceptFilter implements BeanPropertyFilter {
