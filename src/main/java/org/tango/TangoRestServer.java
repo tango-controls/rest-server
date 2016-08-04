@@ -17,9 +17,11 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
-import org.tango.web.server.*;
+import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.TangoContext;
+import org.tango.web.server.TangoProxyCreationPolicy;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -148,6 +150,7 @@ public class TangoRestServer {
 
             WebappLoader loader =
                     new WebappLoader(Thread.currentThread().getContextClassLoader());
+            loader.setDelegate(true);
             context.setLoader(loader);
 
             logger.trace("Configure tomcat auth for device");
