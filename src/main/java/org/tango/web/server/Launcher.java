@@ -19,7 +19,7 @@ import java.util.List;
  * @since 23.05.14
  */
 public class Launcher implements ServletContextListener {
-    private final static Logger logger = LoggerFactory.getLogger(Launcher.class);
+    private final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
     public static final String TANGO_HOST = "TANGO_HOST";
     public static final String TANGO_LOCALHOST = "localhost:10000";

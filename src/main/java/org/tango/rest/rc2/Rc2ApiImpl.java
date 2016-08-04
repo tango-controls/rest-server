@@ -7,24 +7,25 @@ import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.*;
 import fr.esrf.TangoApi.AttributeInfo;
+import fr.esrf.TangoApi.*;
 import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.omg.dds.RESOURCELIMITS_QOS_POLICY_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.TangoDeviceDataHistoryWrapper;
-import org.tango.client.ez.data.type.*;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.*;
 import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
@@ -104,6 +105,12 @@ public class Rc2ApiImpl {
                         @Override
                         public NamedEntity apply(CommandInfo input) {
                             return new NamedEntity(input.cmd_name, href + "/commands/" + input.cmd_name);
+                        }
+                    }),
+                    Collections2.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, NamedEntity>() {
+                        @Override
+                        public NamedEntity apply(String input) {
+                            return new NamedEntity(input, href + "/pipes/" + input);
                         }
                     }),
                     Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_property_list("*")), new Function<String, NamedEntity>() {
