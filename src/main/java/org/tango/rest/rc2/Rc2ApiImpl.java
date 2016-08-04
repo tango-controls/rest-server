@@ -520,8 +520,10 @@ public class Rc2ApiImpl {
     @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/properties")
     public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
+        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
+        if(propnames.length == 0) return propnames;
         return Iterables.transform(
-                Arrays.asList(proxy.toDeviceProxy().get_property(proxy.toDeviceProxy().get_property_list("*"))),
+                Arrays.asList(proxy.toDeviceProxy().get_property(propnames)),
                 new Function<DbDatum, Object>() {
                     @Override
                     public Object apply(final DbDatum input) {
