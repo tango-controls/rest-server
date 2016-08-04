@@ -4,10 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import fr.esrf.Tango.*;
-import fr.esrf.TangoApi.PipeBlob;
-import fr.esrf.TangoApi.PipeBlobBuilder;
-import fr.esrf.TangoApi.PipeDataElement;
-import fr.esrf.TangoApi.StateUtilities;
+import fr.esrf.TangoApi.*;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.codehaus.jackson.*;
@@ -39,7 +36,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import java.awt.image.RenderedImage;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
@@ -68,6 +67,8 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
         tangoModule.addSerializer(new DevStateSerializer(DevState.class));
+        tangoModule.addSerializer(new AttrInfoSerializer(AttributeInfo.class));
+        tangoModule.addSerializer(new AttrInfoExSerializer(AttributeInfoEx.class));
         tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
         tangoModule.addDeserializer(AttrDataFormat.class, new AttrDataFormatDeserializer());
         tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
@@ -385,6 +386,63 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                             }),
                             tangoDataType.getDataTypeClassBoxed())));
             }
+        }
+    }
+
+    private static class AttrInfoSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttributeInfo> {
+        protected AttrInfoSerializer(Class<AttributeInfo> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(AttributeInfo value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            try {
+                jgen.writeStartObject();
+
+                for(Field fld : value.getClass().getDeclaredFields()){
+                    String fldName = fld.getName();
+                    jgen.writeFieldName(fldName);
+                    if(fldName.equals("data_type"))
+                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+                    else
+                        provider.defaultSerializeValue(fld.get(value), jgen);
+                }
+
+
+                jgen.writeEndObject();
+            } catch (IllegalAccessException e) {
+                throw new JsonGenerationException(e);
+            }
+        }
+    }
+
+    private static class AttrInfoExSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttributeInfoEx> {
+        protected AttrInfoExSerializer(Class<AttributeInfoEx> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            try {
+                jgen.writeStartObject();
+
+                serializeAttributeInfo(value, jgen, provider);
+
+                jgen.writeEndObject();
+            } catch (IllegalAccessException e) {
+                throw new JsonGenerationException(e);
+            }
+        }
+    }
+
+    private static void serializeAttributeInfo(Object value, JsonGenerator jgen, SerializerProvider provider) throws IOException, IllegalAccessException {
+        for(Field fld : value.getClass().getFields()){
+            String fldName = fld.getName();
+            jgen.writeFieldName(fldName);
+            if(fldName.equals("data_type"))
+                jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+            else
+                provider.defaultSerializeValue(fld.get(value), jgen);
         }
     }
 }
