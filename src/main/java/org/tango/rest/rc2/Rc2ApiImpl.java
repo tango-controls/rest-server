@@ -485,7 +485,7 @@ public class Rc2ApiImpl {
     @PUT
     @Path("devices/{domain}/{family}/{member}/commands/{command}")
     public Object deviceCommandPut(@PathParam("command") final String cmdName,
-                                   @QueryParam("input") String value,
+                                   @QueryParam("input") String[] value,
                                    @QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo) throws Exception {
@@ -495,7 +495,7 @@ public class Rc2ApiImpl {
 
         final Object converted;
         if(type == Void.class) converted = null;
-        else converted = ConvertUtils.convert(value, type);
+        else converted = ConvertUtils.convert(value.length == 1 ? value[0]: value, type);
         if (async) {
             DeviceData data = new DeviceData();
 
