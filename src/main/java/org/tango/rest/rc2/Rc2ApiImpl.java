@@ -51,12 +51,13 @@ public class Rc2ApiImpl {
 
 
     public static final String ASYNC = "async";
+    public static final String REST_PREFIX = "/rest/rc2";
 
     @GET
     public Map<String, String> authentication(@Context ServletContext context){
         Map<String, String> result = new HashMap<>();
 
-        result.put("devices", context.getContextPath() + "/rest/rc2/devices");
+        result.put("devices", context.getContextPath() + REST_PREFIX + "/devices");
         result.put("x-auth-method", SUPPORTED_AUTHENTICATION);
 
         return result;
@@ -75,7 +76,7 @@ public class Rc2ApiImpl {
             List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
                 @Override
                 public NamedEntity apply(final String input) {
-                    return new NamedEntity(input, context.getContextPath() + "/rest/rc1/devices/" + input);
+                    return new NamedEntity(input, context.getContextPath() + REST_PREFIX + "/devices/" + input);
                 }
             });
             return transform;
