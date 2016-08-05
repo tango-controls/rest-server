@@ -7,24 +7,25 @@ import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.*;
 import fr.esrf.TangoApi.AttributeInfo;
+import fr.esrf.TangoApi.*;
 import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.omg.dds.RESOURCELIMITS_QOS_POLICY_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.TangoDeviceDataHistoryWrapper;
-import org.tango.client.ez.data.type.*;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.*;
 import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
@@ -50,12 +51,13 @@ public class Rc2ApiImpl {
 
 
     public static final String ASYNC = "async";
+    public static final String REST_PREFIX = "/rest/rc2";
 
     @GET
     public Map<String, String> authentication(@Context ServletContext context){
         Map<String, String> result = new HashMap<>();
 
-        result.put("devices", context.getContextPath() + "/rest/rc2/devices");
+        result.put("devices", context.getContextPath() + REST_PREFIX + "/devices");
         result.put("x-auth-method", SUPPORTED_AUTHENTICATION);
 
         return result;
@@ -74,7 +76,7 @@ public class Rc2ApiImpl {
             List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
                 @Override
                 public NamedEntity apply(final String input) {
-                    return new NamedEntity(input, context.getContextPath() + "/rest/rc1/devices/" + input);
+                    return new NamedEntity(input, context.getContextPath() + REST_PREFIX + "/devices/" + input);
                 }
             });
             return transform;
@@ -104,6 +106,12 @@ public class Rc2ApiImpl {
                         @Override
                         public NamedEntity apply(CommandInfo input) {
                             return new NamedEntity(input.cmd_name, href + "/commands/" + input.cmd_name);
+                        }
+                    }),
+                    Collections2.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, NamedEntity>() {
+                        @Override
+                        public NamedEntity apply(String input) {
+                            return new NamedEntity(input, href + "/pipes/" + input);
                         }
                     }),
                     Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_property_list("*")), new Function<String, NamedEntity>() {
@@ -477,7 +485,7 @@ public class Rc2ApiImpl {
     @PUT
     @Path("devices/{domain}/{family}/{member}/commands/{command}")
     public Object deviceCommandPut(@PathParam("command") final String cmdName,
-                                   @QueryParam("input") String value,
+                                   @QueryParam("input") String[] value,
                                    @QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo) throws Exception {
@@ -487,7 +495,7 @@ public class Rc2ApiImpl {
 
         final Object converted;
         if(type == Void.class) converted = null;
-        else converted = ConvertUtils.convert(value, type);
+        else converted = ConvertUtils.convert(value.length == 1 ? value[0]: value, type);
         if (async) {
             DeviceData data = new DeviceData();
 
@@ -513,8 +521,10 @@ public class Rc2ApiImpl {
     @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/properties")
     public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
+        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
+        if(propnames.length == 0) return propnames;
         return Iterables.transform(
-                Arrays.asList(proxy.toDeviceProxy().get_property(proxy.toDeviceProxy().get_property_list("*"))),
+                Arrays.asList(proxy.toDeviceProxy().get_property(propnames)),
                 new Function<DbDatum, Object>() {
                     @Override
                     public Object apply(final DbDatum input) {

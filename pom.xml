@@ -122,7 +122,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>rest-api-client</artifactId>
-            <version>rc2-0.2</version>
+            <version>rc2-0.3</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
