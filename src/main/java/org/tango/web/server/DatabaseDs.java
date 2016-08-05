@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
+import fr.esrf.TangoApi.DeviceProxy;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -71,6 +72,11 @@ public class DatabaseDs {
         return Arrays.asList(result);
     }
 
+    public List<String> getInfo() throws TangoProxyException, NoSuchCommandException {
+        String[] result = proxy.executeCommand("DbInfo");
+        return Arrays.asList(result);
+    }
+
     public String getDbURL(){
         return "tango://" + tangoHost + "/" + proxy.getName();
     }
@@ -81,5 +87,9 @@ public class DatabaseDs {
                 .add("proxy", proxy)
                 .add("tangoHost", tangoHost)
                 .toString();
+    }
+
+    public DeviceProxy toDeviceProxy(){
+        return proxy.toDeviceProxy();
     }
 }

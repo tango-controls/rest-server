@@ -40,6 +40,7 @@ public class TangoRestServer {
 
     public static final String WEBAPP_WAR = "webapp.war";
 
+    public static final String TANGO_DB_NAME = "TANGO_DB_NAME";
     public static final String TANGO_DB = "TANGO_DB";
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
     public static final String TOMCAT_PORT = "TOMCAT_PORT";
@@ -50,6 +51,9 @@ public class TangoRestServer {
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
 
+
+    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = SYS_DATABASE_2)
+    private String tangoDbNameProp;
 
     @DeviceProperty(name = TANGO_DB, defaultValue = SYS_DATABASE_2)
     private String tangoDbProp;
@@ -83,6 +87,8 @@ public class TangoRestServer {
     @StateMachine(endState = DeviceState.RUNNING)
     public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
         logger.trace("Init'ing TangoRestServer device...");
+        tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
+        logger.debug("TANGO_DB_NAME={}", tangoDbNameProp);
         tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
         logger.debug("TANGO_DB={}", tangoDbProp);
         System.setProperty(TANGO_DB, tangoDbProp);
@@ -235,6 +241,10 @@ public class TangoRestServer {
     @AttributeProperties(unit = "millis")
     public void setStaticValueExpirationDelay(long v) {
         ctx.staticDataExpirationDelay = v;
+    }
+
+    public void setTangoDbNameProp(String tangoDbName) {
+        this.tangoDbNameProp = tangoDbName;
     }
 
     public void setTangoDbProp(String tangoDbProp) {

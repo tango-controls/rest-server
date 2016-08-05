@@ -1,10 +1,13 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.DeviceMapper;
 import org.tango.rest.response.Responses;
+import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.DeviceMapper;
+import org.tango.web.server.TangoContext;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -17,28 +20,28 @@ import java.io.IOException;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 04.12.2015
+ * @since 8/5/16
  */
 @Provider
-public class TangoProxyProvider implements ContainerRequestFilter {
+public class TangoDatabaseFromPathProvider implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         UriInfo uriInfo = requestContext.getUriInfo();
         MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
         String host = pathParams.getFirst("host");
         String port = pathParams.getFirst("port");
-        String domain = pathParams.getFirst("domain");
-        String family = pathParams.getFirst("family");
-        String member = pathParams.getFirst("member");
 
+
+        DatabaseDs db = null;
         TangoProxy result = null;
         try{
-            if(host != null && port != null)
-                domain = "tango://" + host + ":" + port + "/" + domain;
-            if(domain != null && family != null && member != null)
-                result = ((DeviceMapper) ResteasyProviderFactory.getContextData(ServletContext.class).getAttribute(DeviceMapper.TANGO_MAPPER)).map(domain, family, member);
+            String tangoDbName = ((TangoContext)ResteasyProviderFactory.getContextData(ServletContext.class).getAttribute(TangoContext.TANGO_CONTEXT)).tangoDbName;
 
-            ResteasyProviderFactory.pushContext(TangoProxy.class, result);
+            if(host != null && port != null)
+                result = TangoProxies.newDeviceProxyWrapper("tango://" + host + ":" + port + "/" + tangoDbName);
+
+            db = new DatabaseDs(result);
+            ResteasyProviderFactory.pushContext(DatabaseDs.class, db);
         } catch (TangoProxyException e){
             requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
         }

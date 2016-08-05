@@ -20,6 +20,7 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.*;
 import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
@@ -46,9 +47,10 @@ import java.util.*;
 @Path("/rc2")
 @Produces("application/json")
 public class Rc2ApiImpl {
-    private static final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
-    private static final String SUPPORTED_AUTHENTICATION = "basic";
+    private final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
 
+    @Context
+    protected UriInfo uriInfo;
 
     public static final String ASYNC = "async";
     public static final String REST_PREFIX = "/rest/rc2";
@@ -58,7 +60,7 @@ public class Rc2ApiImpl {
         Map<String, String> result = new HashMap<>();
 
         result.put("devices", context.getContextPath() + REST_PREFIX + "/devices");
-        result.put("x-auth-method", SUPPORTED_AUTHENTICATION);
+        result.put("x-auth-method", SupportedAuthentication.VALUE);
 
         return result;
     }
@@ -86,13 +88,13 @@ public class Rc2ApiImpl {
     }
 
     @GET
+    @TangoDatabaseBackend
     @StaticValue
     @Path("devices/{domain}/{family}/{member}")
     public Object device(@Context TangoProxy proxy,
-                         @Context UriInfo uriInfo,
+                         @Context DatabaseDs db,
                          @Context final ServletContext context) {
         try {
-            DatabaseDs db = (DatabaseDs) context.getAttribute(DatabaseDs.TANGO_DB);
             final String href = uriInfo.getPath();
             return new Device(proxy.getName(),
                     DeviceInfos.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
@@ -153,7 +155,6 @@ public class Rc2ApiImpl {
     @StaticValue
     @Path("devices/{domain}/{family}/{member}/attributes")
     public Object deviceAttributes(@Context final TangoProxy proxy,
-                                   @Context UriInfo uriInfo,
                                    @Context ServletContext context) throws Exception {
         final String href = uriInfo.getPath();
 

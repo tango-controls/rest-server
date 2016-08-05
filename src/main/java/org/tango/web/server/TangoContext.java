@@ -25,15 +25,19 @@ public class TangoContext {
 
     public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
     public volatile boolean isCacheEnabled;
+    public volatile String tangoDbName;
+    public volatile String tangoHost;
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
+                .add("tangoHost", tangoHost)
                 .add("accessControl", accessControl)
                 .add("tangoProxyKeepAliveDelay", tangoProxyKeepAliveDelay)
                 .add("tangoProxyKeepAliveDelayTimeUnit", tangoProxyKeepAliveDelayTimeUnit)
                 .add("attributeValueExpirationDelay", attributeValueExpirationDelay)
                 .add("staticDataExpirationDelay", staticDataExpirationDelay)
+                .add("tangoDbName", tangoDbName)
                 .add("databaseDs", databaseDs)
                 .add("deviceMapper", deviceMapper)
                 .add("tangoProxyCreationPolicies", tangoProxyCreationPolicies)

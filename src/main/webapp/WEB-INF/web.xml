@@ -19,7 +19,8 @@
         <param-value>
             org.tango.rest.EntryPoint,
             org.tango.rest.mtango.MtangoImpl,
-            org.tango.rest.rc2.Rc2ApiImpl
+            org.tango.rest.rc2.Rc2ApiImpl,
+            org.tango.rest.rc3.Rc3ApiImpl
         </param-value>
     </context-param>
     <context-param>
@@ -31,12 +32,14 @@
             org.tango.web.server.providers.TangoContextProvider,
             org.tango.web.server.providers.TangoProxyProvider,
             org.tango.web.server.providers.TangoDatabaseProvider,
+            org.tango.web.server.providers.TangoDatabaseFromPathProvider,
             org.tango.web.server.resolvers.JacksonConfiguration,
             org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
             org.tango.web.server.providers.AttributeValueCacheProvider,
             org.tango.web.server.providers.StaticValueCacheProvider,
             org.tango.web.server.providers.PartitionProvider,
-            org.tango.web.server.providers.TangoRestFilterProvider
+            org.tango.web.server.providers.TangoRestFilterProvider,
+            org.tango.web.server.providers.CORSProvider
         </param-value>
     </context-param>
 

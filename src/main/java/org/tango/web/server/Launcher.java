@@ -37,8 +37,11 @@ public class Launcher implements ServletContextListener {
             startTangoServer();
 
             TangoContext context = new TangoContext();
+            context.tangoHost = tangoHost;
 
             String tangoDb = System.getProperty(TangoRestServer.TANGO_DB, TangoRestServer.SYS_DATABASE_2);
+            String tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoRestServer.SYS_DATABASE_2);
+            context.tangoDbName = tangoDbName;
 
             TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDb);
             DatabaseDs db = new DatabaseDs(dbProxy);

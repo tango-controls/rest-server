@@ -89,7 +89,7 @@ public class DeviceMapper {
             if (ft == null) {
                 Callable<TangoProxy> callable = new Callable<TangoProxy>() {
                     public TangoProxy call() throws Exception {
-                        String url = DeviceMapper.this.ctx.databaseDs.getDeviceAddress(devname);//TODO db NPE?
+                        String url = devname.startsWith("tango://") ? devname : DeviceMapper.this.ctx.databaseDs.getDeviceAddress(devname);//TODO db NPE?
                         TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(url);
                         TangoProxyCreationPolicy tangoProxyCreationPolicy = ctx.tangoProxyCreationPolicies.get(proxy.getName());
                         if(tangoProxyCreationPolicy != null) tangoProxyCreationPolicy.apply(proxy);

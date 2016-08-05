@@ -20,6 +20,7 @@ import java.util.Map;
 public class EntryPoint {
     private static final List<String> SUPPORTED_VERSIONS = new ArrayList<>(2);
     static {
+        SUPPORTED_VERSIONS.add("rc3");
         SUPPORTED_VERSIONS.add("rc2");
         SUPPORTED_VERSIONS.add("mtango");
     }
