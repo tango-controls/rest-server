@@ -15,10 +15,8 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.util.Base64;
-import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoImageUtils;
@@ -26,9 +24,9 @@ import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.response.Response;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
 import org.tango.rest.response.Responses;
+import org.tango.web.server.providers.TangoProxyProvider;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
@@ -385,8 +383,7 @@ public class MtangoImpl {
     }
 
     private static TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
-        DeviceMapper mapper = (DeviceMapper) ctx.getAttribute(DeviceMapper.TANGO_MAPPER);
-        return mapper.map(domain + "/" + name + "/" + instance);
+        throw new UnsupportedOperationException();
     }
 
     public static class ImageAttributeHelper {

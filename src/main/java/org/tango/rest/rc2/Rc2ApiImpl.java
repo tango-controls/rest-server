@@ -25,11 +25,11 @@ import org.tango.rest.entities.*;
 import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
+import org.tango.web.server.providers.TangoProxyProvider;
 import org.tango.web.server.util.DeviceInfos;
 
 import javax.servlet.ServletContext;
@@ -393,14 +393,7 @@ public class Rc2ApiImpl {
                                        @QueryParam("timeout") long timeout,
                                        @QueryParam("state") EventHelper.State state,
                                        @Context ServletContext context,
-                                       @Context final UriInfo uriInfo) throws InterruptedException, URISyntaxException {
-        TangoProxy proxy = null;
-        try {
-            proxy = ((DeviceMapper) context.getAttribute(DeviceMapper.TANGO_MAPPER)).lookup(domain, family, member, context);
-        } catch (TangoProxyException e) {
-            return Responses.createFailureResult(e);
-        }
-
+                                       @Context TangoProxy proxy) throws InterruptedException, URISyntaxException {
         TangoEvent tangoEvent;
         try {
             tangoEvent = TangoEvent.valueOf(event.toUpperCase());

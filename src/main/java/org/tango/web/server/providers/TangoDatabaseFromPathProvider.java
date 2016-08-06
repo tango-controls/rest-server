@@ -6,7 +6,6 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.TangoContext;
 
 import javax.servlet.ServletContext;

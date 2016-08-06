@@ -1,10 +1,8 @@
 package org.tango.rest;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,8 +14,10 @@ import java.util.Map;
  * @since 27.11.2015
  */
 @Path("/") //relative to rest
+//TODO
+//@ApplicationPath("rest")
 @Produces("application/json")
-public class EntryPoint {
+public class EntryPoint /* extends Application*/ {
     private static final List<String> SUPPORTED_VERSIONS = new ArrayList<>(2);
     static {
         SUPPORTED_VERSIONS.add("rc3");
