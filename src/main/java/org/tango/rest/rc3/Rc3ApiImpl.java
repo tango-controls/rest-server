@@ -103,8 +103,8 @@ public class Rc3ApiImpl extends Rc2ApiImpl {
     }
 
     @Override
-    public Object deviceAttributeEvent(String domain, String family, String member, String attrName, String event, long timeout, EventHelper.State state, @Context ServletContext context, @Context UriInfo uriInfo) throws InterruptedException, URISyntaxException {
-        return super.deviceAttributeEvent(domain, family, member, attrName, event, timeout, state, context, uriInfo);
+    public Object deviceAttributeEvent(String domain, String family, String member, String attrName, String event, long timeout, EventHelper.State state, @Context ServletContext context, @Context TangoProxy proxy) throws InterruptedException, URISyntaxException {
+        return super.deviceAttributeEvent(domain, family, member, attrName, event, timeout, state, context, proxy);
     }
 
     @Override

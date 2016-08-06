@@ -3,7 +3,6 @@ package org.tango;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.Tango.DevSource;
 import fr.esrf.Tango.DevState;
 import fr.esrf.Tango.DevVarLongStringArray;
 import org.apache.catalina.LifecycleException;
@@ -19,7 +18,6 @@ import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
-import org.tango.web.server.TangoProxyCreationPolicy;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -46,16 +44,15 @@ public class TangoRestServer {
     public static final String TOMCAT_PORT = "TOMCAT_PORT";
     public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_CONFIG_CLASS";
 
-    public static final String SYS_DATABASE_2 = "sys/database/2";
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
 
 
-    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = SYS_DATABASE_2)
+    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbNameProp;
 
-    @DeviceProperty(name = TANGO_DB, defaultValue = SYS_DATABASE_2)
+    @DeviceProperty(name = TANGO_DB, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbProp;
 
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = SYS_ACCESS_CONTROL_1)
@@ -179,7 +176,7 @@ public class TangoRestServer {
     @Attribute
     public String[] getAliveProxies() throws Exception {
         List<String> result = Lists.transform(
-                ctx.deviceMapper.proxies(),
+                ctx.proxyPool.proxies(),
                 new Function<TangoProxy, String>() {
                     @Override
                     public String apply(TangoProxy input) {
@@ -192,14 +189,14 @@ public class TangoRestServer {
 
     @Command(inTypeDesc = "deviceName->value")
     public void setProxiesSource(DevVarLongStringArray input) throws Exception {
-        String[] svalue = input.svalue;
-        for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
-            String device = svalue[i];
-            TangoProxy proxy = ctx.deviceMapper.map(device);
-            DevSource new_src = DevSource.from_int(input.lvalue[i]);
-            proxy.toDeviceProxy().set_source(new_src);
-            ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
-        }
+//        String[] svalue = input.svalue;
+//        for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
+//            String device = svalue[i];
+//            TangoProxy proxy = ctx.deviceMapper.map(device);
+//            DevSource new_src = DevSource.from_int(input.lvalue[i]);
+//            proxy.toDeviceProxy().set_source(new_src);
+//            ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
+//        }
     }
 
     @Attribute

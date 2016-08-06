@@ -22,12 +22,11 @@ public class Launcher implements ServletContextListener {
     private final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
     public static final String TANGO_HOST = "TANGO_HOST";
-    public static final String TANGO_LOCALHOST = "localhost:10000";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         String tangoHost = System.getProperty(TANGO_HOST, System.getenv(TANGO_HOST));
-        if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TANGO_LOCALHOST);
+        if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TangoContext.TANGO_LOCALHOST);
         logger.info("TANGO_HOST={}", tangoHost);
 
         logger.info("TANGO_INSTANCE={}", System.getProperty(TangoRestServer.TANGO_INSTANCE,
@@ -39,21 +38,9 @@ public class Launcher implements ServletContextListener {
             TangoContext context = new TangoContext();
             context.tangoHost = tangoHost;
 
-            String tangoDb = System.getProperty(TangoRestServer.TANGO_DB, TangoRestServer.SYS_DATABASE_2);
-            String tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoRestServer.SYS_DATABASE_2);
+            String tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoContext.SYS_DATABASE_2);
             context.tangoDbName = tangoDbName;
 
-            TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDb);
-            DatabaseDs db = new DatabaseDs(dbProxy);
-            context.databaseDs = db;
-
-
-            sce.getServletContext().setAttribute(DatabaseDs.TANGO_DB, db);
-
-            DeviceMapper mapper = new DeviceMapper(context);
-            context.deviceMapper = mapper;
-
-            sce.getServletContext().setAttribute(DeviceMapper.TANGO_MAPPER, mapper);
 
             String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.SYS_ACCESS_CONTROL_1);
 
@@ -61,7 +48,6 @@ public class Launcher implements ServletContextListener {
             AccessControl accessControl = new AccessControl(accessCtlProxy);
 
             sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
-            context.accessControl = accessControl;
 
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
 
@@ -91,7 +77,7 @@ public class Launcher implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        DeviceMapper.scheduler.shutdownNow();
+//        TangoProxyProvider.DeviceMapper.scheduler.shutdownNow();
         logger.info("MTango is destroyed.");
     }
 }
