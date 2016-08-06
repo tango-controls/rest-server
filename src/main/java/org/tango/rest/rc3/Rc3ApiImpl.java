@@ -2,33 +2,33 @@ package org.tango.rest.rc3;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import fr.esrf.Tango.AttributeConfig;
+import com.google.common.collect.Maps;
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.AttributeInfo;
-import fr.esrf.TangoApi.DbAttribute;
-import fr.esrf.TangoApi.PipeBlob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.DevicesResource;
+import org.tango.rest.Device;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
+import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.EventHelper;
-import org.tango.web.server.Launcher;
 import org.tango.web.server.TangoContext;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
-import org.tango.web.server.providers.TangoDatabaseBackend;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import java.net.URISyntaxException;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,16 +40,40 @@ import java.util.Map;
 @Path("/rc3")
 @Produces("application/json")
 public class Rc3ApiImpl extends Rc2ApiImpl {
-    public static String REST_PREFIX = "/rest/rc3";
+    private final Logger logger = LoggerFactory.getLogger(Rc3ApiImpl.class);
 
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     public Map<String, String> authentication(@Context ServletContext context, @Context TangoContext tangoContext) {
         Map<String, String> result = new HashMap<>();
 
-        String tangoHost = tangoContext.tangoHost;
-        result.put(tangoHost, context.getContextPath() + REST_PREFIX + "/" + tangoHost.replace(':', '/'));
+        result.put("hosts", uriInfo.getAbsolutePath() + "/hosts");
         result.put("x-auth-method", SupportedAuthentication.VALUE);
+
+        return result;
+    }
+
+    @GET
+    @Path("/hosts")
+    public Map<String, String> getHosts(@Context TangoContext tangoContext) throws TangoProxyException {
+        Map<String, String> result = Maps.newHashMap();
+
+        for(Map.Entry<String, String> entry : Lists.transform(tangoContext.hostsPool.proxies(), new Function<TangoProxy, Map.Entry<String,String>>() {
+            @Override
+            public Map.Entry<String,String> apply(@Nullable TangoProxy input) {
+                if(input == null) return null;
+                try {
+                    String tango_host = input.toDeviceProxy().get_tango_host();
+                    return new AbstractMap.SimpleEntry<>(tango_host, uriInfo.getAbsolutePath() + "/" + tango_host.replace(':', '/'));
+                } catch (DevFailed devFailed) {
+                    DevFailedUtils.logDevFailed(devFailed, logger);
+                    return null;//TODO skip
+                }
+            }
+        }))
+            result.put(entry.getKey(), entry.getValue());
 
         return result;
     }
@@ -57,9 +81,9 @@ public class Rc3ApiImpl extends Rc2ApiImpl {
     @GET
     @Partitionable
     @StaticValue
-    @Path("/{host}/{port}")
-    public Object database(@Context final DatabaseDs db,
-                           @Context final ServletContext context) throws Exception {
+    @Path("/hosts/{host}/{port}")
+    public Object getHost(@Context final DatabaseDs db,
+                          @Context final ServletContext context) throws Exception {
         final String[] tangoHost = db.toDeviceProxy().get_tango_host().split(":");
         return new Object(){
             public String name = db.toDeviceProxy().get_name();
@@ -70,162 +94,31 @@ public class Rc3ApiImpl extends Rc2ApiImpl {
         };
     }
 
-    @Path("/{host}/{port}/devices")
-    public DevicesResource getDevicesResource() {
-        return new DevicesResource();
-    }
-
     @GET
+    @Path("/hosts/{host}/{port}/devices")
     @StaticValue
-    @Path("/{host}/{port}/devices/{domain}/{family}/{member}")
-    public Object device(@Context TangoProxy proxy, @Context DatabaseDs db, @Context ServletContext context) {
-        return super.device(proxy, db, context);
-    }
-
-    @GET
     @Partitionable
-    @StaticValue
-    @Path("/{host}/{port}/devices/{domain}/{family}/{member}/attributes")
-    public Object deviceAttributes(@Context TangoProxy proxy, @Context ServletContext context) throws Exception {
-        return super.deviceAttributes(proxy, context);
+    public Object get(@QueryParam("wildcard") String wildcard,
+                      @Context DatabaseDs db,
+                      @Context final ServletContext context){
+        try {
+            List<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
+            List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
+                @Override
+                public NamedEntity apply(final String input) {
+                    return new NamedEntity(input, uriInfo.getAbsolutePath() + "/" + input);
+                }
+            });
+            return transform;
+        } catch (NoSuchCommandException | TangoProxyException e) {
+            return Responses.createFailureResult(e);
+        }
+    }
+
+    @Path("/hosts/{host}/{port}/devices/{domain}/{family}/{member}")
+    public Device getDevice(){
+        return new Device();
     }
 
 
-    @GET
-    @StaticValue
-    @Path("/{host}/{port}/devices/{domain}/{family}/{member}/attributes/{attr}")
-    public Object deviceAttribute(@PathParam("attr") String attrName, @Context UriInfo uriInfo, @Context TangoProxy proxy, @Context ServletContext context) throws Exception {
-        return super.deviceAttribute(attrName, uriInfo, proxy, context);
-    }
-
-    @Override
-    public Object deviceAttributeEvent(String domain, String family, String member, String attrName, String event, long timeout, EventHelper.State state, @Context ServletContext context, @Context TangoProxy proxy) throws InterruptedException, URISyntaxException {
-        return super.deviceAttributeEvent(domain, family, member, attrName, event, timeout, state, context, proxy);
-    }
-
-    @Override
-    public Object deviceAttributeHistory(String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributeHistory(attrName, proxy);
-    }
-
-    @Override
-    public Object deviceAttributeHistory(String attrName, @Context UriInfo uriInfo, @Context TangoProxy proxy, @Context ServletContext context) throws Exception {
-        return super.deviceAttributeHistory(attrName, uriInfo, proxy, context);
-    }
-
-    @Override
-    public AttributeInfo deviceAttributeInfo(String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributeInfo(attrName, proxy);
-    }
-
-    @Override
-    public AttributeInfo deviceAttributeInfoPut(String attrName, boolean async, @Context TangoProxy proxy, AttributeConfig config) throws DevFailed {
-        return super.deviceAttributeInfoPut(attrName, async, proxy, config);
-    }
-
-    @Override
-    public DbAttribute deviceAttributeProperties(String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributeProperties(attrName, proxy);
-    }
-
-    @Override
-    public void deviceAttributePropertyDelete(String attrName, String propName, @Context TangoProxy proxy) throws DevFailed {
-        super.deviceAttributePropertyDelete(attrName, propName, proxy);
-    }
-
-    @Override
-    public DbAttribute deviceAttributePropertyPut(String attrName, String propName, String propValue, boolean async, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributePropertyPut(attrName, propName, propValue, async, proxy);
-    }
-
-
-    @Override
-    public Object deviceAttributesPut(@Context TangoProxy proxy, @Context UriInfo uriInfo, @Context ServletContext context, @Context HttpServletRequest request) throws DevFailed {
-        return super.deviceAttributesPut(proxy, uriInfo, context, request);
-    }
-
-    @Override
-    public Object deviceAttributeValueGet(String attrName, @Context TangoProxy proxy) throws Exception {
-        return super.deviceAttributeValueGet(attrName, proxy);
-    }
-
-    @Override
-    public Object deviceAttributeValuePut(String attrName, String value, boolean async, @Context TangoProxy proxy) throws Exception {
-        return super.deviceAttributeValuePut(attrName, value, async, proxy);
-    }
-
-    @Override
-    public Object deviceCommand(String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommand(cmdName, proxy, uriInfo);
-    }
-
-    @Override
-    public Object deviceCommandHistory(String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommandHistory(cmdName, proxy, uriInfo);
-    }
-
-    @Override
-    public Object deviceCommandPut(String cmdName, String[] value, boolean async, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws Exception {
-        return super.deviceCommandPut(cmdName, value, async, proxy, uriInfo);
-    }
-
-    @Override
-    public Object deviceCommands(@Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommands(proxy, uriInfo);
-    }
-
-    @Override
-    public Object devicePipeGet(String pipeName, @Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePipeGet(pipeName, uriInfo, proxy);
-    }
-
-    @Override
-    public Object devicePipePut(String pipeName, boolean async, @Context UriInfo info, @Context TangoProxy proxy, PipeBlob blob) throws DevFailed {
-        return super.devicePipePut(pipeName, async, info, proxy, blob);
-    }
-
-    @Override
-    public Object devicePipes(@Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePipes(uriInfo, proxy);
-    }
-
-    @Override
-    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
-        return super.deviceProperties(proxy);
-    }
-
-    @Override
-    public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertiesPost(request, proxy);
-    }
-
-    @Override
-    public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertiesPut(request, proxy);
-    }
-
-    @Override
-    public Object deviceProperty(String propName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceProperty(propName, proxy);
-    }
-
-    @Override
-    public void devicePropertyDelete(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        super.devicePropertyDelete(propName, request, proxy);
-    }
-
-    @Override
-    public Object devicePropertyPost(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertyPost(propName, request, proxy);
-    }
-
-    @Override
-    public Object devicePropertyPut(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertyPut(propName, request, proxy);
-    }
-
-    @Override
-    public Object deviceState(@Context TangoProxy proxy, @Context ServletContext context) {
-        return super.deviceState(proxy, context);
-    }
 }
