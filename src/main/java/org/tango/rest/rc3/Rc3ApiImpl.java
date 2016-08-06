@@ -10,6 +10,7 @@ import fr.esrf.TangoApi.PipeBlob;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.rest.DevicesResource;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.rc2.Rc2ApiImpl;
@@ -69,14 +70,9 @@ public class Rc3ApiImpl extends Rc2ApiImpl {
         };
     }
 
-    @GET
-    @Partitionable
-    @StaticValue
     @Path("/{host}/{port}/devices")
-    public Object devices(@QueryParam("wildcard") String wildcard,
-                          @Context DatabaseDs db,
-                          @Context final ServletContext context) {
-        return super.devices(wildcard, db, context);
+    public DevicesResource getDevicesResource() {
+        return new DevicesResource();
     }
 
     @GET

@@ -3,9 +3,11 @@ package org.tango.web.server.providers;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.response.Responses;
+import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,6 +34,8 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        TangoContext tangoContext = (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
+
         UriInfo uriInfo = requestContext.getUriInfo();
         MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
         String host = pathParams.getFirst("host");
@@ -40,25 +44,19 @@ public class TangoProxyProvider implements ContainerRequestFilter {
         String family = pathParams.getFirst("family");
         String member = pathParams.getFirst("member");
 
+        if(host == null || port == null || domain == null || family == null || member == null)
+            return;
+
         TangoProxy result = null;
-        try{
-            if(host != null && port != null)
-                domain = "tango://" + host + ":" + port + "/" + domain;
-            if(domain != null && family != null && member != null)
-                result = map(domain, family, member);
+        DatabaseDs db = null;
+        try {
+            db = new DatabaseDs(tangoContext.hostsPool.getProxy("tango://" + host + ":" + port + "/" + tangoContext.tangoDbName));
+
+            result = tangoContext.proxyPool.getProxy(db.getDeviceAddress(domain + "/" + family + "/" + member));
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
-        } catch (TangoProxyException e){
+        } catch (TangoProxyException | NoSuchCommandException e) {
             requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
         }
-    }
-
-    private TangoProxy map(String devname) throws TangoProxyException {
-        TangoProxy proxy = ((TangoContext)servletContext.getAttribute(TangoContext.TANGO_CONTEXT)).proxyPool.getProxy(devname);
-        return proxy;
-    }
-
-    private TangoProxy map(String domain, String family, String member) throws TangoProxyException {
-        return map(domain + "/" + family + "/" + member);
     }
 }

@@ -20,6 +20,13 @@ import java.util.concurrent.*;
 public class TangoContext {
     public static final String TANGO_CONTEXT = "org.tango.rest.server.context";
 
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactoryBuilder()
+                    .setNameFormat("tango-proxies-pool-manager for TangoContext@" + this.hashCode())
+                    .setDaemon(true)
+                    .build());
+
     public static final int INITIAL_POOL_CAPACITY = 100;
     public static final long DELAY = 30L;
     public static final String SYS_DATABASE_2 = "sys/database/2";
@@ -34,6 +41,8 @@ public class TangoContext {
     public volatile boolean isCacheEnabled = false;
     public volatile String tangoDbName = SYS_DATABASE_2;
     public volatile String tangoHost = TANGO_LOCALHOST;
+
+    public final TangoProxyPool hostsPool = new TangoProxyPool();
 
     public final TangoProxyPool proxyPool = new TangoProxyPool();
 
@@ -53,11 +62,6 @@ public class TangoContext {
                 .toString();
     }
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
-            new ThreadFactoryBuilder()
-                    .setNameFormat("tango-proxies-pool-manager for TangoContext@" + this.hashCode())
-                    .setDaemon(true)
-                    .build());
 
     /**
      * @author ingvord
