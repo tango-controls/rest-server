@@ -20,6 +20,7 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.DeviceHelper;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.*;
 import org.tango.rest.response.Response;
@@ -28,8 +29,6 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.EventHelper;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
-import org.tango.web.server.providers.TangoDatabaseBackend;
-import org.tango.web.server.providers.TangoProxyProvider;
 import org.tango.web.server.util.DeviceInfos;
 
 import javax.servlet.ServletContext;
@@ -68,7 +67,6 @@ public class Rc2ApiImpl {
     @GET
     @Partitionable
     @StaticValue
-    @TangoDatabaseBackend
     @Path("devices")
     public Object devices(@QueryParam("wildcard") String wildcard,
                           @Context DatabaseDs db,
@@ -88,7 +86,6 @@ public class Rc2ApiImpl {
     }
 
     @GET
-    @TangoDatabaseBackend
     @StaticValue
     @Path("devices/{domain}/{family}/{member}")
     public Object device(@Context TangoProxy proxy,
@@ -162,7 +159,7 @@ public class Rc2ApiImpl {
                 Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
                     @Override
                     public Object apply(final AttributeInfoEx input) {
-                        return attributeInfoExToResponse(input.name, href);
+                        return DeviceHelper.attributeInfoExToResponse(input.name, href);
                     }
                 });
     }
@@ -176,7 +173,7 @@ public class Rc2ApiImpl {
                                   @Context ServletContext context) throws Exception {
         final String href = uriInfo.getPath();
 
-        return attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName).name, href);
+        return DeviceHelper.attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName).name, href);
     }
 
     @GET
@@ -203,20 +200,6 @@ public class Rc2ApiImpl {
                 }
             }
         });
-    }
-
-    private static Object attributeInfoExToResponse(final String attrName, final String href) {
-        return new Object() {
-            public String name = attrName;
-            public String value = href + "/value";
-            public String info = href + "/info";
-            public String properties = href + "/properties";
-            public String history = href + "/history";
-            public Object _links = new Object() {
-                public String _parent = href;
-                //TODO use LinksProvider
-            };
-        };
     }
 
     @GET

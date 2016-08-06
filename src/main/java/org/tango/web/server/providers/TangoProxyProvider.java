@@ -1,7 +1,5 @@
 package org.tango.web.server.providers;
 
-import com.google.common.base.Objects;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -10,7 +8,6 @@ import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
 
-import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -20,8 +17,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.*;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -50,7 +45,7 @@ public class TangoProxyProvider implements ContainerRequestFilter {
         TangoProxy result = null;
         DatabaseDs db = null;
         try {
-            db = new DatabaseDs(tangoContext.hostsPool.getProxy("tango://" + host + ":" + port + "/" + tangoContext.tangoDbName));
+            db = new DatabaseDs(tangoContext.getHostProxy(host, port));
 
             result = tangoContext.proxyPool.getProxy(db.getDeviceAddress(domain + "/" + family + "/" + member));
 

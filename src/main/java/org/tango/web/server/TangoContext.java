@@ -2,10 +2,11 @@ package org.tango.web.server;
 
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.providers.TangoProxyProvider;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.concurrent.*;
  * @since 14.12.2015
  */
 public class TangoContext {
+    private final Logger logger = LoggerFactory.getLogger(TangoContext.class);
+
     public static final String TANGO_CONTEXT = "org.tango.rest.server.context";
 
 
@@ -62,6 +65,10 @@ public class TangoContext {
                 .toString();
     }
 
+
+    public TangoProxy getHostProxy(String host, String port) throws TangoProxyException {
+        return hostsPool.getProxy("tango://" + host + ":" + port + "/" + tangoDbName);
+    }
 
     /**
      * @author ingvord
@@ -118,7 +125,9 @@ public class TangoContext {
                 timestamps.put(devname, System.currentTimeMillis());
                 return ft.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new TangoProxyException("Can not get proxy for " + devname, e);
+                cache.remove(devname);
+                logger.error("Failed to get proxy for " + devname, e);
+                throw new TangoProxyException("Failed to get proxy for " + devname, e.getCause());
             }
         }
 
