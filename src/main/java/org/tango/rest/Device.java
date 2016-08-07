@@ -39,45 +39,17 @@ import java.util.Arrays;
 @Path("/{domain}/{family}/{member}")
 @Produces("application/json")
 public class Device extends Rc2ApiImpl {
-    @Context
-    private UriInfo uriInfo;
-
     @GET
     @StaticValue
-    public Object device(@Context TangoProxy proxy,
+    public Object device(@PathParam("domain") String domain,
+                         @PathParam("family") String family,
+                         @PathParam("member") String member,
                          @Context DatabaseDs db,
-                         @Context UriInfo uriInfo,
-                         @Context final ServletContext context){
+                         @Context UriInfo uriInfo){
         try {
             final String href = uriInfo.getAbsolutePath().toString();
-            return new org.tango.rest.entities.Device(proxy.getName(),
-                    DeviceInfos.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(AttributeInfoEx input) {
-                            return new NamedEntity(input.name, href + "/attributes/" + input.name);
-                        }
-                    }),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(CommandInfo input) {
-                            return new NamedEntity(input.cmd_name, href + "/commands/" + input.cmd_name);
-                        }
-                    }),
-                    Collections2.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(String input) {
-                            return new NamedEntity(input, href + "/pipes/" + input);
-                        }
-                    }),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_property_list("*")), new Function<String, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(String input) {
-                            return new NamedEntity(input, href + "/properties/" + input);
-                        }
-                    }), href);
-        } catch (DevFailed devFailed) {
-            return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
+            final String devname = domain + "/" + family + "/" + member;
+            return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), href);
         } catch (NoSuchCommandException | TangoProxyException e) {
             return Responses.createFailureResult(e);
         }
@@ -87,7 +59,7 @@ public class Device extends Rc2ApiImpl {
     @Partitionable
     @StaticValue
     @Path("/attributes")
-    public Object deviceAttributes(@Context TangoProxy proxy, @Context ServletContext context) throws Exception {
+    public Object deviceAttributes(@Context TangoProxy proxy, @Context ServletContext context, @Context UriInfo uriInfo) throws Exception {
         final String href = uriInfo.getAbsolutePath().toString();
 
         return Lists.transform(
@@ -99,112 +71,19 @@ public class Device extends Rc2ApiImpl {
                 });
     }
 
-
-    @GET
-    @StaticValue
-    @Path("/attributes/{attr}")
-    public Object deviceAttribute(@PathParam("attr") String attrName, @Context UriInfo uriInfo, @Context TangoProxy proxy, @Context ServletContext context) throws Exception {
-        final String href = uriInfo.getAbsolutePath().toString();
-
-        return DeviceHelper.attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName).name, href);
-    }
-
-    @GET
-    @Path("/attributes/{attr}/{event}")
-    public Object deviceAttributeEvent(@PathParam("domain") String domain,
-                                       @PathParam("family") String family,
-                                       @PathParam("member") String member,
-                                       @PathParam("attr") final String attrName,
-                                       @PathParam("event") String event,
-                                       @QueryParam("timeout") long timeout,
-                                       @QueryParam("state") EventHelper.State state,
-                                       @Context ServletContext context,
-                                       @Context TangoProxy proxy) throws InterruptedException, URISyntaxException {
-        TangoEvent tangoEvent;
-        try {
-            tangoEvent = TangoEvent.valueOf(event.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return Responses.createFailureResult("Unsupported event: " + event);
-        }
-        try {
-            final Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
-            return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getPath(), "TODO");
-        } catch (NoSuchAttributeException | TangoProxyException e) {
-            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
-        }
-    }
-
-    @GET
-    @Path("/attributes/{attr}/history")
-    public Object deviceAttributeHistory(@PathParam("attr") final String attrName,
-                                         @Context TangoProxy proxy,
-                                         @Context ServletContext context) throws DevFailed {
-        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(attrName)), new Function<DeviceDataHistory, Object>() {
-            @Override
-            public Object apply(DeviceDataHistory input) {
-                if (!input.hasFailed()) {
-                    try {
-                        TangoDataWrapper wrapper = TangoDataWrapper.create(input);
-
-                        TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
-
-                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), "VALID", input.getTime(), null, null);
-                    } catch (UnknownTangoDataType | DevFailed |ValueExtractionException e) {
-                        return Responses.createFailureResult(e);
-                    }
-                } else {
-                    return Responses.createFailureResult(new DevFailed(input.getErrStack()));
-                }
-            }
-        });
-    }
-
-    @GET
-    @StaticValue
-    @Path("/attributes/{attr}/info")
-    public AttributeInfo deviceAttributeInfo(@PathParam("attr") String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_info(attrName);
-    }
-
     @PUT
-    @Consumes("application/json")
-    @Path("/attributes/{attr}/info")
-    public AttributeInfo deviceAttributeInfoPut(@PathParam("attr")  String attrName, @QueryParam(ASYNC) boolean async, @Context TangoProxy proxy, AttributeConfig config) throws DevFailed {
-        proxy.toDeviceProxy().set_attribute_info(new AttributeInfo[]{new AttributeInfo(config)});
-        if (async) return null;
-        return proxy.toDeviceProxy().get_attribute_info(attrName);
-    }
-
-    @Override
-    public DbAttribute deviceAttributeProperties(@PathParam("attr")  String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributeProperties(attrName, proxy);
-    }
-
-    @Override
-    public void deviceAttributePropertyDelete(@PathParam("attr")  String attrName, String propName, @Context TangoProxy proxy) throws DevFailed {
-        super.deviceAttributePropertyDelete(attrName, propName, proxy);
-    }
-
-    @Override
-    public DbAttribute deviceAttributePropertyPut(@PathParam("attr")  String attrName, String propName, String propValue, boolean async, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceAttributePropertyPut(attrName, propName, propValue, async, proxy);
-    }
-
-
-    @Override
-    public Object deviceAttributesPut(@Context TangoProxy proxy, @Context UriInfo uriInfo, @Context ServletContext context, @Context HttpServletRequest request) throws DevFailed {
+    @Path("/attributes")
+    public Object deviceAttributesPut(@QueryParam("attr") String[] attr, @Context TangoProxy proxy, @Context UriInfo uriInfo, @Context ServletContext context, @Context HttpServletRequest request) throws DevFailed {
         return super.deviceAttributesPut(proxy, uriInfo, context, request);
     }
 
-    @Override
-    public Object deviceAttributeValueGet(@PathParam("attr")  String attrName, @Context TangoProxy proxy) throws Exception {
-        return super.deviceAttributeValueGet(attrName, proxy);
+    @Path("/attributes/{attr}")
+    public DeviceAttribute deviceAttribute() throws Exception {
+        return new DeviceAttribute();
     }
 
-    @Override
-    public Object deviceAttributeValuePut(@PathParam("attr") String attrName, @QueryParam(ASYNC) String value, boolean async, @Context TangoProxy proxy) throws Exception {
-        return super.deviceAttributeValuePut(attrName, value, async, proxy);
-    }
+
+
 
     @Override
     public Object deviceCommand(String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {

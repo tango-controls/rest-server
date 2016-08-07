@@ -426,23 +426,28 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             try {
                 jgen.writeStartObject();
 
-                serializeAttributeInfo(value, jgen, provider);
+                for(Field fld : AttributeInfo.class.getDeclaredFields()){
+                    String fldName = fld.getName();
+                    jgen.writeFieldName(fldName);
+                    if(fldName.equals("data_type"))
+                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+                    else
+                        provider.defaultSerializeValue(fld.get(value), jgen);
+                }
+
+                for(Field fld : AttributeInfoEx.class.getDeclaredFields()){
+                    String fldName = fld.getName();
+                    jgen.writeFieldName(fldName);
+                    if(fldName.equals("data_type"))
+                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+                    else
+                        provider.defaultSerializeValue(fld.get(value), jgen);
+                }
 
                 jgen.writeEndObject();
             } catch (IllegalAccessException e) {
                 throw new JsonGenerationException(e);
             }
-        }
-    }
-
-    private static void serializeAttributeInfo(Object value, JsonGenerator jgen, SerializerProvider provider) throws IOException, IllegalAccessException {
-        for(Field fld : value.getClass().getFields()){
-            String fldName = fld.getName();
-            jgen.writeFieldName(fldName);
-            if(fldName.equals("data_type"))
-                jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
-            else
-                provider.defaultSerializeValue(fld.get(value), jgen);
         }
     }
 }

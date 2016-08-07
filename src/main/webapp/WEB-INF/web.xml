@@ -18,8 +18,7 @@
         <param-name>resteasy.resources</param-name>
         <param-value>
             org.tango.rest.EntryPoint,
-            org.tango.rest.rc3.Rc3ApiImpl,
-            org.tango.rest.Device
+            org.tango.rest.rc3.Rc3ApiImpl
         </param-value>
     </context-param>
     <context-param>
