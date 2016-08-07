@@ -1,9 +1,6 @@
 package org.tango.web.server;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import org.javatuples.Triplet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.response.Response;
@@ -25,8 +22,6 @@ public class EventHelper {
     //TODO parameters
     private static final long MAX_AWAIT = 30000L;
     private static final long DELTA = 256L;
-
-    private static final Logger log = LoggerFactory.getLogger(EventHelper.class);
 
     public static Response<?> handleEvent(String member, long timeout, State state, TangoProxy proxy,
                                      TangoEvent event) throws TangoProxyException, InterruptedException, NoSuchAttributeException {
@@ -122,13 +117,11 @@ public class EventHelper {
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
-                log.debug(proxy.getName() +"/" + attribute + "." + evt +" onEvent!");
                 EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), Quality.VALID.name()));
             }
 
             @Override
             public void onError(Exception cause) {
-                log.debug(proxy.getName() +"/" + attribute + "." + evt +" onError!");
                 EventHelper.this.set(Responses.createFailureResult(cause));
             }
         };

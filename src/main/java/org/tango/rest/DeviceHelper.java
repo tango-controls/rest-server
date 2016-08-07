@@ -36,7 +36,7 @@ public class DeviceHelper {
     public static Object commandInfoToResponse(final CommandInfo input, final String href) {
         return new Object() {
             public String name = input.cmd_name;
-            public Object info = input;
+            public CommandInfo info = input;
             public String history = href + "history";
             public Object _links = new Object() {
                 public String _self = href + name;
