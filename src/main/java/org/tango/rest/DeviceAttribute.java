@@ -2,7 +2,6 @@ package org.tango.rest;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.AttributeConfig_5;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.*;
@@ -21,7 +20,6 @@ import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -36,6 +34,13 @@ import java.util.Iterator;
 @Path("/attributes/{attr}")
 @Produces("application/json")
 public class DeviceAttribute {
+    private final String name;
+    private final TangoProxy proxy;
+
+    public DeviceAttribute(String name, TangoProxy proxy) {
+        this.name = name;
+        this.proxy = proxy;
+    }
 
     @GET
     @StaticValue

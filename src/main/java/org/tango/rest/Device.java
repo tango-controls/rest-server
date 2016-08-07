@@ -8,7 +8,6 @@ import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
-import fr.esrf.TangoApi.PipeBlob;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -37,7 +36,7 @@ import java.util.Map;
 public class Device extends Rc2ApiImpl {
     @GET
     @StaticValue
-    public Object device(@PathParam("domain") String domain,
+    public Object get(@PathParam("domain") String domain,
                          @PathParam("family") String family,
                          @PathParam("member") String member,
                          @Context DatabaseDs db,
@@ -74,8 +73,8 @@ public class Device extends Rc2ApiImpl {
     }
 
     @Path("/attributes/{attr}")
-    public DeviceAttribute deviceAttribute() throws Exception {
-        return new DeviceAttribute();
+    public DeviceAttribute deviceAttribute(@PathParam("attr") String attrName, @Context TangoProxy proxy) throws Exception {
+        return new DeviceAttribute(attrName, proxy);
     }
 
     @GET
@@ -115,8 +114,8 @@ public class Device extends Rc2ApiImpl {
 
 
     @Path("/commands/{cmd}")
-    public DeviceCommand deviceCommand() {
-        return new DeviceCommand();
+    public DeviceCommand deviceCommand(@PathParam("cmd") String cmdName, @Context TangoProxy proxy) {
+        return new DeviceCommand(proxy, cmdName);
     }
 
     @GET
@@ -169,18 +168,30 @@ public class Device extends Rc2ApiImpl {
         return new DeviceProperty(propName);
     }
 
-    @Override
-    public Object devicePipeGet(String pipeName, @Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePipeGet(pipeName, uriInfo, proxy);
-    }
-
-    @Override
-    public Object devicePipePut(String pipeName, boolean async, @Context UriInfo info, @Context TangoProxy proxy, PipeBlob blob) throws DevFailed {
-        return super.devicePipePut(pipeName, async, info, proxy, blob);
-    }
-
-    @Override
+    @GET
+    @Partitionable
+    @StaticValue
+    @Path("/pipes")
     public Object devicePipes(@Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePipes(uriInfo, proxy);
+        final String href = uriInfo.getAbsolutePath().toString();
+        return Lists.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
+            @Override
+            public Object apply(final String input) {
+                return new Object() {
+                    public String name = input;
+                    public String value = href + name + "/value";
+                    public Object _links = new Object() {
+                        public String _self = href + name;
+                    };
+                };
+            }
+
+
+        });
+    }
+
+    @Path("/pipes/{pipe}")
+    public DevicePipe getPipe(@PathParam("pipe") String name, @Context TangoProxy proxy){
+        return new DevicePipe(proxy, name);
     }
 }
