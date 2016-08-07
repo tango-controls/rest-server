@@ -60,6 +60,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
         tangoModule.addSerializer(new DeviceAttributeSerializer(DeviceAttribute.class));
+        tangoModule.addSerializer(new ErrSeveritySerializer(ErrSeverity.class));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
         tangoModule.addSerializer(new AttrDataFormatSerializer(AttrDataFormat.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
@@ -463,28 +464,25 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                 TangoDataType<?> dataType = TangoDataTypes.forTangoDevDataType(value.getType());
                 jgen.writeStringField("name", value.getName());
 
-                jgen.writeFieldName("value");
-                if(!value.hasFailed())
+
+                if(!value.hasFailed()) {
+                    jgen.writeFieldName("value");
                     provider.defaultSerializeValue(dataType.extract(TangoDataWrapper.create(value)), jgen);
-                else
-                    jgen.writeNull();
-
-                AttrQuality quality;
-                try {
-                    quality = value.getQuality();
-                } catch (WrongData wrongData) {
-                    quality = AttrQuality.ATTR_INVALID;
+                    jgen.writeStringField("quality", value.getQuality().toString());
+                    jgen.writeFieldName("timestamp");
+                    jgen.writeNumber(value.getTime());
                 }
-                jgen.writeStringField("quality", quality.toString());
-                jgen.writeFieldName("timestamp");
-                long time = 0;
-                try {
-                    time = value.getTime();
-                } catch (WrongData devFailed) {
-                    time = System.currentTimeMillis();
-                }
-                jgen.writeNumber(time);
+                else {
+                    jgen.writeArrayFieldStart("errors");
+                    for(DevError error : value.getErrStack()){
+                        provider.defaultSerializeValue(error, jgen);
+                    }
+                    jgen.writeEndArray();
 
+                    jgen.writeStringField("quality", "FAILURE");
+                    jgen.writeFieldName("timestamp");
+                    jgen.writeNumber(System.currentTimeMillis());
+                }
 
                 jgen.writeEndObject();
             } catch (ValueExtractionException | UnknownTangoDataType e) {
@@ -492,6 +490,17 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             } catch (DevFailed devFailed) {
                 throw new JsonGenerationException(TangoUtils.convertDevFailedToException(devFailed));
             }
+        }
+    }
+
+    private static class ErrSeveritySerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<ErrSeverity> {
+        public ErrSeveritySerializer(Class<ErrSeverity> type) {
+            super(type);
+        }
+
+        @Override
+        public void serialize(ErrSeverity value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            jgen.writeString(value.toString());
         }
     }
 
