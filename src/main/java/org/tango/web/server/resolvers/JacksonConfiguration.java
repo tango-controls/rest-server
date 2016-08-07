@@ -22,10 +22,8 @@ import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.codehaus.jackson.type.JavaType;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.TangoDataTypes;
-import org.tango.client.ez.data.type.TangoImage;
-import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.client.ez.data.TangoDataWrapper;
+import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.providers.TangoRestFilterProvider;
@@ -61,6 +59,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         ObjectMapper objectMapper = new ObjectMapper();
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
+        tangoModule.addSerializer(new DeviceAttributeSerializer(DeviceAttribute.class));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
         tangoModule.addSerializer(new AttrDataFormatSerializer(AttrDataFormat.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
@@ -447,6 +446,51 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                 jgen.writeEndObject();
             } catch (IllegalAccessException e) {
                 throw new JsonGenerationException(e);
+            }
+        }
+    }
+
+    private static class DeviceAttributeSerializer  extends org.codehaus.jackson.map.ser.std.SerializerBase<DeviceAttribute> {
+        public DeviceAttributeSerializer(Class<DeviceAttribute> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(DeviceAttribute value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            try {
+                jgen.writeStartObject();
+
+                TangoDataType<?> dataType = TangoDataTypes.forTangoDevDataType(value.getType());
+                jgen.writeStringField("name", value.getName());
+
+                jgen.writeFieldName("value");
+                if(!value.hasFailed())
+                    provider.defaultSerializeValue(dataType.extract(TangoDataWrapper.create(value)), jgen);
+                else
+                    jgen.writeNull();
+
+                AttrQuality quality;
+                try {
+                    quality = value.getQuality();
+                } catch (WrongData wrongData) {
+                    quality = AttrQuality.ATTR_INVALID;
+                }
+                jgen.writeStringField("quality", quality.toString());
+                jgen.writeFieldName("timestamp");
+                long time = 0;
+                try {
+                    time = value.getTime();
+                } catch (WrongData devFailed) {
+                    time = System.currentTimeMillis();
+                }
+                jgen.writeNumber(time);
+
+
+                jgen.writeEndObject();
+            } catch (ValueExtractionException | UnknownTangoDataType e) {
+                throw new JsonGenerationException(e);
+            } catch (DevFailed devFailed) {
+                throw new JsonGenerationException(TangoUtils.convertDevFailedToException(devFailed));
             }
         }
     }

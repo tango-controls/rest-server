@@ -15,6 +15,7 @@ import org.tango.rest.entities.DeviceState;
 import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.providers.AttributeValue;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 
@@ -25,6 +26,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +66,17 @@ public class Device extends Rc2ApiImpl {
                         return DeviceHelper.attributeInfoExToResponse(input.name, href);
                     }
                 });
+    }
+
+    @GET
+    @Partitionable
+    @AttributeValue
+    @Path("/attributes/value")
+    public List<fr.esrf.TangoApi.DeviceAttribute> deviceAttributeValues(@QueryParam("attr") String[] attrs,
+                                        @Context TangoProxy proxy,
+                                        @Context ServletContext context,
+                                        @Context UriInfo uriInfo) throws Exception {
+        return Arrays.asList(proxy.toDeviceProxy().read_attribute(attrs));
     }
 
     @PUT
