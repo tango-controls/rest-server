@@ -119,6 +119,4 @@ public class Rc3ApiImpl extends Rc2ApiImpl {
     public Device getDevice(){
         return new Device();
     }
-
-
 }

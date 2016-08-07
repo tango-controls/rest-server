@@ -7,10 +7,11 @@ import fr.esrf.TangoApi.DeviceData;
 import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.type.*;
-import org.tango.client.ez.proxy.NoSuchCommandException;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.entities.CommandResult;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.Partitionable;
@@ -27,6 +28,14 @@ import java.util.Arrays;
 @Path("/commands/{cmd}")
 @Produces("application/json")
 public class DeviceCommand {
+    private final String name;
+    private final TangoProxy proxy;
+
+
+    public DeviceCommand(TangoProxy proxy, String name) {
+        this.name = name;
+        this.proxy = proxy;
+    }
 
     @GET
     public Object get(@PathParam("cmd") String cmdName,
@@ -40,13 +49,14 @@ public class DeviceCommand {
                                    @QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo,
-                                   String value) throws DevFailed, Exception {
+                                   String value) throws Exception {
         final String href = uriInfo.getAbsolutePath().toString();
 
         Class<?> type = proxy.getCommandInfo(cmdName).getArginType();
 
         final Object converted;
         if (type == Void.class) converted = null;
+        //TODO convert DevVarDoubleStringArr etc
         else converted = ConvertUtils.convert(value, type);
         if (async) {
             DeviceData data = new DeviceData();
