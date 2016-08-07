@@ -13,7 +13,6 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.entities.AttributeValue;
-import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.EventHelper;
 import org.tango.web.server.providers.Partitionable;
@@ -65,8 +64,7 @@ public class DeviceAttribute {
             return Responses.createFailureResult("Unsupported event: " + event);
         }
         try {
-            final Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
-            return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getAbsolutePath().toString(), uriInfo.getAbsolutePath().resolve("../..").toString());
+            return EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
         } catch (NoSuchAttributeException | TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getAbsolutePath(), e);
         }
@@ -169,7 +167,6 @@ public class DeviceAttribute {
             public Object value = result.getValue();
             public String quality = result.getQuality().name();
             public long timestamp = result.getTime();
-            public Object _links;
         };
     }
 
