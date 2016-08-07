@@ -1,7 +1,6 @@
 package org.tango.rest.rc2;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttributeConfig;
@@ -19,7 +18,6 @@ import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
-import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.DeviceHelper;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.*;
@@ -379,7 +377,7 @@ public class Rc2ApiImpl {
         return Lists.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
             @Override
             public Object apply(final CommandInfo input) {
-                return commandInfoToResponse(input, href);
+                return DeviceHelper.commandInfoToResponse(input, href);
             }
         });
     }
@@ -390,7 +388,7 @@ public class Rc2ApiImpl {
     public Object deviceCommand(@PathParam("command") String cmdName,
                                 @Context TangoProxy proxy,
                                 @Context UriInfo uriInfo) throws DevFailed {
-        return commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getPath());
+        return DeviceHelper.commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getPath());
     }
 
     @GET
@@ -424,17 +422,6 @@ public class Rc2ApiImpl {
                 }
             }
         });
-    }
-
-    private static Object commandInfoToResponse(final CommandInfo input, final String href) {
-        return new Object() {
-            public String name = input.cmd_name;
-            public Object info = input;
-            public String history = href + "/history";
-            public Object _links = new Object() {
-                public String _self = href + "/" + name;
-            };
-        };
     }
 
     @PUT
