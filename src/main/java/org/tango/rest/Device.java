@@ -5,6 +5,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.*;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
@@ -14,6 +15,7 @@ import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.AttributeValue;
+import org.tango.rest.entities.DeviceState;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Response;
@@ -82,7 +84,25 @@ public class Device extends Rc2ApiImpl {
         return new DeviceAttribute();
     }
 
+    @GET
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/state")
+    public Object deviceState(@Context TangoProxy proxy, @Context ServletContext context, @Context UriInfo uriInfo) {
+        try {
+            final String href = uriInfo.getAbsolutePath().resolve("..").toString();
+            final fr.esrf.TangoApi.DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
+            DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString(), new Object() {
+                public String _state = href + "attributes/State";
+                public String _status = href + "attributes/Status";
+                public String _parent = href;
+                public String _self = href + "state";
+            });
 
+            return result;
+        } catch (DevFailed devFailed) {
+            return new DeviceState(DevState.UNKNOWN.toString(), String.format("Failed to read state&status from %s", proxy.getName()));
+        }
+    }
 
 
     @Override
@@ -155,8 +175,5 @@ public class Device extends Rc2ApiImpl {
         return super.devicePropertyPut(propName, request, proxy);
     }
 
-    @Override
-    public Object deviceState(@Context TangoProxy proxy, @Context ServletContext context) {
-        return super.deviceState(proxy, context);
-    }
+
 }
