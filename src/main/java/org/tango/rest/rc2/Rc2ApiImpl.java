@@ -470,7 +470,7 @@ public class Rc2ApiImpl {
                 new Function<DbDatum, Object>() {
                     @Override
                     public Object apply(final DbDatum input) {
-                        return dbDatumToResponse(input);
+                        return DeviceHelper.dbDatumToResponse(input);
                     }
                 });
     }
@@ -508,7 +508,7 @@ public class Rc2ApiImpl {
     @Path("devices/{domain}/{family}/{member}/properties/{property}")
     public Object deviceProperty(@PathParam("property") String propName,
                                  @Context TangoProxy proxy) throws DevFailed {
-        return dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
+        return DeviceHelper.dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
     }
 
     @PUT
@@ -525,7 +525,7 @@ public class Rc2ApiImpl {
 
         if (async)
             return null;
-        else return dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
+        else return DeviceHelper.dbDatumToResponse(proxy.toDeviceProxy().get_property(propName));
     }
 
     @POST
@@ -542,13 +542,6 @@ public class Rc2ApiImpl {
                                      @Context HttpServletRequest request,
                                      @Context TangoProxy proxy) throws DevFailed {
         proxy.toDeviceProxy().delete_property(propName);
-    }
-
-    private static Object dbDatumToResponse(final DbDatum dbDatum) {
-        return new Object() {
-            public String name = dbDatum.name;
-            public String[] values = dbDatum.extractStringArray();
-        };
     }
 
     @GET
