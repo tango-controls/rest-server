@@ -6,7 +6,7 @@
 
     <groupId>hzg.wpn</groupId>
     <artifactId>mtango.server</artifactId>
-    <version>rc2-0.5-SNAPSHOT</version>
+    <version>rc3-0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
@@ -122,7 +122,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>rest-api-client</artifactId>
-            <version>rc2-0.3</version>
+            <version>rc3-0.1</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
