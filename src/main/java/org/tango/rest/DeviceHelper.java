@@ -1,5 +1,6 @@
 package org.tango.rest;
 
+import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.tango.web.server.util.DeviceInfos;
 
@@ -27,6 +28,17 @@ public class DeviceHelper {
             public Object _links = new Object() {
                 public String _self = href;
                 //TODO use LinksProvider
+            };
+        };
+    }
+
+    public static Object commandInfoToResponse(final CommandInfo input, final String href) {
+        return new Object() {
+            public String name = input.cmd_name;
+            public Object info = input;
+            public String history = href + "history";
+            public Object _links = new Object() {
+                public String _self = href + name;
             };
         };
     }

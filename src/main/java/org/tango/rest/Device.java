@@ -104,25 +104,25 @@ public class Device extends Rc2ApiImpl {
         }
     }
 
-
-    @Override
-    public Object deviceCommand(String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommand(cmdName, proxy, uriInfo);
+    @GET
+    @Partitionable
+    @StaticValue
+    @Path("/commands")
+    public Object deviceCommands(@Context TangoProxy proxy,
+                                 @Context UriInfo uriInfo) throws DevFailed {
+        final String href = uriInfo.getAbsolutePath().toString();
+        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
+            @Override
+            public Object apply(final CommandInfo input) {
+                return DeviceHelper.commandInfoToResponse(input, href);
+            }
+        });
     }
 
-    @Override
-    public Object deviceCommandHistory(String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommandHistory(cmdName, proxy, uriInfo);
-    }
 
-    @Override
-    public Object deviceCommandPut(String cmdName, String[] value, boolean async, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws Exception {
-        return super.deviceCommandPut(cmdName, value, async, proxy, uriInfo);
-    }
-
-    @Override
-    public Object deviceCommands(@Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
-        return super.deviceCommands(proxy, uriInfo);
+    @Path("/commands/{cmd}")
+    public DeviceCommand deviceCommand() {
+        return new DeviceCommand();
     }
 
     @Override

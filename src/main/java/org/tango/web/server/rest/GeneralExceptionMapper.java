@@ -13,10 +13,10 @@ import javax.ws.rs.ext.Provider;
  * @since 27.02.2015
  */
 @Provider
-public class TangoExceptionMapper implements ExceptionMapper<TangoProxyException>{
+public class GeneralExceptionMapper implements ExceptionMapper<Exception>{
     @Override
-    public Response toResponse(TangoProxyException exception) {
-        return Response.ok().entity(
+    public Response toResponse(Exception exception) {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
                 Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
     }
 }
