@@ -95,32 +95,10 @@ public class Rc2ApiImpl {
             final String href = uriInfo.getPath();
             return new Device(proxy.getName(),
                     DeviceInfos.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(AttributeInfoEx input) {
-                            return new NamedEntity(input.name, href + "/attributes/" + input.name);
-                        }
-                    }),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(CommandInfo input) {
-                            return new NamedEntity(input.cmd_name, href + "/commands/" + input.cmd_name);
-                        }
-                    }),
-                    Collections2.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(String input) {
-                            return new NamedEntity(input, href + "/pipes/" + input);
-                        }
-                    }),
-                    Collections2.transform(Arrays.asList(proxy.toDeviceProxy().get_property_list("*")), new Function<String, NamedEntity>() {
-                        @Override
-                        public NamedEntity apply(String input) {
-                            return new NamedEntity(input, href + "/properties/" + input);
-                        }
-                    }), href);
-        } catch (DevFailed devFailed) {
-            return Responses.createFailureResult(TangoUtils.convertDevFailedToException(devFailed));
+                    href + "/attributes",
+                    href + "/commands",
+                    href + "/pipes",
+                    href + "/properties", href);
         } catch (NoSuchCommandException | TangoProxyException e) {
             return Responses.createFailureResult(e);
         }
@@ -181,7 +159,7 @@ public class Rc2ApiImpl {
     public Object deviceAttributeHistory(@PathParam("attr") final String attrName,
                                   @Context UriInfo uriInfo,
                                   @Context TangoProxy proxy,
-                                  @Context ServletContext context) throws Exception {
+                                         @Context ServletContext context) throws Exception {
         return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(attrName)), new Function<DeviceDataHistory, Object>() {
             @Override
             public Object apply(DeviceDataHistory input) {
