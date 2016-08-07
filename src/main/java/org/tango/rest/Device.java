@@ -1,38 +1,32 @@
 package org.tango.rest;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.*;
-import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.TangoDataTypes;
-import org.tango.client.ez.data.type.UnknownTangoDataType;
-import org.tango.client.ez.data.type.ValueExtractionException;
-import org.tango.client.ez.proxy.*;
-import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.entities.AttributeValue;
+import fr.esrf.TangoApi.AttributeInfoEx;
+import fr.esrf.TangoApi.CommandInfo;
+import fr.esrf.TangoApi.DbDatum;
+import fr.esrf.TangoApi.PipeBlob;
+import org.tango.client.ez.proxy.NoSuchCommandException;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.entities.DeviceState;
-import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.rc2.Rc2ApiImpl;
-import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.EventHelper;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
-import org.tango.web.server.util.DeviceInfos;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -125,6 +119,56 @@ public class Device extends Rc2ApiImpl {
         return new DeviceCommand();
     }
 
+    @GET
+    @Partitionable
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/properties")
+    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
+        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
+        if(propnames.length == 0) return propnames;
+        return Iterables.transform(
+                Arrays.asList(proxy.toDeviceProxy().get_property(propnames)),
+                new Function<DbDatum, Object>() {
+                    @Override
+                    public Object apply(final DbDatum input) {
+                        return DeviceHelper.dbDatumToResponse(input);
+                    }
+                });
+    }
+
+    @POST
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/properties")
+    public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
+        return devicePropertiesPut(request, proxy);
+    }
+
+    @PUT
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/properties")
+    public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
+        Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
+        boolean async = parametersMap.remove(ASYNC) != null;
+
+        DbDatum[] input = Iterables.toArray(Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DbDatum>() {
+            @Override
+            public DbDatum apply(Map.Entry<String, String[]> input) {
+                return new DbDatum(input.getKey(), input.getValue());
+            }
+        }), DbDatum.class);
+
+        proxy.toDeviceProxy().put_property(input);
+
+        if (async)
+            return null;
+        else return deviceProperties(proxy);
+    }
+
+    @Path("/properties/{prop}")
+    public DeviceProperty deviceProperty(@PathParam("prop") String propName) {
+        return new DeviceProperty(propName);
+    }
+
     @Override
     public Object devicePipeGet(String pipeName, @Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
         return super.devicePipeGet(pipeName, uriInfo, proxy);
@@ -139,41 +183,4 @@ public class Device extends Rc2ApiImpl {
     public Object devicePipes(@Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
         return super.devicePipes(uriInfo, proxy);
     }
-
-    @Override
-    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
-        return super.deviceProperties(proxy);
-    }
-
-    @Override
-    public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertiesPost(request, proxy);
-    }
-
-    @Override
-    public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertiesPut(request, proxy);
-    }
-
-    @Override
-    public Object deviceProperty(String propName, @Context TangoProxy proxy) throws DevFailed {
-        return super.deviceProperty(propName, proxy);
-    }
-
-    @Override
-    public void devicePropertyDelete(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        super.devicePropertyDelete(propName, request, proxy);
-    }
-
-    @Override
-    public Object devicePropertyPost(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertyPost(propName, request, proxy);
-    }
-
-    @Override
-    public Object devicePropertyPut(String propName, @Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return super.devicePropertyPut(propName, request, proxy);
-    }
-
-
 }

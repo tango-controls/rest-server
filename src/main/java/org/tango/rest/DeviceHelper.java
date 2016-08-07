@@ -1,6 +1,7 @@
 package org.tango.rest;
 
 import fr.esrf.TangoApi.CommandInfo;
+import fr.esrf.TangoApi.DbDatum;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.tango.web.server.util.DeviceInfos;
 
@@ -40,6 +41,13 @@ public class DeviceHelper {
             public Object _links = new Object() {
                 public String _self = href + name;
             };
+        };
+    }
+
+    public static Object dbDatumToResponse(final DbDatum dbDatum) {
+        return new Object() {
+            public String name = dbDatum.name;
+            public String[] values = dbDatum.extractStringArray();
         };
     }
 }
