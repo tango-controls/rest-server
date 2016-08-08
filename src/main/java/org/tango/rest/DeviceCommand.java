@@ -45,8 +45,7 @@ public class DeviceCommand {
     }
 
     @PUT
-    public Object deviceCommandPut(@PathParam("cmd") final String cmdName,
-                                   @QueryParam("async") boolean async,
+    public Object deviceCommandPut(@QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo,
                                    CommandInput value) throws Exception {
@@ -57,16 +56,13 @@ public class DeviceCommand {
 
             ((TangoDataType<Object>) TangoDataTypes.forClass(value.type)).insert(TangoDataWrapper.create(data), value.input);
 
-            proxy.toDeviceProxy().command_inout_asynch(cmdName, data);
+            proxy.toDeviceProxy().command_inout_asynch(name, data);
             return null;
         } else {
-            final Object result = proxy.executeCommand(cmdName, value.input);
+            final Object result = proxy.executeCommand(name, value.input);
             return new Object() {
-                public String name = cmdName;
+                public String name = DeviceCommand.this.name;
                 public Object output = result;
-                public Object _links = new Object() {
-                    public String _self = href;
-                };
             };
         }
     }
