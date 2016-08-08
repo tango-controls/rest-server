@@ -69,6 +69,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new DevStateSerializer(DevState.class));
         tangoModule.addSerializer(new AttrInfoSerializer(AttributeInfo.class));
         tangoModule.addSerializer(new AttrInfoExSerializer(AttributeInfoEx.class));
+        tangoModule.addSerializer(new CommandInfoSerializer(CommandInfo.class));
         tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
         tangoModule.addDeserializer(AttrDataFormat.class, new AttrDataFormatDeserializer());
         tangoModule.addDeserializer(DispLevel.class, new DispLevelDeserializer());
@@ -504,5 +505,29 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
     }
 
-    //TODO CommandInfo
+    private static class CommandInfoSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<CommandInfo> {
+        public CommandInfoSerializer(Class<CommandInfo> commandInfoClass) {
+            super(commandInfoClass);
+        }
+
+        @Override
+        public void serialize(CommandInfo value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            try {
+                jgen.writeStartObject();
+
+                for(Field fld : CommandInfo.class.getDeclaredFields()){
+                    if("TangoTypesArray".equals(fld.getName())) continue;
+                    jgen.writeFieldName(fld.getName());
+                    if("in_type".equals(fld.getName()) || "out_type".equals(fld.getName()))
+                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+                    else
+                        provider.defaultSerializeValue(fld.get(value), jgen);
+                }
+
+                jgen.writeEndObject();
+            } catch (IllegalAccessException e) {
+                throw new JsonGenerationException(e);
+            }
+        }
+    }
 }
