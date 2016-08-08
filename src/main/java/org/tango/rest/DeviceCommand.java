@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceData;
 import fr.esrf.TangoApi.DeviceDataHistory;
-import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
@@ -14,6 +13,7 @@ import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.rest.entities.CommandResult;
 import org.tango.rest.response.Responses;
+import org.tango.web.server.command.CommandInput;
 import org.tango.web.server.providers.Partitionable;
 
 import javax.ws.rs.*;
@@ -49,24 +49,18 @@ public class DeviceCommand {
                                    @QueryParam("async") boolean async,
                                    @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo,
-                                   String value) throws Exception {
+                                   CommandInput value) throws Exception {
         final String href = uriInfo.getAbsolutePath().toString();
 
-        Class<?> type = proxy.getCommandInfo(cmdName).getArginType();
-
-        final Object converted;
-        if (type == Void.class) converted = null;
-        //TODO convert DevVarDoubleStringArr etc
-        else converted = ConvertUtils.convert(value, type);
         if (async) {
             DeviceData data = new DeviceData();
 
-            ((TangoDataType<Object>) TangoDataTypes.forClass(type)).insert(TangoDataWrapper.create(data), converted);
+            ((TangoDataType<Object>) TangoDataTypes.forClass(value.type)).insert(TangoDataWrapper.create(data), value.input);
 
             proxy.toDeviceProxy().command_inout_asynch(cmdName, data);
             return null;
         } else {
-            final Object result = proxy.executeCommand(cmdName, converted);
+            final Object result = proxy.executeCommand(cmdName, value.input);
             return new Object() {
                 public String name = cmdName;
                 public Object output = result;

@@ -37,9 +37,9 @@ public class DeviceHelper {
         return new Object() {
             public String name = input.cmd_name;
             public CommandInfo info = input;
-            public String history = href + "history";
+            public String history = href + "/history";
             public Object _links = new Object() {
-                public String _self = href + name;
+                public String _self = href;
             };
         };
     }

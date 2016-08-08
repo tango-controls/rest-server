@@ -24,6 +24,7 @@
     <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
+            org.tango.web.server.interceptors.CommandInputMessageBodyReader,
             org.tango.web.server.rest.GeneralExceptionMapper,
             org.tango.web.server.rest.DevFailedMapper,
             org.tango.web.server.filters.AccessControlFilter,
