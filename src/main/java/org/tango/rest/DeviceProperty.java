@@ -18,9 +18,11 @@ import javax.ws.rs.core.UriInfo;
 public class DeviceProperty {
 
     private final String name;
+    private final UriInfo uriInfo;
 
-    public DeviceProperty(String name) {
+    public DeviceProperty(String name, UriInfo uriInfo) {
         this.name = name;
+        this.uriInfo = uriInfo;
     }
 
 
@@ -37,19 +39,17 @@ public class DeviceProperty {
 
     @POST
     @AttributeValue
-    public Object devicePropertyPost(@QueryParam("value") String[] value,
-                                     @Context UriInfo uriInfo,
+    public Object devicePropertyPost(@FormParam("value") String[] value,
+                                     @QueryParam("async") boolean async,
                                      @Context TangoProxy proxy) throws DevFailed {
-        return devicePropertyPut(value, uriInfo, proxy);
+        return devicePropertyPut(value, async, proxy);
     }
 
     @PUT
     @AttributeValue
     public Object devicePropertyPut(@QueryParam("value") String[] value,
-                                    @Context UriInfo uriInfo,
+                                    @QueryParam("async") boolean async,
                                     @Context TangoProxy proxy) throws DevFailed {
-        boolean async = uriInfo.getQueryParameters().containsKey("async");
-
         DbDatum input = new DbDatum(name, value);
 
         proxy.toDeviceProxy().put_property(input);

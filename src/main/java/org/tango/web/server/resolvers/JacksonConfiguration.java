@@ -58,7 +58,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         ObjectMapper objectMapper = new ObjectMapper();
         // Set human readable date format
-        SimpleModule tangoModule = new SimpleModule("MyModule", new Version(1, 9, 12, null));
+        SimpleModule tangoModule = new SimpleModule("TangoModule", new Version(1, 9, 12, null));
         tangoModule.addSerializer(new DeviceAttributeSerializer(DeviceAttribute.class));
         tangoModule.addSerializer(new ErrSeveritySerializer(ErrSeverity.class));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
@@ -326,7 +326,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     private class PipeBlobDeserializer extends JsonDeserializer<PipeBlob> {
         @Override
         public PipeBlob deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-            JsonNode root = jp.getCodec().readTree(jp);
+            JsonNode root = jp.readValueAsTree();
 
             PipeBlobBuilder bld = new PipeBlobBuilder(root.get("name").asText());
 
@@ -344,10 +344,12 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             return bld.build();
         }
 
-        private void deserializeArray(PipeBlobBuilder bld, final JsonNode dataItemValue, String dataItemName, String dataItemDataType, DeserializationContext ctxt) throws IOException, UnknownTangoDataType {
+        private void deserializeArray(PipeBlobBuilder bld, final JsonNode dataItemValue, String dataItemName, String dataItemDataType, final DeserializationContext ctxt) throws IOException, UnknownTangoDataType {
             switch (dataItemDataType) {
                 case "DevPipeBlob":
-                    bld.add(dataItemName, dataItemValue.traverse().readValueAs(PipeBlob.class));
+                    for(JsonNode json : dataItemValue){
+                        bld.add(dataItemName, ctxt.getParser().getCodec().treeAsTokens(json).readValueAs(PipeBlob.class));
+                    }
                     return;
                 case "DevString":
                     bld.add(dataItemName, Iterables.toArray(Iterables.transform(dataItemValue, new Function<JsonNode, String>() {

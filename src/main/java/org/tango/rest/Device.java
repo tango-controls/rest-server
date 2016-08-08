@@ -18,6 +18,7 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
+import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
 import org.tango.utils.DevFailedUtils;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +56,8 @@ public class Device extends Rc2ApiImpl {
                          @Context DatabaseDs db,
                          @Context UriInfo uriInfo){
         try {
-            final String href = uriInfo.getAbsolutePath().toString();
             final String devname = domain + "/" + family + "/" + member;
-            return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), href);
+            return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
         } catch (NoSuchCommandException | TangoProxyException e) {
             return Responses.createFailureResult(e);
         }
@@ -153,11 +154,12 @@ public class Device extends Rc2ApiImpl {
                     try {
                         return deviceAttribute.getName();
                     } catch (DevFailed devFailed) {
-                        return null;
+                        throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
                     }
                 }
             }).toArray(new String[attrs.length]);
-            return proxy.toDeviceProxy().write_read_attribute(attrs, readNames);
+            proxy.toDeviceProxy().write_attribute(attrs);
+            return proxy.toDeviceProxy().read_attribute(readNames);
         }
     }
 
@@ -253,8 +255,8 @@ public class Device extends Rc2ApiImpl {
     }
 
     @Path("/properties/{prop}")
-    public DeviceProperty deviceProperty(@PathParam("prop") String propName) {
-        return new DeviceProperty(propName);
+    public DeviceProperty deviceProperty(@PathParam("prop") String propName, @Context UriInfo uriInfo) {
+        return new DeviceProperty(propName, uriInfo);
     }
 
     @GET
@@ -262,20 +264,12 @@ public class Device extends Rc2ApiImpl {
     @StaticValue
     @Path("/pipes")
     public Object devicePipes(@Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
-        final String href = uriInfo.getAbsolutePath().toString();
+        final URI href = uriInfo.getAbsolutePath();
         return Lists.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
             @Override
             public Object apply(final String input) {
-                return new Object() {
-                    public String name = input;
-                    public String value = href + name + "/value";
-                    public Object _links = new Object() {
-                        public String _self = href + name;
-                    };
-                };
+                return new NamedEntity(input, href + "/" + input);
             }
-
-
         });
     }
 

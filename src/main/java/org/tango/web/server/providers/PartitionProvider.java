@@ -51,10 +51,10 @@ public class PartitionProvider implements ContainerResponseFilter {
             public int offset = start;
             public int limit = _limit;
             public Object _links = new Object(){
-                public String _prev =  (start > 0) ? uriInfo.getPath() + "?range=" + Math.max(0,start - range)+ "-" + start : null;
-                public String _next = (end < size) ? uriInfo.getPath() + "?range=" + end + "-" + Math.min(end + range, size) : null;
-                public String _first = uriInfo.getPath() + "?range=0-" + range;
-                public String _last = uriInfo.getPath() + "?range=" + range*(int)Math.ceil(size/range) + "-" + (range*(int)Math.ceil(size/range) + range);
+                public String _prev =  (start > 0) ? uriInfo.getAbsolutePath() + "?range=" + Math.max(0,start - range)+ "-" + start : null;
+                public String _next = (end < size) ? uriInfo.getAbsolutePath() + "?range=" + end + "-" + Math.min(end + range, size) : null;
+                public String _first = uriInfo.getAbsolutePath() + "?range=0-" + range;
+                public String _last = uriInfo.getAbsolutePath() + "?range=" + range*(int)Math.ceil(size/range) + "-" + (range*(int)Math.ceil(size/range) + range);
             };
         });
 

@@ -96,7 +96,7 @@ public class Rc2ApiImpl {
                     href + "/attributes",
                     href + "/commands",
                     href + "/pipes",
-                    href + "/properties", href);
+                    href + "/properties", uriInfo.getAbsolutePath());
         } catch (NoSuchCommandException | TangoProxyException e) {
             return Responses.createFailureResult(e);
         }
@@ -167,7 +167,7 @@ public class Rc2ApiImpl {
 
                         TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), "VALID", input.getTime(), null, null);
+                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), "VALID", input.getTime());
                     } catch (UnknownTangoDataType|DevFailed|ValueExtractionException e) {
                         return Responses.createFailureResult(e);
                     }
@@ -361,7 +361,7 @@ public class Rc2ApiImpl {
         }
         try {
             final Response<?> result = EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
-            return new AttributeValue(attrName, result.argout, result.quality, result.timestamp, uriInfo.getPath(), "TODO");
+            return new AttributeValue(attrName, result.argout, result.quality, result.timestamp);
         } catch (NoSuchAttributeException | TangoProxyException e) {
             return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
         }
