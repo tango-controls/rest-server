@@ -5,12 +5,14 @@ import fr.esrf.TangoApi.DbDatum;
 import fr.esrf.TangoApi.DeviceInfo;
 import org.tango.web.server.util.DeviceInfos;
 
+import java.net.URI;
+
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 8/6/16
  */
 public class DeviceHelper {
-    public static Object deviceToResponse(String devname, final DeviceInfo info,String href){
+    public static Object deviceToResponse(String devname, final DeviceInfo info,URI href){
         return new org.tango.rest.entities.Device(devname,
                 DeviceInfos.fromDeviceInfo(info),
                 href + "/attributes",

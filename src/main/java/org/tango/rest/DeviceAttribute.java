@@ -3,7 +3,6 @@ package org.tango.rest;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttrQuality;
-import fr.esrf.Tango.AttributeConfig_5;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.*;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -16,6 +15,7 @@ import org.tango.client.ez.proxy.*;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.EventHelper;
+import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 
@@ -84,7 +84,7 @@ public class DeviceAttribute {
 
                         TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime(), null, null);
+                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
                     } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
                         return Responses.createFailureResult(e);
                     }
@@ -105,8 +105,8 @@ public class DeviceAttribute {
     @PUT
     @Consumes("application/json")
     @Path("/info")
-    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, @Context TangoProxy proxy, AttributeConfig_5 config) throws DevFailed {
-        proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config)});
+    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, @Context TangoProxy proxy, AttributeConfig config) throws DevFailed {
+        proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config.wrapped)});
         if (async) return null;
         return proxy.toDeviceProxy().get_attribute_info(name);
     }
@@ -173,9 +173,10 @@ public class DeviceAttribute {
         TangoDataType<Object> dataType = (TangoDataType<Object>) attributeInfo.getType();
         dataType.insert(TangoDataWrapper.create(attr), converted);
 
-        if (!async)
-            return proxy.toDeviceProxy().write_read_attribute(attr);
-        else {
+        if (!async) {
+            proxy.toDeviceProxy().write_attribute(attr);
+            return proxy.toDeviceProxy().read_attribute(name);
+        } else {
             proxy.toDeviceProxy().write_attribute_asynch(attr);
             return null;
         }
