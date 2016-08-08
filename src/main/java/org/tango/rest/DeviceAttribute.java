@@ -2,6 +2,7 @@ package org.tango.rest;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import fr.esrf.Tango.AttrQuality;
 import fr.esrf.Tango.AttributeConfig_5;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.*;
@@ -43,16 +44,15 @@ public class DeviceAttribute {
 
     @GET
     @StaticValue
-    public Object get(@PathParam("attr") String attrName, @Context UriInfo uriInfo, @Context TangoProxy proxy, @Context ServletContext context) throws DevFailed{
+    public Object get(@Context UriInfo uriInfo) throws DevFailed{
         final String href = uriInfo.getAbsolutePath().toString();
 
-        return DeviceHelper.attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName).name, href);
+        return DeviceHelper.attributeInfoExToResponse(name, href);
     }
 
     @GET
     @Path("/{event}")
-    public Object deviceAttributeEvent(@PathParam("attr") final String attrName,
-                                       @PathParam("event") String event,
+    public Object deviceAttributeEvent(@PathParam("event") String event,
                                        @QueryParam("timeout") long timeout,
                                        @QueryParam("state") EventHelper.State state,
                                        @Context ServletContext context,
@@ -64,19 +64,18 @@ public class DeviceAttribute {
             return Responses.createFailureResult("Unsupported event: " + event);
         }
         try {
-            return EventHelper.handleEvent(attrName, timeout, state, proxy, tangoEvent);
+            return EventHelper.handleEvent(name, timeout, state, proxy, tangoEvent);
         } catch (NoSuchAttributeException | TangoProxyException e) {
-            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getAbsolutePath(), e);
+            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
         }
     }
 
     @GET
     @Partitionable
     @Path("/history")
-    public Object deviceAttributeHistory(@PathParam("attr") final String attrName,
-                                         @Context TangoProxy proxy,
+    public Object deviceAttributeHistory(@Context TangoProxy proxy,
                                          @Context ServletContext context) throws DevFailed {
-        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(attrName)), new Function<DeviceDataHistory, Object>() {
+        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(name)), new Function<DeviceDataHistory, Object>() {
             @Override
             public Object apply(DeviceDataHistory input) {
                 if (!input.hasFailed()) {
@@ -85,7 +84,7 @@ public class DeviceAttribute {
 
                         TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), "VALID", input.getTime(), null, null);
+                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime(), null, null);
                     } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
                         return Responses.createFailureResult(e);
                     }
@@ -99,33 +98,32 @@ public class DeviceAttribute {
     @GET
     @StaticValue
     @Path("/info")
-    public AttributeInfo deviceAttributeInfo(@PathParam("attr") String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_info_ex(attrName);
+    public AttributeInfo deviceAttributeInfo(@Context TangoProxy proxy) throws DevFailed {
+        return proxy.toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @PUT
     @Consumes("application/json")
     @Path("/info")
-    public AttributeInfo deviceAttributeInfoPut(@PathParam("attr")  String attrName, @QueryParam("async") boolean async, @Context TangoProxy proxy, AttributeConfig_5 config) throws DevFailed {
+    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, @Context TangoProxy proxy, AttributeConfig_5 config) throws DevFailed {
         proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config)});
         if (async) return null;
-        return proxy.toDeviceProxy().get_attribute_info(attrName);
+        return proxy.toDeviceProxy().get_attribute_info(name);
     }
 
     @GET
     @Path("/properties")
-    public DbAttribute deviceAttributeProperties(@PathParam("attr")  String attrName, @Context TangoProxy proxy) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_property(attrName);
+    public DbAttribute deviceAttributeProperties(@Context TangoProxy proxy) throws DevFailed {
+        return proxy.toDeviceProxy().get_attribute_property(name);
     }
 
     @PUT
     @Path("/properties/{prop}")
-    public DbAttribute deviceAttributePropertyPut(@PathParam("attr") final String attrName,
-                                                  @PathParam("prop") final String propName,
+    public DbAttribute deviceAttributePropertyPut(@PathParam("prop") final String propName,
                                                   @QueryParam("value") final String propValue,
                                                   @QueryParam("async") boolean async,
                                                   @Context TangoProxy proxy) throws DevFailed {
-        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(attrName);
+        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
 
         DbDatum datum = dbAttribute.datum(propName);
 
@@ -140,10 +138,9 @@ public class DeviceAttribute {
 
     @DELETE
     @Path("/properties/{prop}")
-    public void deviceAttributePropertyDelete(@PathParam("attr") final String attrName,
-                                              @PathParam("prop") final String propName,
+    public void deviceAttributePropertyDelete(@PathParam("prop") final String propName,
                                               @Context TangoProxy proxy) throws DevFailed {
-        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(attrName);
+        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
 
         for (Iterator<DbDatum> iterator = dbAttribute.iterator(); iterator.hasNext(); ) {
             DbDatum dbDatum = iterator.next();
@@ -158,30 +155,29 @@ public class DeviceAttribute {
     @GET
     @org.tango.web.server.providers.AttributeValue
     @Path("/value")
-    public Object deviceAttributeValueGet(@PathParam("attr") final String attrName, @Context TangoProxy proxy) throws Exception {
-        final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(attrName);
-
-        //TODO move to Jackson
-        return new Object() {
-            public String name = attrName;
-            public Object value = result.getValue();
-            public String quality = result.getQuality().name();
-            public long timestamp = result.getTime();
-        };
+    public Object deviceAttributeValueGet(@Context TangoProxy proxy) throws Exception {
+        return proxy.toDeviceProxy().read_attribute(name);
     }
 
     @PUT
     @org.tango.web.server.providers.AttributeValue
     @Path("/value")
-    public Object deviceAttributeValuePut(@PathParam("attr") String attrName, @QueryParam("v") String value, @QueryParam("async") boolean async,
+    public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async,
                                           @Context TangoProxy proxy) throws Exception {
-        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(name);
         Class<?> targetType = attributeInfo.getClazz();
         Object converted = ConvertUtils.convert(value, targetType);
 
-        proxy.writeAttribute(attrName, converted);
+        fr.esrf.TangoApi.DeviceAttribute attr = new fr.esrf.TangoApi.DeviceAttribute(name);
+
+        TangoDataType<Object> dataType = (TangoDataType<Object>) attributeInfo.getType();
+        dataType.insert(TangoDataWrapper.create(attr), converted);
+
         if (!async)
-            return deviceAttributeValueGet(attrName, proxy);
-        else return null;
+            return proxy.toDeviceProxy().write_read_attribute(attr);
+        else {
+            proxy.toDeviceProxy().write_attribute_asynch(attr);
+            return null;
+        }
     }
 }
