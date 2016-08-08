@@ -16,6 +16,7 @@ import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
@@ -80,11 +81,22 @@ public class Device extends Rc2ApiImpl {
     @GET
     @Partitionable
     @AttributeValue
+    @Path("/attributes/info")
+    public fr.esrf.TangoApi.AttributeInfoEx[] deviceAttributeInfos(@QueryParam("attr") String[] attrs,
+                                                                    @Context TangoProxy proxy,
+                                                                    @Context ServletContext context,
+                                                                    @Context UriInfo uriInfo) throws DevFailed {
+        return proxy.toDeviceProxy().get_attribute_info_ex(attrs);
+    }
+
+    @GET
+    @Partitionable
+    @AttributeValue
     @Path("/attributes/value")
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs,
                                         @Context TangoProxy proxy,
                                         @Context ServletContext context,
-                                        @Context UriInfo uriInfo) throws Exception {
+                                        @Context UriInfo uriInfo) throws DevFailed {
         return proxy.toDeviceProxy().read_attribute(attrs);
     }
 
@@ -116,6 +128,11 @@ public class Device extends Rc2ApiImpl {
                                     return result;
                                 } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
                                     result = mock(fr.esrf.TangoApi.DeviceAttribute.class);
+                                    try {
+                                        doReturn(attrName).when(result).getName();
+                                    } catch (DevFailed devFailed) {
+                                        throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
+                                    }
                                     doReturn(true).when(result).hasFailed();
                                     doReturn(DevFailedUtils.buildDevError(e.getClass().getSimpleName(), e.getMessage(),0)).when(result).getErrStack();
                                     return result;
