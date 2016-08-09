@@ -3,6 +3,7 @@ package org.tango;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.Tango.DevSource;
 import fr.esrf.Tango.DevState;
 import fr.esrf.Tango.DevVarLongStringArray;
 import org.apache.catalina.LifecycleException;
@@ -18,6 +19,7 @@ import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
+import org.tango.web.server.TangoProxyCreationPolicy;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -116,13 +118,17 @@ public class TangoRestServer {
     public static void main(String[] args) throws Exception {
         String instance = args[0];
         System.setProperty(TANGO_INSTANCE, instance);
-        ServerManager.getInstance().start(args, TangoRestServer.class);
+        ServerManager.getInstance().start(args, TangoRestServer.class);//calls init method
 
-        startTomcat(instance);
+        startTomcat(instance);//calls Launcher.onContextCreated, i.e. creates TangoContext using properties set in init method
     }
 
     private static void startTomcat(String instance) throws Exception {
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
+
+        if(tangoRestServers.size() > 1)
+            throw new IllegalStateException("TangoRestServer must have exactly one device! Actually has: " + tangoRestServers.size());
+
 
         for (TangoRestServer tangoRestServer : tangoRestServers) {
             logger.trace("Configure tomcat for device");
@@ -189,14 +195,14 @@ public class TangoRestServer {
 
     @Command(inTypeDesc = "deviceName->value")
     public void setProxiesSource(DevVarLongStringArray input) throws Exception {
-//        String[] svalue = input.svalue;
-//        for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
-//            String device = svalue[i];
-//            TangoProxy proxy = ctx.deviceMapper.map(device);
-//            DevSource new_src = DevSource.from_int(input.lvalue[i]);
-//            proxy.toDeviceProxy().set_source(new_src);
-//            ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
-//        }
+        String[] svalue = input.svalue;
+        for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
+            String device = svalue[i];
+            TangoProxy proxy = ctx.proxyPool.getProxy(device);
+            DevSource new_src = DevSource.from_int(input.lvalue[i]);
+            proxy.toDeviceProxy().set_source(new_src);
+            ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
+        }
     }
 
     @Attribute

@@ -23,26 +23,36 @@ import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.EventHelper;
-import org.tango.rest.response.Responses;
-import org.tango.web.server.providers.TangoProxyProvider;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import java.awt.image.*;
+import javax.ws.rs.core.UriInfo;
+import java.awt.image.RenderedImage;
 import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @Path("/mtango")
 @NoCache
+@Produces("application/json")
 public class MtangoImpl {
+    @GET
+    public Object get(@Context final UriInfo uriInfo){
+        return new Object(){
+            public String devices = uriInfo.getAbsolutePath() + "/devices";
+        };
+    }
+
+
     @GET
     @Path("devices")
     @Produces("application/json")
@@ -52,7 +62,7 @@ public class MtangoImpl {
             Collection<String> deviceList = db.getDeviceList();
             return Responses.createSuccessResult(deviceList);
         } catch (NoSuchCommandException|TangoProxyException e) {
-            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(),e);
+            return Responses.createFailureResult("Can not get device list from the db " + db.getDbURL(), e);
         }
     }
 

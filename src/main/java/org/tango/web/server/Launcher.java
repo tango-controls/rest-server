@@ -33,18 +33,17 @@ public class Launcher implements ServletContextListener {
                 sce.getServletContext().getInitParameter(TangoRestServer.TANGO_INSTANCE)));
 
         try {
-            startTangoServer();
+            startTangoServer();//calls TangoRestServer.init - sets System properties from Device properties
 
             TangoContext context = new TangoContext();
             context.tangoHost = tangoHost;
 
-            String tangoDb = System.getProperty(TangoRestServer.TANGO_DB, TangoContext.SYS_DATABASE_2);
-            context.hostsPool.getProxy(tangoDb);
+            context.tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoContext.SYS_DATABASE_2);
 
-            String tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoContext.SYS_DATABASE_2);
-            context.tangoDbName = tangoDbName;
-
-
+            context.tangoDb = System.getProperty(TangoRestServer.TANGO_DB, "tango://" + context.tangoHost + "/" + context.tangoDbName);
+            //TODO replace with TangoContext.hostsPool
+            DatabaseDs db = new DatabaseDs(context.hostsPool.getProxy(context.tangoDb));//puts proxy instance into cache
+            sce.getServletContext().setAttribute(DatabaseDs.TANGO_DB, db);//for backward compatability
 
             String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.SYS_ACCESS_CONTROL_1);
 
@@ -57,9 +56,9 @@ public class Launcher implements ServletContextListener {
 
             setTangoRestServerContext(context);
 
-            logger.info("MTango is initialized.");
+            logger.info("TangoRestServer is initialized.");
         } catch (TangoProxyException e) {
-            logger.error("MTango has failed to initialize: {}", e.getMessage());
+            logger.error("TangoRestServer has failed to initialize: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -81,7 +80,6 @@ public class Launcher implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-//        TangoProxyProvider.DeviceMapper.scheduler.shutdownNow();
-        logger.info("MTango is destroyed.");
+        logger.info("TangoRestServer has been destroyed!");
     }
 }

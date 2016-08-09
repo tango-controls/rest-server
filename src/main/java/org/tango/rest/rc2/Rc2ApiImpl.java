@@ -25,6 +25,7 @@ import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.EventHelper;
+import org.tango.web.server.TangoContext;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.util.DeviceInfos;
@@ -46,9 +47,6 @@ import java.util.*;
 public class Rc2ApiImpl {
     private final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
 
-    @Context
-    protected UriInfo uriInfo;
-
     public static final String ASYNC = "async";
     public static final String REST_PREFIX = "/rest/rc2";
 
@@ -67,9 +65,10 @@ public class Rc2ApiImpl {
     @StaticValue
     @Path("devices")
     public Object devices(@QueryParam("wildcard") String wildcard,
-                          @Context DatabaseDs db,
+                          @Context TangoContext tangoContext,
                           @Context final ServletContext context) {
         try {
+            DatabaseDs db = new DatabaseDs(tangoContext.hostsPool.getProxy(tangoContext.tangoDb));
             List<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
             List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
                 @Override
@@ -87,9 +86,11 @@ public class Rc2ApiImpl {
     @StaticValue
     @Path("devices/{domain}/{family}/{member}")
     public Object device(@Context TangoProxy proxy,
-                         @Context DatabaseDs db,
+                         @Context TangoContext tangoContext,
+                         @Context UriInfo uriInfo,
                          @Context final ServletContext context) {
         try {
+            DatabaseDs db = new DatabaseDs(tangoContext.hostsPool.getProxy(tangoContext.tangoDb));
             final String href = uriInfo.getPath();
             return new Device(proxy.getName(),
                     DeviceInfos.fromDeviceInfo(db.getDeviceInfo(proxy.getName())),
@@ -127,7 +128,8 @@ public class Rc2ApiImpl {
     @Partitionable
     @StaticValue
     @Path("devices/{domain}/{family}/{member}/attributes")
-    public Object deviceAttributes(@Context final TangoProxy proxy,
+    public Object deviceAttributes(@Context UriInfo uriInfo,
+                                   @Context final TangoProxy proxy,
                                    @Context ServletContext context) throws Exception {
         final String href = uriInfo.getPath();
 
@@ -351,6 +353,7 @@ public class Rc2ApiImpl {
                                        @PathParam("event") String event,
                                        @QueryParam("timeout") long timeout,
                                        @QueryParam("state") EventHelper.State state,
+                                       @Context UriInfo uriInfo,
                                        @Context ServletContext context,
                                        @Context TangoProxy proxy) throws InterruptedException, URISyntaxException {
         TangoEvent tangoEvent;

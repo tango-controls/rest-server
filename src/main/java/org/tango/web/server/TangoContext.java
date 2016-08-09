@@ -42,8 +42,12 @@ public class TangoContext {
     public volatile long staticDataExpirationDelay = 30000L;
 
     public volatile boolean isCacheEnabled = false;
-    public volatile String tangoDbName = SYS_DATABASE_2;
+    //defines tangoHost specified at start via tango rest server device properties or environmental variable
     public volatile String tangoHost = TANGO_LOCALHOST;
+    //defines tango db device name is used for db proxy lookup
+    public volatile String tangoDbName = SYS_DATABASE_2;
+    //defines full path to tango db to which application connects at start
+    public volatile String tangoDb = "tango://" + TANGO_LOCALHOST + "/" + SYS_DATABASE_2;
 
     public final TangoProxyPool hostsPool = new TangoProxyPool();
 
@@ -55,6 +59,7 @@ public class TangoContext {
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("tangoHost", tangoHost)
+                .add("tangoDb", tangoDb)
                 .add("tangoDbName", tangoDbName)
                 .add("tangoProxyKeepAliveDelay", tangoProxyKeepAliveDelay)
                 .add("tangoProxyKeepAliveDelayTimeUnit", tangoProxyKeepAliveDelayTimeUnit)
@@ -68,6 +73,15 @@ public class TangoContext {
 
     public TangoProxy getHostProxy(String host, String port) throws TangoProxyException {
         return hostsPool.getProxy("tango://" + host + ":" + port + "/" + tangoDbName);
+    }
+
+    /**
+     *
+     * @return tango db proxy created at application start
+     * @throws TangoProxyException
+     */
+    public TangoProxy getHostProxy() throws TangoProxyException {
+        return hostsPool.getProxy("tango://" + tangoHost + "/" + tangoDbName);
     }
 
     /**
