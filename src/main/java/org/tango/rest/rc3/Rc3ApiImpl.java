@@ -41,11 +41,8 @@ import java.util.Map;
 public class Rc3ApiImpl {
     private final Logger logger = LoggerFactory.getLogger(Rc3ApiImpl.class);
 
-    @Context
-    private UriInfo uriInfo;
-
     @GET
-    public Map<String, String> authentication(@Context ServletContext context, @Context TangoContext tangoContext) {
+    public Map<String, String> authentication(@Context UriInfo uriInfo, @Context ServletContext context, @Context TangoContext tangoContext) {
         Map<String, String> result = new HashMap<>();
 
         result.put("hosts", uriInfo.getAbsolutePath() + "/hosts");
@@ -56,7 +53,7 @@ public class Rc3ApiImpl {
 
     @GET
     @Path("/hosts")
-    public Map<String, String> getHosts(@Context TangoContext tangoContext) throws TangoProxyException {
+    public Map<String, String> getHosts(@Context final UriInfo uriInfo, @Context TangoContext tangoContext) throws TangoProxyException {
         Map<String, String> result = Maps.newHashMap();
 
         for(Map.Entry<String, String> entry : Lists.transform(tangoContext.hostsPool.proxies(), new Function<TangoProxy, Map.Entry<String,String>>() {
@@ -81,7 +78,8 @@ public class Rc3ApiImpl {
     @Partitionable
     @StaticValue
     @Path("/hosts/{host}/{port}")
-    public Object getHost(@Context final DatabaseDs db,
+    public Object getHost(@Context final UriInfo uriInfo,
+                          @Context final DatabaseDs db,
                           @Context final ServletContext context) throws Exception {
         final String[] tangoHost = db.toDeviceProxy().get_tango_host().split(":");
         return new Object(){
@@ -98,6 +96,7 @@ public class Rc3ApiImpl {
     @StaticValue
     @Partitionable
     public Object get(@QueryParam("wildcard") String wildcard,
+                      @Context final UriInfo uriInfo,
                       @Context DatabaseDs db,
                       @Context final ServletContext context){
         try {
