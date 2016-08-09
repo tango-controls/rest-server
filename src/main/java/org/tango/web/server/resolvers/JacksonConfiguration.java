@@ -59,6 +59,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new ErrSeveritySerializer(ErrSeverity.class));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
         tangoModule.addSerializer(new AttrDataFormatSerializer(AttrDataFormat.class));
+        tangoModule.addSerializer(new AttrQualitySerializer(AttrQuality.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
@@ -169,6 +170,16 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
     }
 
+    private static class AttrQualitySerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttrQuality>  {
+        public AttrQualitySerializer(Class<AttrQuality> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(AttrQuality attrQuality, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException, JsonGenerationException {
+            jgen.writeString(attrQuality.toString());
+        }
+    }
 
     public static class DispLevelSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<DispLevel> {
         public DispLevelSerializer(Class<DispLevel> t) {
