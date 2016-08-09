@@ -19,7 +19,6 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
@@ -47,7 +46,7 @@ import static org.mockito.Mockito.mock;
  */
 @Path("/{domain}/{family}/{member}")
 @Produces("application/json")
-public class Device extends Rc2ApiImpl {
+public class Device {
     @GET
     @StaticValue
     public Object get(@PathParam("domain") String domain,
@@ -108,7 +107,7 @@ public class Device extends Rc2ApiImpl {
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValuesPut(@Context final TangoProxy proxy,
                                                                         @Context ServletContext context,
                                                                         @Context UriInfo uriInfo) throws Exception {
-        boolean async = uriInfo.getQueryParameters().containsKey(ASYNC);
+        boolean async = uriInfo.getQueryParameters().containsKey("async");
         fr.esrf.TangoApi.DeviceAttribute[] attrs =
                 Iterables.toArray(
                         Iterables.transform(uriInfo.getQueryParameters().entrySet(), new Function<Map.Entry<String, List<String>>, fr.esrf.TangoApi.DeviceAttribute>() {
@@ -238,7 +237,7 @@ public class Device extends Rc2ApiImpl {
     @Path("/properties")
     public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
         Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
-        boolean async = parametersMap.remove(ASYNC) != null;
+        boolean async = parametersMap.remove("async") != null;
 
         DbDatum[] input = Iterables.toArray(Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DbDatum>() {
             @Override
