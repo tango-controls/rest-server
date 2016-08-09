@@ -60,8 +60,8 @@ public class TangoRestServer {
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = SYS_ACCESS_CONTROL_1)
     private String tangoAccessProp;
 
-    @DeviceProperty(name = TOMCAT_PORT, defaultValue = "8844")
-    private int tomcatPort = 8844;
+    @DeviceProperty(name = TOMCAT_PORT, defaultValue = "9999")
+    private int tomcatPort = 9999;
 
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
     private String tomcatAuthConfigurationClass;
@@ -153,9 +153,9 @@ public class TangoRestServer {
             tangoRestServer.tomcat.setPort(tangoRestServer.tomcatPort);
             tangoRestServer.tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
 
-            logger.trace("Add webapp[{}] tomcat for device", tangoRestServer.tangoDbHost);
+            logger.trace("Add webapp[tango] tomcat for device");
             org.apache.catalina.Context context =
-                    tangoRestServer.tomcat.addWebapp(tangoRestServer.tangoDbHost, tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
+                    tangoRestServer.tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
 
             WebappLoader loader =
                     new WebappLoader(Thread.currentThread().getContextClassLoader());
