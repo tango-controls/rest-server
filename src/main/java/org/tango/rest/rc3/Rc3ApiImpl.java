@@ -12,7 +12,6 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.Device;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.rest.rc2.Rc2ApiImpl;
 import org.tango.rest.response.Responses;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
@@ -39,7 +38,7 @@ import java.util.Map;
  */
 @Path("/rc3")
 @Produces("application/json")
-public class Rc3ApiImpl extends Rc2ApiImpl {
+public class Rc3ApiImpl {
     private final Logger logger = LoggerFactory.getLogger(Rc3ApiImpl.class);
 
     @Context
