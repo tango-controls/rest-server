@@ -2,9 +2,11 @@
 <configuration>
 	<jmxConfigurator />
 
+	<property name="layoutPattern" value="%p %d [%t - %X{deviceName} - %C{1}] %logger{36}.%M:%L - %m%n" />
+
 	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
-			<pattern>%p %d{dd-MM-yyyy HH:mm:ss,SSS} [%t - %C{1}] %m%n</pattern>
+			<pattern>${layoutPattern}</pattern>
 		</layout>
 	</appender>
 
@@ -27,7 +29,7 @@
 				</triggeringPolicy>
 				<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
 					<layout class="ch.qos.logback.classic.PatternLayout">
-						<pattern>%-5level %d{HH:mm:ss.SSS} [%thread - %X{deviceName}] %logger{36}.%M:%L - %msg%n</pattern>
+						<pattern>${layoutPattern}</pattern>
 					</layout>
 				</encoder>
 			</appender>
