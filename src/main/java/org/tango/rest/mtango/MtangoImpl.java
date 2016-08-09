@@ -425,9 +425,9 @@ public class MtangoImpl {
             writer.write("{\"argout\":\"data:/jpeg;base64,");
             writer.flush();
             if(ImageIO.write(image, "jpeg", out)) {
-                writer.write("\",\"quality\":\"VALID\"");
+                writer.write("\",\"quality\":\"ATTR_VALID\"");
             } else {
-                writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
+                writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"ATTR_INVALID\"");
             }
             writer.write(",\"timestamp\":");
             writer.write(Long.toString(valueTimeQuality.time));
