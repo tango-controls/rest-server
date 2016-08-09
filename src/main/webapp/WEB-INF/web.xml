@@ -17,8 +17,7 @@
     <context-param>
         <param-name>resteasy.resources</param-name>
         <param-value>
-            org.tango.rest.EntryPoint,
-            org.tango.rest.rc3.Rc3ApiImpl
+            org.tango.rest.EntryPoint
         </param-value>
     </context-param>
     <context-param>
@@ -36,8 +35,7 @@
             org.tango.web.server.providers.AttributeValueCacheProvider,
             org.tango.web.server.providers.StaticValueCacheProvider,
             org.tango.web.server.providers.PartitionProvider,
-            org.tango.web.server.providers.TangoRestFilterProvider,
-            org.tango.web.server.providers.CORSProvider
+            org.tango.web.server.providers.TangoRestFilterProvider
         </param-value>
     </context-param>
 
@@ -47,6 +45,22 @@
     <listener>
         <listener-class>org.tango.web.server.Launcher</listener-class>
     </listener>
+
+    <filter>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+
+        <init-param>
+            <param-name>cors.allowed.methods</param-name>
+            <param-value>GET,HEAD,POST,PUT,DELETE,OPTIONS</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>cors.allowed.headers</param-name>
+            <param-value>Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,Accept-Encoding,Accept-Language,Access-Control-Request-Method,Cache-Control,Connection,Host,Referer,User-Agent</param-value>
+        </init-param>
+
+    </filter>
 
     <filter>
         <filter-name>StopWatch</filter-name>
@@ -91,6 +105,13 @@
         <servlet-class>org.tango.web.server.groovy.GroovyConsole</servlet-class>
     </servlet>
 
+
+
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/rest/*</url-pattern>
+    </filter-mapping>
+
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
         <url-pattern>/rest/*</url-pattern>
@@ -130,6 +151,11 @@
         <web-resource-collection>
             <web-resource-name>Tango RESTful gateway</web-resource-name>
             <url-pattern>/rest/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>POST</http-method>
+            <http-method>PUT</http-method>
+            <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
             <role-name>mtango-rest</role-name>
