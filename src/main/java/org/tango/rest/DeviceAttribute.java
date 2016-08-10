@@ -156,7 +156,15 @@ public class DeviceAttribute {
     @org.tango.web.server.providers.AttributeValue
     @Path("/value")
     public Object deviceAttributeValueGet(@Context TangoProxy proxy) throws Exception {
-        return proxy.toDeviceProxy().read_attribute(name);
+        final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
+
+
+        return new Object() {
+            public String name = DeviceAttribute.this.name;
+            public Object value = result.value;
+            public AttrQuality quality = result.quality;
+            public long timestamp = result.time;
+        };
     }
 
     @PUT

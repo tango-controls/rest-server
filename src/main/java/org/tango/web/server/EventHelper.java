@@ -1,7 +1,7 @@
 package org.tango.web.server;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import org.tango.client.ez.attribute.Quality;
+import fr.esrf.Tango.AttrQuality;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
@@ -34,9 +34,9 @@ public class EventHelper {
                 //read initial value from the proxy
                 ValueTimeQuality<?> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
                 Response<?> result = Responses.createAttributeSuccessResult(
-                        attrTimeQuality.getValue(),
-                        attrTimeQuality.getTime(),
-                        attrTimeQuality.getQuality().name()
+                        attrTimeQuality.value,
+                        attrTimeQuality.time,
+                        attrTimeQuality.quality.toString()
                 );
 
                 helper.set(result);
@@ -117,7 +117,7 @@ public class EventHelper {
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
-                EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), Quality.VALID.name()));
+                EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), AttrQuality.ATTR_VALID.toString()));
             }
 
             @Override
