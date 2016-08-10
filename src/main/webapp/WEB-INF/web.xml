@@ -47,19 +47,8 @@
     </listener>
 
     <filter>
-        <filter-name>CorsFilter</filter-name>
-        <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
-
-        <init-param>
-            <param-name>cors.allowed.methods</param-name>
-            <param-value>GET,HEAD,POST,PUT,DELETE,OPTIONS</param-value>
-        </init-param>
-
-        <init-param>
-            <param-name>cors.allowed.headers</param-name>
-            <param-value>Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,Accept-Encoding,Accept-Language,Access-Control-Request-Method,Cache-Control,Connection,Host,Referer,User-Agent</param-value>
-        </init-param>
-
+        <filter-name>CORSFilter</filter-name>
+        <filter-class>org.tango.web.server.filters.CORSFilter</filter-class>
     </filter>
 
     <filter>
@@ -108,8 +97,8 @@
 
 
     <filter-mapping>
-        <filter-name>CorsFilter</filter-name>
-        <url-pattern>/rest/*</url-pattern>
+        <filter-name>CORSFilter</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <servlet-mapping>
