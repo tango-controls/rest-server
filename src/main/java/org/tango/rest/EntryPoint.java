@@ -37,7 +37,7 @@ public class EntryPoint /* extends Application*/ {
         Map<String,String> result = new HashMap<>();
 
         for(String version : supportedVersions.keySet()){
-            result.put(version, uriInfo.getAbsolutePath() + version);
+            result.put(version, uriInfo.getAbsolutePath() + "/" + version);
         }
 
         return result;
