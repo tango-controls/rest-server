@@ -1,10 +1,9 @@
 package org.tango.web.server.rest;
 
 import com.google.gson.Gson;
-import org.javatuples.Triplet;
+import fr.esrf.Tango.AttrQuality;
 import org.jboss.resteasy.util.Base64;
 import org.junit.Test;
-import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.ValueTimeQuality;
@@ -17,7 +16,7 @@ import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class ImageAttributeHelperTest {
@@ -30,7 +29,7 @@ public class ImageAttributeHelperTest {
 
         //fake TangoImage - single black pixel image
         TangoImage<int[]> tangoImage = new TangoImage<>(new int[]{0}, 1, 1); when(proxy.<TangoImage<int[]>>readAttributeValueTimeQuality(any(String.class)))
-                .thenReturn(new ValueTimeQuality<TangoImage<int[]>>(tangoImage, now, Quality.VALID));
+                .thenReturn(new ValueTimeQuality<TangoImage<int[]>>(tangoImage, now, AttrQuality.ATTR_VALID));
 
         MtangoImpl.ImageAttributeHelper instance = new MtangoImpl.ImageAttributeHelper(proxy,System.getProperty("java.io.tmpdir"));
 
@@ -45,7 +44,7 @@ public class ImageAttributeHelperTest {
         ImageIO.write(renderedImage,"jpeg", Files.createTempFile("ImageAttributeHelperTest_testSend_", ".jpeg").toFile());
         ImageIO.write(renderedImage,"jpeg", encoded);
 
-        Response<String> expectedResponse = new Response<String>("data:/jpeg;base64," + out.toString(),null,Quality.VALID.name(),now);
+        Response<String> expectedResponse = new Response<String>("data:/jpeg;base64," + out.toString(),null,AttrQuality.ATTR_VALID.toString() ,now);
 
         Gson gson = new Gson();
 

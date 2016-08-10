@@ -1,7 +1,6 @@
 package org.tango.web.server.rest;
 
 import fr.esrf.Tango.DevFailed;
-import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.response.Responses;
 
 import javax.ws.rs.core.MediaType;
@@ -18,6 +17,6 @@ public class DevFailedMapper implements ExceptionMapper<DevFailed> {
     @Override
     public Response toResponse(DevFailed exception) {
         return Response.ok().entity(
-                Responses.createFailureResult(TangoUtils.convertDevFailedToException(exception))).type(MediaType.APPLICATION_JSON).build();
+                Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
     }
 }

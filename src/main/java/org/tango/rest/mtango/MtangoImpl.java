@@ -425,12 +425,12 @@ public class MtangoImpl {
             writer.write("{\"argout\":\"data:/jpeg;base64,");
             writer.flush();
             if(ImageIO.write(image, "jpeg", out)) {
-                writer.write("\",\"quality\":\"VALID\"");
+                writer.write("\",\"quality\":\"ATTR_VALID\"");
             } else {
-                writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
+                writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"ATTR_INVALID\"");
             }
             writer.write(",\"timestamp\":");
-            writer.write(Long.toString(valueTimeQuality.getTime()));
+            writer.write(Long.toString(valueTimeQuality.time));
             writer.write("}");
 
             writer.flush();
@@ -438,7 +438,7 @@ public class MtangoImpl {
 
         RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer) throws IOException{
             //the first is a two dim array
-            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue();
+            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.value;
 
             Class<?> componentType = tangoImage.getData().getClass().getComponentType();
             if(componentType != int.class) {
@@ -458,7 +458,7 @@ public class MtangoImpl {
 
         @Override
         RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer){
-            return (RenderedImage) valueTimeQuality.getValue();
+            return (RenderedImage) valueTimeQuality.value;
         }
     }
 
@@ -503,7 +503,7 @@ public class MtangoImpl {
             try {
                 result = proxy.readAttributeValueTimeQuality(attr);
                 return Responses.createAttributeSuccessResult(
-                        result.getValue(), result.getTime(), result.getQuality().name());
+                        result.value, result.time, result.quality.toString());
             } catch (NoSuchAttributeException|TangoProxyException e) {
                 return Responses.createFailureResult(
                         String.format("Can not read attribute[%s/%s]",proxy.getName(),attr),e);

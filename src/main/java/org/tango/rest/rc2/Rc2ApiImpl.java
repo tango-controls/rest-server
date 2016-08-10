@@ -3,6 +3,7 @@ package org.tango.rest.rc2;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import fr.esrf.Tango.AttrQuality;
 import fr.esrf.Tango.AttributeConfig;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
@@ -260,10 +261,9 @@ public class Rc2ApiImpl {
 
         return new Object() {
             public String name = attrName;
-            public Object value = result.getValue();
-            public String quality = result.getQuality().name();
-            public long timestamp = result.getTime();
-            public Object _links;
+            public Object value = result.value;
+            public AttrQuality quality = result.quality;
+            public long timestamp = result.time;
         };
     }
 

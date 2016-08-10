@@ -19,7 +19,6 @@ import org.codehaus.jackson.map.ser.BeanPropertyWriter;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
-import org.codehaus.jackson.type.JavaType;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
 import org.tango.client.ez.data.TangoDataWrapper;
@@ -59,6 +58,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new ErrSeveritySerializer(ErrSeverity.class));
         tangoModule.addSerializer(new AttrWriteTypeSerializer(AttrWriteType.class));
         tangoModule.addSerializer(new AttrDataFormatSerializer(AttrDataFormat.class));
+        tangoModule.addSerializer(new AttrQualitySerializer(AttrQuality.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
@@ -136,14 +136,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             super(t);
         }
 
-        public AttrWriteTypeSerializer(JavaType type) {
-            super(type);
-        }
-
-        public AttrWriteTypeSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
-        }
-
         @Override
         public void serialize(AttrWriteType value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeString(value.toString());
@@ -155,32 +147,26 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             super(t);
         }
 
-        public AttrDataFormatSerializer(JavaType type) {
-            super(type);
-        }
-
-        public AttrDataFormatSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
-        }
-
         @Override
         public void serialize(AttrDataFormat value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeString(value.toString());
         }
     }
 
+    private static class AttrQualitySerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttrQuality>  {
+        public AttrQualitySerializer(Class<AttrQuality> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(AttrQuality attrQuality, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException, JsonGenerationException {
+            jgen.writeString(attrQuality.toString());
+        }
+    }
 
     public static class DispLevelSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<DispLevel> {
         public DispLevelSerializer(Class<DispLevel> t) {
             super(t);
-        }
-
-        public DispLevelSerializer(JavaType type) {
-            super(type);
-        }
-
-        public DispLevelSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
         }
 
         @Override
@@ -194,14 +180,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             super(t);
         }
 
-        public DevStateSerializer(JavaType type) {
-            super(type);
-        }
-
-        public DevStateSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
-        }
-
         @Override
         public void serialize(DevState value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeString(value.toString());
@@ -211,14 +189,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     public static class PipeBlobSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<PipeBlob> {
         public PipeBlobSerializer(Class<PipeBlob> t) {
             super(t);
-        }
-
-        public PipeBlobSerializer(JavaType type) {
-            super(type);
-        }
-
-        public PipeBlobSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
         }
 
         @Override
@@ -280,14 +250,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         public TangoImageSerializer(Class<TangoImage> t) {
             super(t);
-        }
-
-        public TangoImageSerializer(JavaType type) {
-            super(type);
-        }
-
-        public TangoImageSerializer(Class<?> t, boolean dummy) {
-            super(t, dummy);
         }
 
         @Override
