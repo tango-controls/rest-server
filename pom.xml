@@ -127,7 +127,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>1.19.5</version>
+            <version>1.19.6</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
