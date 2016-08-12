@@ -434,12 +434,11 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             try {
                 jgen.writeStartObject();
 
-                TangoDataFormat<?> dataFormat = TangoDataFormat.createForAttrDataFormat(value.getDataFormat());
-                TangoDataType<?> dataType = dataFormat.getDataType(value.getType());
-                jgen.writeStringField("name", value.getName());
-
-
                 if(!value.hasFailed()) {
+                    TangoDataFormat<?> dataFormat = TangoDataFormat.createForAttrDataFormat(value.getDataFormat());
+                    TangoDataType<?> dataType = dataFormat.getDataType(value.getType());
+                    jgen.writeStringField("name", value.getName());
+
                     jgen.writeFieldName("value");
                     provider.defaultSerializeValue(dataType.extract(TangoDataWrapper.create(value)), jgen);
                     jgen.writeStringField("quality", value.getQuality().toString());
@@ -447,6 +446,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                     jgen.writeNumber(value.getTime());
                 }
                 else {
+                    jgen.writeStringField("name", value.getName());
                     jgen.writeArrayFieldStart("errors");
                     for(DevError error : value.getErrStack()){
                         provider.defaultSerializeValue(error, jgen);
