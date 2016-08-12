@@ -446,6 +446,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                     jgen.writeNumber(value.getTime());
                 }
                 else {
+                    jgen.writeStringField("name", value.getName());
                     jgen.writeArrayFieldStart("errors");
                     for(DevError error : value.getErrStack()){
                         provider.defaultSerializeValue(error, jgen);
