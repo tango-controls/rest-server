@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
 import org.tango.client.ez.data.TangoDataWrapper;
+import org.tango.client.ez.data.format.TangoDataFormat;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
@@ -433,7 +434,8 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             try {
                 jgen.writeStartObject();
 
-                TangoDataType<?> dataType = TangoDataTypes.forTangoDevDataType(value.getType());
+                TangoDataFormat<?> dataFormat = TangoDataFormat.createForAttrDataFormat(value.getDataFormat());
+                TangoDataType<?> dataType = dataFormat.getDataType(value.getType());
                 jgen.writeStringField("name", value.getName());
 
 
