@@ -172,21 +172,15 @@ public class DeviceAttribute {
     @Path("/value")
     public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async,
                                           @Context TangoProxy proxy) throws Exception {
+
         TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(name);
         Class<?> targetType = attributeInfo.getClazz();
         Object converted = ConvertUtils.convert(value, targetType);
 
-        fr.esrf.TangoApi.DeviceAttribute attr = new fr.esrf.TangoApi.DeviceAttribute(name);
-
-        TangoDataType<Object> dataType = (TangoDataType<Object>) attributeInfo.getType();
-        dataType.insert(TangoDataWrapper.create(attr), converted);
-
-        if (!async) {
-            proxy.toDeviceProxy().write_attribute(attr);
-            return proxy.toDeviceProxy().read_attribute(name);
-        } else {
-            proxy.toDeviceProxy().write_attribute_asynch(attr);
+        proxy.writeAttribute(name, converted);
+        if (async) {
             return null;
         }
+        return deviceAttributeValueGet(proxy);
     }
 }
