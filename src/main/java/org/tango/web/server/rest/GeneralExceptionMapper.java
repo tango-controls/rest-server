@@ -15,7 +15,6 @@ import javax.ws.rs.ext.Provider;
 public class GeneralExceptionMapper implements ExceptionMapper<Exception>{
     @Override
     public Response toResponse(Exception exception) {
-        return Response.status(Response.Status.OK).entity(
-                Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
+        return Response.ok(Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
     }
 }
