@@ -16,7 +16,6 @@ import javax.ws.rs.ext.Provider;
 public class DevFailedMapper implements ExceptionMapper<DevFailed> {
     @Override
     public Response toResponse(DevFailed exception) {
-        return Response.ok().entity(
-                Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
+        return Response.ok(Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
     }
 }
