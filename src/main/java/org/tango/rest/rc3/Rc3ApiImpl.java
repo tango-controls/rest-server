@@ -62,7 +62,7 @@ public class Rc3ApiImpl {
                 if(input == null) return null;
                 try {
                     String tango_host = input.toDeviceProxy().get_tango_host();
-                    return new AbstractMap.SimpleEntry<>(tango_host, uriInfo.getAbsolutePath() + tango_host.replace(':', '/'));
+                    return new AbstractMap.SimpleEntry<>(tango_host, uriInfo.getAbsolutePath() + "/" + tango_host.replace(':', '/'));
                 } catch (DevFailed devFailed) {
                     DevFailedUtils.logDevFailed(devFailed, logger);
                     return null;//TODO skip
