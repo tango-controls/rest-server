@@ -50,6 +50,12 @@ public class TangoRestServer {
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
 
+    // descriptions
+    public static final String CACHE_ENABLED_DESC = "Enables/disables client and server cache. Client cache means adding HTTP request headers.";
+    public static final String SERVER_SIDE_DESC = "Defines how long server keeps an attribute value of a remote Tango device.";
+    public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
+    public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
+
 
     @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbNameProp;
@@ -176,7 +182,7 @@ public class TangoRestServer {
         logger.trace("Done.");
     }
 
-    public volatile TangoContext ctx;
+    private final TangoContext ctx = new TangoContext();
 
 
     @Attribute
@@ -205,55 +211,63 @@ public class TangoRestServer {
         }
     }
 
-    @Attribute
+    @Attribute(isMemorized = true)
+    @AttributeProperties(description = CACHE_ENABLED_DESC)
     public boolean getCacheEnabled() {
         return ctx.isCacheEnabled;
     }
 
-    @Attribute
+    @Attribute(isMemorized = true)
+    @AttributeProperties(description = CACHE_ENABLED_DESC)
     public void setCacheEnabled(boolean v) {
         ctx.isCacheEnabled = v;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
     public void setServerSideCacheExpirationDelay(long v){
         ctx.serverSideCacheExpirationDelay = v;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
     public long getServerSideCacheExpirationDelay(){
         return ctx.serverSideCacheExpirationDelay;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
-    public void setProxyKeepAliveDelay(long millis) {
-        ctx.tangoProxyKeepAliveDelay = ctx.tangoProxyKeepAliveDelayTimeUnit.convert(millis, TimeUnit.MILLISECONDS);
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "minutes")
+    public long getProxyKeepAliveDelay(){
+        return ctx.tangoProxyKeepAliveDelay;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "minutes")
+    public void setProxyKeepAliveDelay(long v) {
+        ctx.tangoProxyKeepAliveDelay = v;
+    }
+
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = ATTR_VAL_DESC)
     public long getAttributeValueExpirationDelay() {
         return ctx.attributeValueExpirationDelay;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = ATTR_VAL_DESC)
     public void setAttributeValueExpirationDelay(long v) {
         ctx.attributeValueExpirationDelay = v;
     }
 
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = STATIC_VAL_DESC)
     public long getStaticValueExpirationDelay() {
         return ctx.staticDataExpirationDelay;
     }
 
-    @Attribute
-    @AttributeProperties(unit = "millis")
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = STATIC_VAL_DESC)
     public void setStaticValueExpirationDelay(long v) {
         ctx.staticDataExpirationDelay = v;
     }
@@ -276,5 +290,9 @@ public class TangoRestServer {
 
     public void setTomcatAuthConfigurationClass(String tomcatAuthConfig) {
         this.tomcatAuthConfigurationClass = tomcatAuthConfig;
+    }
+
+    public TangoContext getCtx(){
+        return ctx;
     }
 }

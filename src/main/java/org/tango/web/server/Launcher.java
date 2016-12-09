@@ -35,7 +35,22 @@ public class Launcher implements ServletContextListener {
         try {
             startTangoServer();//calls TangoRestServer.init - sets System properties from Device properties
 
-            TangoContext context = new TangoContext();
+            initializeTangoServletContext(sce, tangoHost);
+
+            logger.info("TangoRestServer servlet engine is initialized.");
+        } catch (TangoProxyException e) {
+            logger.error("TangoRestServer servlet engine has failed to initialize: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void initializeTangoServletContext(ServletContextEvent sce, String tangoHost) throws TangoProxyException {
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
+
+        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
+        if(tangoRestServers.size() > 1) throw new RuntimeException("This Tango server must have exactly one defined device.");
+        for (TangoRestServer tangoRestServer : tangoRestServers) {
+            TangoContext context = tangoRestServer.getCtx();
             context.tangoHost = tangoHost;
 
             context.tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoContext.SYS_DATABASE_2);
@@ -53,13 +68,6 @@ public class Launcher implements ServletContextListener {
             sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
 
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
-
-            setTangoRestServerContext(context);
-
-            logger.info("TangoRestServer is initialized.");
-        } catch (TangoProxyException e) {
-            logger.error("TangoRestServer has failed to initialize: {}", e.getMessage());
-            throw new RuntimeException(e);
         }
     }
 
@@ -67,15 +75,6 @@ public class Launcher implements ServletContextListener {
         String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
 
         ServerManager.getInstance().start(new String[]{instance}, TangoRestServer.class);
-    }
-
-    private void setTangoRestServerContext(TangoContext ctx){
-        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
-
-        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
-        for (TangoRestServer tangoRestServer : tangoRestServers) {
-            tangoRestServer.ctx = ctx;
-        }
     }
 
     @Override
