@@ -217,6 +217,18 @@ public class TangoRestServer {
 
     @Attribute
     @AttributeProperties(unit = "millis")
+    public void setServerSideCacheExpirationDelay(long v){
+        ctx.serverSideCacheExpirationDelay = v;
+    }
+
+    @Attribute
+    @AttributeProperties(unit = "millis")
+    public long getServerSideCacheExpirationDelay(){
+        return ctx.serverSideCacheExpirationDelay;
+    }
+
+    @Attribute
+    @AttributeProperties(unit = "millis")
     public void setProxyKeepAliveDelay(long millis) {
         ctx.tangoProxyKeepAliveDelay = ctx.tangoProxyKeepAliveDelayTimeUnit.convert(millis, TimeUnit.MILLISECONDS);
     }
