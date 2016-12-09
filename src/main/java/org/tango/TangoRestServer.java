@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 14.12.2015
  */
-@Device
+@Device(transactionType = TransactionType.NONE)
 public class TangoRestServer {
     private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
 
@@ -83,7 +83,7 @@ public class TangoRestServer {
     private Tomcat tomcat;
 
     @Init
-    @StateMachine(endState = DeviceState.RUNNING)
+    @StateMachine(endState = DeviceState.ON)
     public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
         logger.trace("Init'ing TangoRestServer device...");
         tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
