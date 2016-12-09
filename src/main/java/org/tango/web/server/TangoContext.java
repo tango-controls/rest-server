@@ -41,6 +41,8 @@ public class TangoContext {
     public volatile long attributeValueExpirationDelay = 200L;
     public volatile long staticDataExpirationDelay = 30000L;
 
+    public volatile long serverSideCacheExpirationDelay = 200L;
+
     public volatile boolean isCacheEnabled = false;
     //defines tangoHost specified at start via tango rest server device properties or environmental variable
     public volatile String tangoHost = TANGO_LOCALHOST;

@@ -19,9 +19,8 @@ import java.util.concurrent.ConcurrentMap;
  * @since 09.02.2015
  */
 public class SimpleCacheFilter implements Filter {
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleCacheFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(SimpleCacheFilter.class);
 
-    public static final long DELAY = 200L;//TODO parameter
     public static final int CAPACITY = 1000;//TODO parameter
 
     private final ConcurrentMap<String, CacheEntry> cache = new ConcurrentLinkedHashMap.Builder<String, CacheEntry>()
@@ -34,6 +33,7 @@ public class SimpleCacheFilter implements Filter {
     //TODO race conditions
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         if(!tangoContext.isCacheEnabled) {
+            logger.debug("Skipping cache due to cache is not enabled.");
             chain.doFilter(req, resp);
             return;
         }
@@ -46,15 +46,15 @@ public class SimpleCacheFilter implements Filter {
 
         if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {//TODO GET with assignment
             CacheEntry cacheEntry = cache.get(URI);
-            if (cacheEntry == null || timestamp - cacheEntry.timestamp > DELAY) {
-                LOG.debug("Cache miss!");
+            if (cacheEntry == null || timestamp - cacheEntry.timestamp > tangoContext.serverSideCacheExpirationDelay) {
+                logger.debug("Cache miss!");
                 CachedResponseWrapper wrapper = new CachedResponseWrapper(httpResp);
                 chain.doFilter(req, wrapper);
 
                 cache.put(URI, cacheEntry = new CacheEntry(timestamp, wrapper.cached.toByteArray()));
                 returnCachedValue(cacheEntry, resp);
             } else {
-                LOG.debug("Cache hit!");
+                logger.debug("Cache hit!");
                 returnCachedValue(cacheEntry, resp);
             }
         } else {
