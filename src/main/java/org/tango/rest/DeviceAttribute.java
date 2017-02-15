@@ -7,10 +7,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.*;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.TangoDataTypes;
-import org.tango.client.ez.data.type.UnknownTangoDataType;
-import org.tango.client.ez.data.type.ValueExtractionException;
+import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.response.Responses;
@@ -189,5 +186,22 @@ public class DeviceAttribute {
     @Path("/value/plain")
     public Object deviceAttributeGetValuePlain(@Context TangoProxy proxy) throws Exception {
         return proxy.readAttribute(name);
+    }
+
+    @GET
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/value/image")
+    public Object deviceAttributeGetValueImage(@Context TangoProxy proxy) throws Exception {
+        //TODO may throw ClassCast in case non image attribute is requested
+        final TangoImage image =  proxy.readAttribute(name);
+        return new ImageAttributeValue(image);
+    }
+
+    public class ImageAttributeValue {
+        public TangoImage value;
+
+        public ImageAttributeValue(TangoImage image) {
+            this.value = image;
+        }
     }
 }
