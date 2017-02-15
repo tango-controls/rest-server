@@ -183,4 +183,11 @@ public class DeviceAttribute {
         }
         return deviceAttributeValueGet(proxy);
     }
+
+    @GET
+    @org.tango.web.server.providers.AttributeValue
+    @Path("/value/plain")
+    public Object deviceAttributeGetValuePlain(@Context TangoProxy proxy) throws Exception {
+        return proxy.readAttribute(name);
+    }
 }
