@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import fr.esrf.Tango.*;
 import fr.esrf.TangoApi.*;
+import fr.esrf.TangoApi.DeviceAttribute;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.codehaus.jackson.*;
@@ -62,7 +63,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new AttrQualitySerializer(AttrQuality.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
-        tangoModule.addSerializer(new TangoImageSerializer(TangoImage.class));
+        tangoModule.addSerializer(new TangoImageSerializer(org.tango.rest.DeviceAttribute.ImageAttributeValue.class));
         tangoModule.addSerializer(new DevStateSerializer(DevState.class));
         tangoModule.addSerializer(new AttrInfoSerializer(AttributeInfo.class));
         tangoModule.addSerializer(new AttrInfoExSerializer(AttributeInfoEx.class));
@@ -247,20 +248,21 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
     }
 
-    private class TangoImageSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<TangoImage> {
+    private class TangoImageSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<org.tango.rest.DeviceAttribute.ImageAttributeValue> {
 
-        public TangoImageSerializer(Class<TangoImage> t) {
+        public TangoImageSerializer(Class<org.tango.rest.DeviceAttribute.ImageAttributeValue> t) {
             super(t);
         }
 
         @Override
-        public void serialize(TangoImage value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
-            RenderedImage image = TangoImageUtils.toRenderedImage_sRGB((int[]) value.getData(), value.getWidth(), value.getHeight());
+        public void serialize(org.tango.rest.DeviceAttribute.ImageAttributeValue image, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            TangoImage value = image.value;
+            RenderedImage img = TangoImageUtils.toRenderedImage_sRGB((int[]) value.getData(), value.getWidth(), value.getHeight());
             jgen.flush();
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream(value.getWidth() * value.getHeight() * 4);
             OutputStream out = new Base64.OutputStream(bos);
-            ImageIO.write(image, "jpeg", out); //TODO write directly to output stream produces exception: org.codehaus.jackson.JsonGenerationException: Can not write a field name, expecting a value
+            ImageIO.write(img, "jpeg", out); //TODO write directly to output stream produces exception: org.codehaus.jackson.JsonGenerationException: Can not write a field name, expecting a value
             jgen.writeString("data:/jpeg;base64," + new String(bos.toByteArray()));
 
             jgen.flush();
