@@ -306,7 +306,6 @@
                 <configuration>
                     <useReleaseProfile>true</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
-                    <tagNameFormat>@{project.artifactId}</tagNameFormat>
                 </configuration>
             </plugin>
         </plugins>
