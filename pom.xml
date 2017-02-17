@@ -334,7 +334,7 @@
                         <version>1.5.0</version>
                         <executions>
                             <execution>
-                                <id>deploy</id>
+                                <id>deploy-jar</id>
                                 <phase>deploy</phase>
                                 <goals>
                                     <goal>exec</goal>
@@ -344,12 +344,33 @@
                                     <arguments>
                                         <argument>-s</argument>
                                         <argument>-u</argument>
-                                        <argument>"ingvord:${bitbucket.ingvord.password}"</argument>
+                                        <argument>ingvord:${bitbucket.ingvord.password}</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
                                         <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads</argument>
                                         <argument>-F</argument>
-                                        <argument>"files=@${project.build.directory}/${project.artifactId}-${project.version}.jar;@${project.build.directory}/${project.artifactId}-${project.version}.zip"</argument>
+                                        <argument>files=@${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>deploy-zip</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>curl</executable>
+                                    <arguments>
+                                        <argument>-s</argument>
+                                        <argument>-u</argument>
+                                        <argument>ingvord:${bitbucket.ingvord.password}</argument>
+                                        <argument>-X</argument>
+                                        <argument>POST</argument>
+                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads</argument>
+                                        <argument>-F</argument>
+                                        <argument>files=@${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
                                         <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
