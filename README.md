@@ -1,11 +1,5 @@
-# NEWS 
+# How to build
 
-rc4-0.1 has been released:
+Use maven: `mvn package`
 
- #124
-
- #121
-
- #120
-
- #116
+This builds .jar and .zip packages.
