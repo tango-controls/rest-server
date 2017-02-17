@@ -340,17 +340,17 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    'curl', '-s', '-u', "ingvord:${bitbucketPassword}", '-X', 'POST', 'https://api.bitbucket.org/2.0/repositories/tango-controls-collaboration/feature-request-6-tango-webapp/downloads', '-F', "files=@TangoWebapp.war"
                                     <executable>curl</executable>
                                     <arguments>
                                         <argument>-s</argument>
                                         <argument>-u</argument>
-                                        <argument>ingvord</argument>
+                                        <argument>"ingvord:${bitbucket.ingvord.password}"</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
                                         <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/${project.artifactId}/downloads</argument>
                                         <argument>-F</argument>
-                                        <argument>files=${project.build.directory}/${project.artifactId}-${project.version}.jar,${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
+                                        <argument>"files=@${project.build.directory}/${project.artifactId}-${project.version}.jar;@${project.build.directory}/${project.artifactId}-${project.version}.zip"</argument>
+                                        <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
