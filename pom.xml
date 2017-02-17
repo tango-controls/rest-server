@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
-    <artifactId>mtangorest.server</artifactId>
-    <version>rc4-0.2-SNAPSHOT</version>
+    <artifactId>mtangorest.server-rc4</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
