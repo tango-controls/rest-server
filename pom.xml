@@ -347,7 +347,7 @@
                                         <argument>"ingvord:${bitbucket.ingvord.password}"</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
-                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/${project.artifactId}/downloads</argument>
+                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads</argument>
                                         <argument>-F</argument>
                                         <argument>"files=@${project.build.directory}/${project.artifactId}-${project.version}.jar;@${project.build.directory}/${project.artifactId}-${project.version}.zip"</argument>
                                         <argument>--verbose</argument>
