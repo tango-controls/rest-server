@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
-    <artifactId>mtangorest.server</artifactId>
+    <artifactId>mtangorest.server-rc4</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
@@ -18,7 +18,6 @@
     </developers>
 
     <properties>
-        <tango.rest.api.version>rc4</tango.rest.api.version>
         <tomcat.version>7.0.65</tomcat.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <resteasy.version>3.0.7.Final</resteasy.version>
@@ -26,9 +25,9 @@
 
 
     <scm>
-        <connection>scm:hg:https://bitbucket.org/hzgwpn/${project.artifactId}</connection>
-        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/${project.artifactId}</developerConnection>
-        <url>ssh://hg@bitbucket.org/hzgwpn/${project.artifactId}</url>
+        <connection>scm:hg:https://bitbucket.org/hzgwpn/mtangorest.server</connection>
+        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</developerConnection>
+        <url>ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</url>
       <tag>HEAD</tag>
   </scm>
 
@@ -150,7 +149,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${tango.rest.api.version}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
