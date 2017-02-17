@@ -308,7 +308,7 @@
                 <configuration>
                     <useReleaseProfile>true</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
-                    <tagNameFormat>@{project.build.finalName}</tagNameFormat>
+                    <tagNameFormat>@{project.artifactId}</tagNameFormat>
                 </configuration>
             </plugin>
         </plugins>
