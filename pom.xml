@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
-    <artifactId>mtango.server</artifactId>
+    <artifactId>mtangorest.server</artifactId>
     <version>rc4-0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
@@ -24,6 +24,13 @@
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <resteasy.version>3.0.7.Final</resteasy.version>
     </properties>
+
+
+    <scm>
+        <connection>scm:hg:https://bitbucket.org/hzgwpn/${project.artifactId}</connection>
+        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/${project.artifactId}</developerConnection>
+        <url>ssh://hg@bitbucket.org/hzgwpn/${project.artifactId}</url>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -174,24 +181,6 @@
                         <exclude>**/*$*</exclude>
                     </excludes>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <phase>integration-test</phase>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/*$*</exclude>
-                            </excludes>
-
-                            <includes>
-                                <include>**/IT*</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -254,6 +243,20 @@
                             </archive>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>web-archive</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <skipAssembly>false</skipAssembly>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/assembly/web-archive.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -278,6 +281,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- skip installation to local maven repo -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <!-- skip deployment to remote maven repo -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <!-- release stuff -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <useReleaseProfile>true</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -291,4 +322,42 @@
             <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
         </repository>
     </repositories>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>deploy</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    'curl', '-s', '-u', "ingvord:${bitbucketPassword}", '-X', 'POST', 'https://api.bitbucket.org/2.0/repositories/tango-controls-collaboration/feature-request-6-tango-webapp/downloads', '-F', "files=@TangoWebapp.war"
+                                    <executable>curl</executable>
+                                    <arguments>
+                                        <argument>-s</argument>
+                                        <argument>-u</argument>
+                                        <argument>ingvord</argument>
+                                        <argument>-X</argument>
+                                        <argument>POST</argument>
+                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/${project.artifactId}/downloads</argument>
+                                        <argument>-F</argument>
+                                        <argument>files=${project.build.directory}/${project.artifactId}-${project.version}.jar,${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
