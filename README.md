@@ -6,4 +6,4 @@ This builds .jar and .zip packages.
 
 # How to use
 
-See [wiki](wiki/Home)
+See [wiki](https://bitbucket.org/hzgwpn/mtangorest.server/wiki/Home)
