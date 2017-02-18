@@ -12,4 +12,4 @@ See [wiki](https://bitbucket.org/hzgwpn/mtangorest.server/wiki/Home)
 
 # How to contribute
 
-Same as for GitHub - create Pull Request
+Same as for GitHub - fork and create a Pull Request
