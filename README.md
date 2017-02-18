@@ -1,3 +1,5 @@
+This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
+
 # How to build
 
 Use maven: `mvn package`
