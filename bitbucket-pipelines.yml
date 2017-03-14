@@ -12,7 +12,9 @@ pipelines:
 #          - apt-get install git
 #          - git clone https://github.com/tango-controls/rest-api.git           
           - mvn clean package
-          - java -jar target/mtangorest.server-rc4-0.1-SNAPSHOT.jar development &
+          - java -jar target/mtangorest.server-rc4-0.2-SNAPSHOT.jar development &
 #          - cd rest-api
 #          - mvn compile
           - uname -a
+          - sleep 10
+          - killall java
