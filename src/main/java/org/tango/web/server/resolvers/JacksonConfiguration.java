@@ -85,7 +85,8 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     }
 
     public ObjectMapper getContext(Class<?> objectType) {
-        TangoRestFilterProvider.JsonFieldFilter filter = ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
+        TangoRestFilterProvider.JsonFieldFilter filter =
+                ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
 
         if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
@@ -112,7 +113,8 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
 
         @Override
-        public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider provider, BeanPropertyWriter writer) throws Exception {
+        public void serializeAsField(Object bean, JsonGenerator jgen,
+                                     SerializerProvider provider, BeanPropertyWriter writer) throws Exception {
             if (!writer.getPropertyType().isPrimitive()
                     && !String.class.isAssignableFrom(writer.getPropertyType())
                     && !writer.getPropertyType().isEnum()) {
@@ -248,21 +250,27 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
     }
 
-    private class TangoImageSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<org.tango.rest.DeviceAttribute.ImageAttributeValue> {
+    private class TangoImageSerializer extends
+            org.codehaus.jackson.map.ser.std.SerializerBase<org.tango.rest.DeviceAttribute.ImageAttributeValue> {
 
         public TangoImageSerializer(Class<org.tango.rest.DeviceAttribute.ImageAttributeValue> t) {
             super(t);
         }
 
         @Override
-        public void serialize(org.tango.rest.DeviceAttribute.ImageAttributeValue image, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+        public void serialize(
+                org.tango.rest.DeviceAttribute.ImageAttributeValue image,
+                JsonGenerator jgen, SerializerProvider provider) throws IOException {
             TangoImage value = image.value;
-            RenderedImage img = TangoImageUtils.toRenderedImage_sRGB((int[]) value.getData(), value.getWidth(), value.getHeight());
+            RenderedImage img = TangoImageUtils.toRenderedImage_sRGB(
+                    (int[]) value.getData(), value.getWidth(), value.getHeight());
             jgen.flush();
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream(value.getWidth() * value.getHeight() * 4);
             OutputStream out = new Base64.OutputStream(bos);
-            ImageIO.write(img, "jpeg", out); //TODO write directly to output stream produces exception: org.codehaus.jackson.JsonGenerationException: Can not write a field name, expecting a value
+            //TODO write directly to output stream produces exception:
+            //TODO  JsonGenerationException: Can not write a field name, expecting a value
+            ImageIO.write(img, "jpeg", out);
             jgen.writeString("data:/jpeg;base64," + new String(bos.toByteArray()));
 
             jgen.flush();

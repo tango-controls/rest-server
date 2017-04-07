@@ -44,7 +44,7 @@ public class SimpleCacheFilter implements Filter {
         String URI = httpReq.getRequestURI();
         long timestamp = System.currentTimeMillis();
 
-        if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {//TODO GET with assignment
+        if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {
             CacheEntry cacheEntry = cache.get(URI);
             if (cacheEntry == null || timestamp - cacheEntry.timestamp > tangoContext.serverSideCacheExpirationDelay) {
                 logger.debug("Cache miss!");
@@ -64,7 +64,7 @@ public class SimpleCacheFilter implements Filter {
 
     private void returnCachedValue(CacheEntry cacheEntry, ServletResponse resp) throws IOException {
         ServletOutputStream outputStream = resp.getOutputStream();
-        outputStream.write(cacheEntry.value);
+        outputStream.write(cacheEntry.value);//byte[]
     }
 
     private TangoContext tangoContext;
