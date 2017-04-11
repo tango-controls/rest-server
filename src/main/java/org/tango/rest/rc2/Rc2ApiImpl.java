@@ -46,10 +46,9 @@ import java.util.*;
 @Path("/rc2")
 @Produces("application/json")
 public class Rc2ApiImpl {
-    private final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
-
     public static final String ASYNC = "async";
     public static final String REST_PREFIX = "/rest/rc2";
+    private final Logger logger = LoggerFactory.getLogger(Rc2ApiImpl.class);
 
     @GET
     public Map<String, String> authentication(@Context ServletContext context){
@@ -300,11 +299,12 @@ public class Rc2ApiImpl {
                         try {
                             DeviceAttribute result = new DeviceAttribute(input.getKey());
 
-                            Class<?> clazz = proxy.getAttributeInfo(input.getKey()).getClazz();
+                            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(input.getKey());
+                            Class<?> clazz = attributeInfo.getClazz();
                             TangoDataType<?> tangoDataType = TangoDataTypes.forClass(clazz);
 
                             ((TangoDataType<Object>) tangoDataType).insert(
-                                    TangoDataWrapper.create(result), ConvertUtils.convert(input.getValue()[0], clazz));
+                                    TangoDataWrapper.create(result, attributeInfo), ConvertUtils.convert(input.getValue()[0], clazz));
 
                             return result;
                         } catch (Exception e) {
@@ -322,9 +322,10 @@ public class Rc2ApiImpl {
                 @Override
                 public Object apply(final DeviceAttribute input) {
                     try {
+                        final TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(input.getName());
                         return new Object() {
                             public String name = input.getName();
-                            public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input));
+                            public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input, attributeInfo));
                             public String quality = input.getQuality().toString();
                             public long timestamp = input.getTime();
                             public Object _links = new Object() {
@@ -338,6 +339,10 @@ public class Rc2ApiImpl {
                         return Responses.createFailureResult(e);
                     } catch (UnknownTangoDataType unknownTangoDataType) {
                         return Responses.createFailureResult(unknownTangoDataType);
+                    } catch (NoSuchAttributeException e) {
+                        return Responses.createFailureResult(e);
+                    } catch (TangoProxyException e) {
+                        return Responses.createFailureResult(e);
                     }
                 }
             });

@@ -123,7 +123,7 @@ public class Device {
                                     Class<?> type = dataType.getDataTypeClass();
                                     Object converted = ConvertUtils.convert(value.length == 1 ? value[0]: value,type);
 
-                                    dataType.insert(TangoDataWrapper.create(result), converted);
+                                    dataType.insert(TangoDataWrapper.create(result, null), converted);
 
                                     return result;
                                 } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
