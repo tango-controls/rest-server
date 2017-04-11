@@ -8,5 +8,13 @@ image: maven:3.3.3
 pipelines:
   default:
     - step:
-        script: # Modify the commands below to build your repository.
-          - mvn clean install
+        script: # Modify the commands below to build your repository.          
+#          - apt-get install git
+#          - git clone https://github.com/tango-controls/rest-api.git           
+          - mvn clean package
+          - java -jar target/mtangorest.server-rc4-0.2-SNAPSHOT.jar development &
+#          - cd rest-api
+#          - mvn compile
+          - uname -a
+          - sleep 10
+          - killall java
