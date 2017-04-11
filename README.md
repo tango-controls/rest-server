@@ -1,3 +1,5 @@
+This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
+
 # How to build
 
 Use maven: `mvn package`
@@ -10,4 +12,4 @@ See [wiki](https://bitbucket.org/hzgwpn/mtangorest.server/wiki/Home)
 
 # How to contribute
 
-Same as for GitHub - create Pull Request
+Same as for GitHub - fork and create a Pull Request
