@@ -1,0 +1,25 @@
+<html>
+<head>
+    <link rel="stylesheet" href="lib/codemirror.css">
+</head>
+<body>
+    <form action="${uri}" method="post">
+        <textarea id="script" name="source">
+            ${text}
+        </textarea>
+        <input type="submit" value="Groooovy!" />
+    </form>
+    <hr/>
+    <p id="result">
+        ${result}
+    </p>
+    <script src="lib/codemirror.js"></script>
+    <script src="lib/mode/groovy/groovy.js"></script>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("script"), {
+            lineNumbers: true,
+            mode: "text/x-groovy"
+        });
+    </script>
+</body>
+</html>
