@@ -17,7 +17,7 @@
 		</discriminator>
 		<sift>
 			<appender name="FILE-${deviceName}" class="ch.qos.logback.core.rolling.RollingFileAppender">
-				<file>${deviceName}.log</file>
+                <file>${LOG_HOME}/${deviceName}.log</file>
 				<Append>true</Append>
 				<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
 					<fileNamePattern>${deviceName}%i.log</fileNamePattern>
