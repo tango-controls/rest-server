@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -36,90 +35,38 @@ import java.util.concurrent.TimeUnit;
  */
 @Device(transactionType = TransactionType.NONE)
 public class TangoRestServer {
-    private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
-
     public static final String WEBAPP_WAR = "webapp.war";
-
     public static final String TANGO_DB_NAME = "TANGO_DB_NAME";
     public static final String TANGO_DB = "TANGO_DB";
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
     public static final String TOMCAT_PORT = "TOMCAT_PORT";
     public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_CONFIG_CLASS";
-
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
-
     // descriptions
     public static final String CACHE_ENABLED_DESC = "Enables/disables client and server cache. Client cache means adding HTTP request headers.";
     public static final String SERVER_SIDE_DESC = "Defines how long server keeps an attribute value of a remote Tango device.";
     public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
     public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
-
-
+    private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
+    private final TangoContext ctx = new TangoContext();
     @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbNameProp;
-
     @DeviceProperty(name = TANGO_DB, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbProp;
-
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = SYS_ACCESS_CONTROL_1)
     private String tangoAccessProp;
-
     @DeviceProperty(name = TOMCAT_PORT, defaultValue = "9999")
     private int tomcatPort = 9999;
-
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
     private String tomcatAuthConfigurationClass;
-
     @State
     private DevState state = DevState.OFF;
-
+    @Status
+    private String status;
     private String tangoDbHost;
-
-
-    public void setState(DevState state) {
-        this.state = state;
-    }
-
-    public DevState getState() {
-        return state;
-    }
-
     private Tomcat tomcat;
-
-    @Init
-    @StateMachine(endState = DeviceState.ON)
-    public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
-        logger.trace("Init'ing TangoRestServer device...");
-        tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
-        logger.debug("TANGO_DB_NAME={}", tangoDbNameProp);
-        tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
-        logger.debug("TANGO_DB={}", tangoDbProp);
-        System.setProperty(TANGO_DB, tangoDbProp);
-        tangoAccessProp = System.getProperty(TANGO_ACCESS, tangoAccessProp);
-        logger.debug("TANGO_ACCESS={}", tangoAccessProp);
-        System.setProperty(TANGO_ACCESS, tangoAccessProp);
-
-
-        TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
-        DatabaseDs databaseDs = new DatabaseDs(dbProxy);
-
-        tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
-        logger.debug("TANGO_DB_HOST={}", tangoDbHost);
-        if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
-
-        tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
-    }
-
-    @Delete
-    @StateMachine(endState = DeviceState.OFF)
-    public void delete() throws LifecycleException {
-        if(tomcat != null) {
-            tomcat.stop();
-            tomcat.destroy();
-        }
-    }
 
     public static void main(String[] args) throws Exception {
         String instance = args[0];
@@ -177,13 +124,51 @@ public class TangoRestServer {
 
             logger.trace("Start tomcat of device");
             tangoRestServer.tomcat.start();
+            tangoRestServer.setStatus("Running tomcat on port " + tangoRestServer.tomcatPort);
         }
 
         logger.trace("Done.");
     }
 
-    private final TangoContext ctx = new TangoContext();
+    public DevState getState() {
+        return state;
+    }
 
+    public void setState(DevState state) {
+        this.state = state;
+    }
+
+    @Init
+    @StateMachine(endState = DeviceState.ON)
+    public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
+        logger.trace("Init'ing TangoRestServer device...");
+        tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
+        logger.debug("TANGO_DB_NAME={}", tangoDbNameProp);
+        tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
+        logger.debug("TANGO_DB={}", tangoDbProp);
+        System.setProperty(TANGO_DB, tangoDbProp);
+        tangoAccessProp = System.getProperty(TANGO_ACCESS, tangoAccessProp);
+        logger.debug("TANGO_ACCESS={}", tangoAccessProp);
+        System.setProperty(TANGO_ACCESS, tangoAccessProp);
+
+        TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
+        DatabaseDs databaseDs = new DatabaseDs(dbProxy);
+
+        tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
+        logger.debug("TANGO_DB_HOST={}", tangoDbHost);
+        if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
+
+        tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
+    }
+
+    @Delete
+    @StateMachine(endState = DeviceState.OFF)
+    public void delete() throws LifecycleException {
+        if (tomcat != null) {
+            tomcat.stop();
+            tomcat.destroy();
+        }
+    }
 
     @Attribute
     public String[] getAliveProxies() throws Exception {
@@ -225,14 +210,14 @@ public class TangoRestServer {
 
     @Attribute(isMemorized = true)
     @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
-    public void setServerSideCacheExpirationDelay(long v){
-        ctx.serverSideCacheExpirationDelay = v;
+    public long getServerSideCacheExpirationDelay(){
+        return ctx.serverSideCacheExpirationDelay;
     }
 
     @Attribute(isMemorized = true)
     @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
-    public long getServerSideCacheExpirationDelay(){
-        return ctx.serverSideCacheExpirationDelay;
+    public void setServerSideCacheExpirationDelay(long v) {
+        ctx.serverSideCacheExpirationDelay = v;
     }
 
     @Attribute(isMemorized = true)
@@ -290,6 +275,14 @@ public class TangoRestServer {
 
     public void setTomcatAuthConfigurationClass(String tomcatAuthConfig) {
         this.tomcatAuthConfigurationClass = tomcatAuthConfig;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public TangoContext getCtx(){
