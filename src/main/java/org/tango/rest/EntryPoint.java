@@ -1,6 +1,5 @@
 package org.tango.rest;
 
-import org.tango.rest.rc3.Rc3ApiImpl;
 import org.tango.rest.rc4.Rc4ApiImpl;
 
 import javax.servlet.ServletContext;
@@ -23,14 +22,12 @@ import java.util.Map;
 //@ApplicationPath("rest")
 @Produces("application/json")
 public class EntryPoint /* extends Application*/ {
+    private final Map<String, Object> supportedVersions = new HashMap<>(3);
     @Context
     private UriInfo uriInfo;
 
-    private final Map<String, Object> supportedVersions = new HashMap<>(3);
     {
         supportedVersions.put("rc4", new Rc4ApiImpl());
-//        supportedVersions.put("rc2", new Rc2ApiImpl());
-//        supportedVersions.put("mtango", new MtangoImpl());
     }
 
     @GET
