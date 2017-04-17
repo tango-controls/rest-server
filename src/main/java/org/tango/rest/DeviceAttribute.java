@@ -18,6 +18,8 @@ import org.tango.web.server.providers.StaticValue;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.net.URISyntaxException;
@@ -49,21 +51,29 @@ public class DeviceAttribute {
 
     @GET
     @Path("/{event}")
-    public Object deviceAttributeEvent(@PathParam("event") String event,
-                                       @QueryParam("timeout") long timeout,
-                                       @QueryParam("state") EventHelper.State state,
-                                       @Context ServletContext context,
-                                       @Context TangoProxy proxy, @Context UriInfo uriInfo) throws InterruptedException, URISyntaxException {
-        TangoEvent tangoEvent;
+    public void deviceAttributeEvent(@PathParam("event") TangoEvent event,
+                                     @QueryParam("timeout") long timeout,
+                                     @QueryParam("state") EventHelper.State state,
+                                     @Context ServletContext context,
+                                     @Context TangoProxy proxy, @Context UriInfo uriInfo,
+                                     final @Suspended AsyncResponse asyncResponse
+    ) throws InterruptedException, URISyntaxException {
         try {
-            tangoEvent = TangoEvent.valueOf(event.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return Responses.createFailureResult("Unsupported event: " + event);
-        }
-        try {
-            return EventHelper.handleEvent(name, timeout, state, proxy, tangoEvent);
+            proxy.subscribeToEvent(name, event);
+            proxy.addEventListener(name, event, new TangoEventListener<Object>() {
+                @Override
+                public void onEvent(EventData<Object> data) {
+                    asyncResponse.resume(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), AttrQuality.ATTR_VALID.toString()));
+                }
+
+                @Override
+                public void onError(Exception cause) {
+                    asyncResponse.resume(Responses.createFailureResult(cause));
+                }
+            });
+//            return EventHelper.handleEvent(name, timeout, state, proxy, tangoEvent);
         } catch (NoSuchAttributeException | TangoProxyException e) {
-            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
+//            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
         }
     }
 
