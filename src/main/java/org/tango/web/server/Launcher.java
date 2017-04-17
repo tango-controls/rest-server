@@ -19,10 +19,10 @@ import java.util.List;
  * @since 23.05.14
  */
 public class Launcher implements ServletContextListener {
+    public static final String TANGO_HOST = "TANGO_HOST";
     private final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
-    public static final String TANGO_HOST = "TANGO_HOST";
-
+    //org.jboss.resteasy.spi.ResteasyProviderFactory
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         String tangoHost = System.getProperty(TANGO_HOST, System.getenv(TANGO_HOST));
