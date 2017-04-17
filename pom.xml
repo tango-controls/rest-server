@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
     <artifactId>mtangorest.server-rc4</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
@@ -18,9 +19,10 @@
     </developers>
 
     <properties>
-        <tomcat.version>7.0.65</tomcat.version>
+        <servlet-api.version>3.1.0</servlet-api.version>
+        <tomcat.version>8.5.2</tomcat.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
-        <resteasy.version>3.0.7.Final</resteasy.version>
+        <resteasy.version>3.1.2.Final</resteasy.version>
     </properties>
 
 
@@ -28,8 +30,8 @@
         <connection>scm:hg:https://bitbucket.org/hzgwpn/mtangorest.server</connection>
         <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</developerConnection>
         <url>ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</url>
-      <tag>mtangorest.server-rc4-0.1</tag>
-  </scm>
+        <tag>mtangorest.server-rc4-0.1</tag>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -52,7 +54,7 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
+            <version>${servlet-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
