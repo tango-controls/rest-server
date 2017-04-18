@@ -1,3 +1,8 @@
+rc4-0.4
+-------
+  THIS IS AN UNSTABLE VERSION DO NOT USE IT IN PRODUCTION
+
+
 rc4-0.2
 -------
   - fix enum attribute reading/writing
