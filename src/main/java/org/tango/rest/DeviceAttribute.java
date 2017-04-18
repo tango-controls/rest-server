@@ -8,21 +8,21 @@ import fr.esrf.TangoApi.*;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
-import org.tango.client.ez.proxy.*;
+import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
+import org.tango.client.ez.proxy.TangoEvent;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
-import org.tango.web.server.EventHelper;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -51,30 +51,19 @@ public class DeviceAttribute {
 
     @GET
     @Path("/{event}")
-    public void deviceAttributeEvent(@PathParam("event") TangoEvent event,
-                                     @QueryParam("timeout") long timeout,
-                                     @QueryParam("state") EventHelper.State state,
-                                     @Context ServletContext context,
-                                     @Context TangoProxy proxy, @Context UriInfo uriInfo,
-                                     final @Suspended AsyncResponse asyncResponse
-    ) throws InterruptedException, URISyntaxException {
+    public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
+                                       @QueryParam("timeout") long timeout,
+                                       @QueryParam("state") Event.State state,
+                                       @Context ServletContext context,
+                                       @Context TangoProxy proxy, @Context UriInfo uriInfo
+    ) throws Exception {
+        TangoEvent event = null;
         try {
-            proxy.subscribeToEvent(name, event);
-            proxy.addEventListener(name, event, new TangoEventListener<Object>() {
-                @Override
-                public void onEvent(EventData<Object> data) {
-                    asyncResponse.resume(new AttributeValue<Object>(name, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
-                }
-
-                @Override
-                public void onError(Exception cause) {
-                    asyncResponse.resume(Failures.createInstance(cause));
-                }
-            });
-//            return EventHelper.handleEvent(name, timeout, state, proxy, tangoEvent);
-        } catch (NoSuchAttributeException | TangoProxyException e) {
-//            return Responses.createFailureResult("Failed to subscribe to event " + uriInfo.getPath(), e);
+            event = TangoEvent.valueOf(eventAsString.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(ex)).build();
         }
+        return Event.handleEvent(name, 3000L, state, proxy, event);
     }
 
     @GET

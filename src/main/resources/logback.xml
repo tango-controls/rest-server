@@ -42,7 +42,8 @@
 
 	<logger name="org.apache" level="ERROR"/>
 	<logger name="org.jacorb" level="ERROR" />
-    <logger name="org.tango" level="ERROR"/>
+    <logger name="org.tango" level="DEBUG"/>
+    <logger name="org.tango.client.ez" level="TRACE"/>
     <logger name="org.tango.rest" level="TRACE"/>
 	<logger name="org.quartz" level="ERROR" />
 	<logger name="net.sf.ehcache" level="ERROR" />
