@@ -4,7 +4,7 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.response.Responses;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
 
@@ -53,8 +53,10 @@ public class TangoProxyProvider implements ContainerRequestFilter {
             result = tangoContext.proxyPool.getProxy(db.getDeviceAddress(domain + "/" + family + "/" + member));
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
-        } catch (TangoProxyException | NoSuchCommandException e) {
-            requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
+        } catch (TangoProxyException e) {
+            requestContext.abortWith(Response.serverError().entity(Failures.createInstance(e)).build());
+        } catch (NoSuchCommandException e) {
+            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
         }
     }
 }

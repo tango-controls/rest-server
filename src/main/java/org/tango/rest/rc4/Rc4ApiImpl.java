@@ -11,8 +11,8 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.Device;
 import org.tango.rest.SupportedAuthentication;
+import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.rest.response.Responses;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
@@ -26,6 +26,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -108,8 +109,10 @@ public class Rc4ApiImpl {
                 }
             });
             return transform;
-        } catch (NoSuchCommandException | TangoProxyException e) {
-            return Responses.createFailureResult(e);
+        } catch (NoSuchCommandException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build();
+        } catch (TangoProxyException e) {
+            return Response.serverError().entity(Failures.createInstance(e)).build();
         }
     }
 

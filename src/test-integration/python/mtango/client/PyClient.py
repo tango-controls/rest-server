@@ -29,7 +29,7 @@ urllib2.install_opener(opener)
 response = urllib2.urlopen("http://localhost:8080/mtango/rest/devices")
 result = json.loads(response.read())
 
-print result[u'argout']
+print result[u'value']
 
 #write attribute example
 request = urllib2.Request('http://localhost:8080/mtango/rest/device/sys/tg_test/1/long_scalar_w=123456')

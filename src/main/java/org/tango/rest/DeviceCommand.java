@@ -12,7 +12,7 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.rest.entities.CommandResult;
-import org.tango.rest.response.Responses;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.command.CommandInput;
 import org.tango.web.server.providers.Partitionable;
 
@@ -91,10 +91,10 @@ public class DeviceCommand {
 
                                 return result;
                             } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
-                                return Responses.createFailureResult(e);
+                                return Failures.createInstance(e);
                             }
                         } else {
-                            return Responses.createFailureResult(new DevFailed(input.getErrStack()));
+                            return Failures.createInstance(new DevFailed(input.getErrStack()));
                         }
                     }
                 });

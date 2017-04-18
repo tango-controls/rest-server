@@ -1,7 +1,5 @@
 package org.tango.web.server.filters;
 
-import org.tango.rest.response.Responses;
-
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -36,7 +34,7 @@ public class JsonpResponseWrapper implements Filter {
         try {
             chain.doFilter(req, resp);
         } catch (Exception e) {
-            Responses.sendFailure(e, out);
+            //Responses.sendFailure(e, out);
         }
         out.append(");");
         out.flush();

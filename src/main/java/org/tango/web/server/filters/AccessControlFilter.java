@@ -5,10 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.AccessControl;
-import org.tango.rest.response.Responses;
 
-import javax.servlet.*;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -73,8 +73,10 @@ public class AccessControlFilter implements ContainerRequestFilter {
                     LOG.info("Method is not allowed: " + method);
             }
 
-        } catch (NoSuchCommandException|TangoProxyException e) {
-            requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
+        } catch (NoSuchCommandException e) {
+            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
+        } catch (TangoProxyException e) {
+            requestContext.abortWith(Response.serverError().entity(Failures.createInstance(e)).build());
         }
     }
 }
