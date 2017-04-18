@@ -1,4 +1,4 @@
-package org.tango.web.server;
+package org.tango.rest;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrQuality;
@@ -7,16 +7,19 @@ import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.ws.rs.core.Response;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * //TODO transform into resource
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 20.02.2015
  */
 @ThreadSafe
-public class EventHelper {
+public class Event {
     public static final long CAPACITY = 1000L;//TODO parameter
-    private static final ConcurrentMap<String, EventHelper> event_helpers = new ConcurrentLinkedHashMap.Builder<String, EventHelper>()
+    private static final ConcurrentMap<String, Event> event_helpers = new ConcurrentLinkedHashMap.Builder<String, Event>()
             .maximumWeightedCapacity(CAPACITY)
             .build();
     //TODO parameters
@@ -29,7 +32,7 @@ public class EventHelper {
     private volatile Object value;
     private TangoEventListener<Object> listener;
 
-    public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
+    public Event(String attribute, TangoEvent evt, TangoProxy proxy) {
         this.attribute = attribute;
         this.evt = evt;
         this.proxy = proxy;
@@ -39,9 +42,9 @@ public class EventHelper {
                                      TangoEvent event) throws TangoProxyException, InterruptedException, NoSuchAttributeException {
         String eventKey = proxy.getName() + "/" + member + "." + event.name();
         if (state == State.INITIAL) {
-            EventHelper helper;
-            helper = new EventHelper(member, event, proxy);
-            EventHelper oldHelper = event_helpers.putIfAbsent(eventKey, helper);
+            Event helper;
+            helper = new Event(member, event, proxy);
+            Event oldHelper = event_helpers.putIfAbsent(eventKey, helper);
             if (oldHelper == null) {
                 //read initial value from the proxy
                 ValueTimeQuality<?> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
@@ -64,7 +67,7 @@ public class EventHelper {
             //TODO could throw NPE if cached value is garbage collected
             return event_helpers.get(eventKey).get(timeout);
         } else {
-        EventHelper helper = new EventHelper(member,event,proxy);
+            Event helper = new Event(member, event, proxy);
         helper.subscribe();
         //block this servlet until event or timeout
         return helper.get(timeout);
@@ -97,11 +100,11 @@ public class EventHelper {
      */
     public Object get(long timeout) throws InterruptedException {
         synchronized (guard){
-            do
-                guard.wait((timeout = timeout - DELTA) > 0 ? timeout : MAX_AWAIT);
-            while (value == null);
+            guard.wait(timeout);
         }
-        return value;
+        return value == null ?
+                Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance("value has not been updated")).build()
+                : value;
     }
 
     public void subscribe() throws TangoProxyException, NoSuchAttributeException {
@@ -110,12 +113,12 @@ public class EventHelper {
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
-                EventHelper.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
+                Event.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
             }
 
             @Override
             public void onError(Exception cause) {
-                EventHelper.this.set(Failures.createInstance(cause));
+                Event.this.set(Failures.createInstance(cause));
             }
         };
         proxy.addEventListener(attribute, evt, listener);
