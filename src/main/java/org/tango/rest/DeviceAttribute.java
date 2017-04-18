@@ -10,7 +10,7 @@ import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.entities.AttributeValue;
-import org.tango.rest.response.Responses;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.EventHelper;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.providers.Partitionable;
@@ -63,12 +63,12 @@ public class DeviceAttribute {
             proxy.addEventListener(name, event, new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    asyncResponse.resume(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), AttrQuality.ATTR_VALID.toString()));
+                    asyncResponse.resume(new AttributeValue<Object>(name, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
                 }
 
                 @Override
                 public void onError(Exception cause) {
-                    asyncResponse.resume(Responses.createFailureResult(cause));
+                    asyncResponse.resume(Failures.createInstance(cause));
                 }
             });
 //            return EventHelper.handleEvent(name, timeout, state, proxy, tangoEvent);
@@ -93,10 +93,10 @@ public class DeviceAttribute {
 
                         return new AttributeValue<Object>(input.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
                     } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
-                        return Responses.createFailureResult(e);
+                        return Failures.createInstance(e);
                     }
                 } else {
-                    return Responses.createFailureResult(new DevFailed(input.getErrStack()));
+                    return Failures.createInstance(new DevFailed(input.getErrStack()));
                 }
             }
         });
@@ -165,13 +165,7 @@ public class DeviceAttribute {
     public Object deviceAttributeValueGet(@Context TangoProxy proxy) throws Exception {
         final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
 
-
-        return new Object() {
-            public String name = DeviceAttribute.this.name;
-            public Object value = result.value;
-            public AttrQuality quality = result.quality;
-            public long timestamp = result.time;
-        };
+        return new AttributeValue<Object>(DeviceAttribute.this.name, result.value, result.quality.toString(), result.time);
     }
 
     @PUT

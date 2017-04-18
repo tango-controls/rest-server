@@ -1,11 +1,10 @@
-package org.tango.web.server.rest;
+package org.tango.web.server.exception.mapper;
 
-import org.tango.rest.response.Responses;
-
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import static org.tango.web.server.exception.mapper.Helper.getResponse;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -15,6 +14,6 @@ import javax.ws.rs.ext.Provider;
 public class GeneralExceptionMapper implements ExceptionMapper<Exception>{
     @Override
     public Response toResponse(Exception exception) {
-        return Response.ok(Responses.createFailureResult(exception)).type(MediaType.APPLICATION_JSON).build();
+        return getResponse(exception, Response.Status.INTERNAL_SERVER_ERROR);
     }
 }

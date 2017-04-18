@@ -2,7 +2,7 @@ package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.response.Responses;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
 
@@ -42,7 +42,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
             ResteasyProviderFactory.pushContext(DatabaseDs.class, db);
         } catch (TangoProxyException e){
-            requestContext.abortWith(Response.ok(Responses.createFailureResult(e)).build());
+            requestContext.abortWith(Response.serverError().entity(Failures.createInstance(e)).build());
         }
     }
 }

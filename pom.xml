@@ -129,13 +129,13 @@
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
-            <artifactId>rest-api-client</artifactId>
-            <version>rc3-0.2</version>
+            <artifactId>rest-api-rc4</artifactId>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>2.0.3</version>
+            <version>2.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.tango.hzg</groupId>

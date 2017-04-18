@@ -3,8 +3,8 @@ package org.tango.web.server;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrQuality;
 import org.tango.client.ez.proxy.*;
-import org.tango.rest.response.Response;
-import org.tango.rest.response.Responses;
+import org.tango.rest.entities.AttributeValue;
+import org.tango.rest.entities.Failures;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentMap;
@@ -22,8 +22,20 @@ public class EventHelper {
     //TODO parameters
     private static final long MAX_AWAIT = 30000L;
     private static final long DELTA = 256L;
+    private final String attribute;
+    private final TangoEvent evt;
+    private final TangoProxy proxy;
+    private final Object guard = new Object();
+    private volatile Object value;
+    private TangoEventListener<Object> listener;
 
-    public static Response<?> handleEvent(String member, long timeout, State state, TangoProxy proxy,
+    public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
+        this.attribute = attribute;
+        this.evt = evt;
+        this.proxy = proxy;
+    }
+
+    public static Object handleEvent(final String member, long timeout, State state, TangoProxy proxy,
                                      TangoEvent event) throws TangoProxyException, InterruptedException, NoSuchAttributeException {
         String eventKey = proxy.getName() + "/" + member + "." + event.name();
         if (state == State.INITIAL) {
@@ -33,10 +45,11 @@ public class EventHelper {
             if (oldHelper == null) {
                 //read initial value from the proxy
                 ValueTimeQuality<?> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
-                Response<?> result = Responses.createAttributeSuccessResult(
+                AttributeValue<?> result = new AttributeValue<Object>(
+                        member,
                         attrTimeQuality.value,
-                        attrTimeQuality.time,
-                        attrTimeQuality.quality.toString()
+                        attrTimeQuality.quality.toString(),
+                        attrTimeQuality.time
                 );
 
                 helper.set(result);
@@ -58,26 +71,7 @@ public class EventHelper {
         }
     }
 
-    public static enum State {
-        UNDEFINED,
-        INITIAL,
-        CONTINUATION
-    }
-
-    private final String attribute;
-    private final TangoEvent evt;
-    private final TangoProxy proxy;
-
-    private volatile Response<?> value;
-
-    private final Object guard = new Object();
-    public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
-        this.attribute = attribute;
-        this.evt = evt;
-        this.proxy = proxy;
-    }
-
-    public void set(Response<?> value) {
+    public void set(Object value) {
         synchronized (guard){
             this.value = value;
             guard.notifyAll();
@@ -88,7 +82,7 @@ public class EventHelper {
         return value != null;
     }
 
-    public Response<?> get(){
+    public Object get() {
         return value;
     }
 
@@ -101,7 +95,7 @@ public class EventHelper {
      * @return
      * @throws InterruptedException
      */
-    public Response<?> get(long timeout) throws InterruptedException{
+    public Object get(long timeout) throws InterruptedException {
         synchronized (guard){
             do
                 guard.wait((timeout = timeout - DELTA) > 0 ? timeout : MAX_AWAIT);
@@ -110,21 +104,26 @@ public class EventHelper {
         return value;
     }
 
-    private TangoEventListener<Object> listener;
     public void subscribe() throws TangoProxyException, NoSuchAttributeException {
         proxy.subscribeToEvent(attribute, evt);
 
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
-                EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), AttrQuality.ATTR_VALID.toString()));
+                EventHelper.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
             }
 
             @Override
             public void onError(Exception cause) {
-                EventHelper.this.set(Responses.createFailureResult(cause));
+                EventHelper.this.set(Failures.createInstance(cause));
             }
         };
         proxy.addEventListener(attribute, evt, listener);
+    }
+
+    public static enum State {
+        UNDEFINED,
+        INITIAL,
+        CONTINUATION
     }
 }

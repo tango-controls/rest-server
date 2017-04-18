@@ -18,8 +18,8 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
+import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.rest.response.Responses;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.providers.AttributeValue;
@@ -58,7 +58,7 @@ public class Device {
             final String devname = domain + "/" + family + "/" + member;
             return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
         } catch (NoSuchCommandException | TangoProxyException e) {
-            return Responses.createFailureResult(e);
+            return Failures.createInstance(e);
         }
     }
 

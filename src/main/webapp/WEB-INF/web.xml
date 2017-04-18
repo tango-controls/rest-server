@@ -24,8 +24,11 @@
         <param-name>resteasy.providers</param-name>
         <param-value>
             org.tango.web.server.interceptors.CommandInputMessageBodyReader,
-            org.tango.web.server.rest.GeneralExceptionMapper,
-            org.tango.web.server.rest.DevFailedMapper,
+            org.tango.web.server.exception.mapper.GeneralExceptionMapper,
+            org.tango.web.server.exception.mapper.DevFailedMapper,
+            org.tango.web.server.exception.mapper.NoSuchAttribute,
+            org.tango.web.server.exception.mapper.NoSuchCommand,
+            org.tango.web.server.exception.mapper.NotFoundExceptionMapper,
             org.tango.web.server.filters.AccessControlFilter,
             org.tango.web.server.providers.TangoContextProvider,
             org.tango.web.server.providers.TangoProxyProvider,
