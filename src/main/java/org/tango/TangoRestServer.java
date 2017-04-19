@@ -57,8 +57,8 @@ public class TangoRestServer {
     private String tangoDbProp;
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = SYS_ACCESS_CONTROL_1)
     private String tangoAccessProp;
-    @DeviceProperty(name = TOMCAT_PORT, defaultValue = "8080")
-    private int tomcatPort = 8080;
+    @DeviceProperty(name = TOMCAT_PORT, defaultValue = "10001")
+    private int tomcatPort = 10001;
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
     private String tomcatAuthConfigurationClass;
     @State
