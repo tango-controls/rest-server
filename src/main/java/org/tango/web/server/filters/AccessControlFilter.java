@@ -12,15 +12,19 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
 /**
  * @author Ingvord
  * @since 01.07.14
  */
+@Provider
+@PreMatching
 public class AccessControlFilter implements ContainerRequestFilter {
     private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
 
