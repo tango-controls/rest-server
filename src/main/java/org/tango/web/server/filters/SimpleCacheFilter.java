@@ -89,16 +89,6 @@ public class SimpleCacheFilter implements Filter {
             writer = new PrintWriter(cached);
             outputStream = new ServletOutputStream() {
                 @Override
-                public boolean isReady() {
-                    return true;
-                }
-
-                @Override
-                public void setWriteListener(WriteListener writeListener) {
-
-                }
-
-                @Override
                 public void write(int b) throws IOException {
                     cached.write(b);
                 }
