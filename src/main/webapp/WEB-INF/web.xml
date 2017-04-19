@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" metadata-complete="true"
+         version="3.1">
+
+    <!-- Tango device instance to start -->
+    <context-param>
+        <param-name>tango.rest.server.instance</param-name>
+        <param-value>development</param-value>
+    </context-param>
+    <context-param>
+        <param-name>resteasy.logger.type</param-name>
+        <param-value>SLF4J</param-value>
+    </context-param>
+    <context-param>
+        <param-name>resteasy.resources</param-name>
+        <param-value>
+            org.tango.rest.EntryPoint
+        </param-value>
+    </context-param>
+    <context-param>
+        <param-name>resteasy.providers</param-name>
+        <param-value>
+            org.tango.web.server.interceptors.CommandInputMessageBodyReader,
+            org.tango.web.server.exception.mapper.GeneralExceptionMapper,
+            org.tango.web.server.exception.mapper.DevFailedMapper,
+            org.tango.web.server.exception.mapper.NoSuchAttribute,
+            org.tango.web.server.exception.mapper.NoSuchCommand,
+            org.tango.web.server.exception.mapper.NotFoundExceptionMapper,
+            org.tango.web.server.filters.AccessControlFilter,
+            org.tango.web.server.providers.TangoContextProvider,
+            org.tango.web.server.providers.TangoProxyProvider,
+            org.tango.web.server.providers.TangoDatabaseProvider,
+            org.tango.web.server.resolvers.JacksonConfiguration,
+            org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
+            org.tango.web.server.providers.AttributeValueCacheProvider,
+            org.tango.web.server.providers.StaticValueCacheProvider,
+            org.tango.web.server.providers.PartitionProvider,
+            org.tango.web.server.providers.TangoRestFilterProvider
+        </param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.tango.web.server.Launcher</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>RestTangoService</servlet-name>
+        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+        <init-param>
+            <param-name>resteasy.servlet.mapping.prefix</param-name>
+            <param-value>/rest</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet>
+        <servlet-name>GroovyConsole</servlet-name>
+        <servlet-class>org.tango.web.server.groovy.GroovyConsole</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RestTangoService</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>GroovyConsole</servlet-name>
+        <url-pattern>/groovy</url-pattern>
+    </servlet-mapping>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango RESTful gateway</web-resource-name>
+            <url-pattern>/rest/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>HEAD</http-method>
+            <http-method>POST</http-method>
+            <http-method>PUT</http-method>
+            <http-method>DELETE</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>mtango-rest</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango REST groovy consolw</web-resource-name>
+            <url-pattern>/groovy</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>mtango-groovy</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>Basic Authentication</realm-name>
+        <!--<auth-method>FORM</auth-method>
+        <form-login-config>
+        <form-login-page>/login.html</form-login-page>
+        <form-error-page>/fail_login.html</form-error-page>
+        </form-login-config>-->
+    </login-config>
+    <security-role>
+        <description>mtango rest api user</description>
+        <role-name>mtango-rest</role-name>
+    </security-role>
+    <security-role>
+        <description>mtango groovy user</description>
+        <role-name>mtango-groovy</role-name>
+    </security-role>
+</web-app>
