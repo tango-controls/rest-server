@@ -157,12 +157,17 @@ public class TangoRestServer {
         logger.debug("TANGO_ACCESS={}", tangoAccessProp);
         System.setProperty(TANGO_ACCESS, tangoAccessProp);
 
-        TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
-        DatabaseDs databaseDs = new DatabaseDs(dbProxy);
+        try {
+            TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
+            DatabaseDs databaseDs = new DatabaseDs(dbProxy);
+            tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
+            logger.debug("TANGO_DB_HOST={}", tangoDbHost);
+            if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
+        } catch (TangoProxyException e) {
+            logger.warn("Failed to create DatabaseProxy! Ignore if in -nodb mode...", e);
+        }
 
-        tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
-        logger.debug("TANGO_DB_HOST={}", tangoDbHost);
-        if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
+
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
 

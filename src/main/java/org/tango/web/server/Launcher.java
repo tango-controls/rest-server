@@ -46,7 +46,10 @@ public class Launcher implements ServletContextListener {
 
     private void initializeTangoServletContext(ServletContextEvent sce, String tangoHost) throws TangoProxyException {
         String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
-
+        if ("-nodb".equals(instance)) {
+            logger.info("Skipping TangoServlet context creation in -nodb mode.");
+            return;
+        }
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
         if(tangoRestServers.size() > 1) throw new RuntimeException("This Tango server must have exactly one defined device.");
         for (TangoRestServer tangoRestServer : tangoRestServers) {
