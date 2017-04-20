@@ -63,7 +63,6 @@
         <servlet-class>org.tango.web.server.groovy.GroovyConsole</servlet-class>
     </servlet>
 
-
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
         <url-pattern>/rest</url-pattern>
