@@ -135,18 +135,23 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>2.0.4</version>
+            <version>RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.tango.hzg</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>9.2.8</version>
+            <version>RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-ext</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.hzg.wpi.utils</groupId>
+            <artifactId>krb-authorization</artifactId>
+            <version>0.1</version>
         </dependency>
     </dependencies>
 

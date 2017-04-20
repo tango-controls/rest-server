@@ -49,6 +49,14 @@
         <listener-class>org.tango.web.server.Launcher</listener-class>
     </listener>
 
+    <servlet>
+        <servlet-name>RestTangoService</servlet-name>
+        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+        <init-param>
+            <param-name>resteasy.servlet.mapping.prefix</param-name>
+            <param-value>/rest</param-value>
+        </init-param>
+    </servlet>
 
     <servlet>
         <servlet-name>GroovyConsole</servlet-name>
@@ -56,6 +64,10 @@
     </servlet>
 
 
+    <servlet-mapping>
+        <servlet-name>RestTangoService</servlet-name>
+        <url-pattern>/rest</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>GroovyConsole</servlet-name>
@@ -73,7 +85,7 @@
             <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
-            <role-name>mtango-rest</role-name>
+            <role-name>*</role-name>
         </auth-constraint>
     </security-constraint>
     <security-constraint>
@@ -94,6 +106,10 @@
         <form-error-page>/fail_login.html</form-error-page>
         </form-login-config>-->
     </login-config>
+    <security-role>
+        <description>compatibility with DESY kerberos</description>
+        <role-name>desy-user</role-name>
+    </security-role>
     <security-role>
         <description>mtango rest api user</description>
         <role-name>mtango-rest</role-name>
