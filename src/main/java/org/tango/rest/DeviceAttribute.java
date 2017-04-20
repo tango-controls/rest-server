@@ -52,7 +52,7 @@ public class DeviceAttribute {
     @GET
     @Path("/{event}")
     public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
-                                       @QueryParam("timeout") long timeout,
+                                       @DefaultValue("3000") @QueryParam("timeout") long timeout,
                                        @QueryParam("state") Event.State state,
                                        @Context ServletContext context,
                                        @Context TangoProxy proxy, @Context UriInfo uriInfo
@@ -63,7 +63,7 @@ public class DeviceAttribute {
         } catch (IllegalArgumentException ex) {
             return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(ex)).build();
         }
-        return Event.handleEvent(name, 3000L, state, proxy, event);
+        return Event.handleEvent(name, timeout, state, proxy, event);
     }
 
     @GET
