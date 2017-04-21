@@ -15,12 +15,6 @@
         <param-value>SLF4J</param-value>
     </context-param>
     <context-param>
-        <param-name>resteasy.resources</param-name>
-        <param-value>
-            org.tango.rest.EntryPoint
-        </param-value>
-    </context-param>
-    <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
             org.tango.web.server.interceptors.CommandInputMessageBodyReader,
@@ -53,8 +47,8 @@
         <servlet-name>RestTangoService</servlet-name>
         <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
         <init-param>
-            <param-name>resteasy.servlet.mapping.prefix</param-name>
-            <param-value>/rest</param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.tango.rest.TangoRestApi</param-value>
         </init-param>
     </servlet>
 
