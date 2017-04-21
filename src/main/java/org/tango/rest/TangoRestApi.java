@@ -14,6 +14,15 @@ import java.util.Set;
 @ApplicationPath("/rest")
 public class TangoRestApi extends Application {
     @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> classes = new HashSet<>();
+
+        classes.add(EntryPoint.class);
+
+        return classes;
+    }
+
+    @Override
     public Set<Object> getSingletons() {
         Set<Object> result = new HashSet<>();
 
