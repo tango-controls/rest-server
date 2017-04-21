@@ -1,18 +1,17 @@
 package org.tango.web.server.filters;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.web.server.TangoContext;
+import org.tango.web.server.cache.CachedEntity;
+import org.tango.web.server.cache.SimpleBinaryCache;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-import java.io.ByteArrayOutputStream;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Caches client GET request results
@@ -20,99 +19,39 @@ import java.util.concurrent.ConcurrentMap;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 09.02.2015
  */
-public class SimpleCacheFilter implements Filter {
-    public static final int CAPACITY = 1000;//TODO parameter
+@Provider
+@PreMatching
+public class SimpleCacheFilter implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(SimpleCacheFilter.class);
-    private final ConcurrentMap<String, CacheEntry> cache = new ConcurrentLinkedHashMap.Builder<String, CacheEntry>()
-            .maximumWeightedCapacity(CAPACITY)
-            .build();
-    private TangoContext tangoContext;
 
-    public void destroy() {
+    private TangoContext tangoContext;
+    private SimpleBinaryCache cache;
+
+    public SimpleCacheFilter(TangoContext tangoContext, SimpleBinaryCache cache) {
+        this.tangoContext = tangoContext;
+        this.cache = cache;
     }
 
-    //TODO race conditions
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
-        if(!tangoContext.isCacheEnabled) {
-            logger.debug("Skipping cache due to cache is not enabled.");
-            chain.doFilter(req, resp);
+    @Override
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+        if (!tangoContext.isCacheEnabled) {
+            logger.debug("cache is disabled. Skipping...");
             return;
         }
+        String method = requestContext.getMethod();
+        if (!method.equals("GET")) {
+            logger.debug("ignoring method {} for caching.", method);
+        }
 
-        HttpServletRequest httpReq = (HttpServletRequest) req;
-        HttpServletResponse httpResp = (HttpServletResponse) resp;
+        String uri = requestContext.getUriInfo().getAbsolutePath().toString();
 
-        String URI = httpReq.getRequestURI();
+        CachedEntity cacheEntry = cache.get(uri);
         long timestamp = System.currentTimeMillis();
-
-        if (httpReq.getMethod().equals("GET") && !URI.contains("=")) {
-            CacheEntry cacheEntry = cache.get(URI);
-            if (cacheEntry == null || timestamp - cacheEntry.timestamp > tangoContext.serverSideCacheExpirationDelay) {
-                logger.debug("Cache miss!");
-                CachedResponseWrapper wrapper = new CachedResponseWrapper(httpResp);
-                chain.doFilter(req, wrapper);
-
-                cache.put(URI, cacheEntry = new CacheEntry(timestamp, wrapper.cached.toByteArray()));
-                returnCachedValue(cacheEntry, resp);
-            } else {
-                logger.debug("Cache hit!");
-                returnCachedValue(cacheEntry, resp);
-            }
+        if (cacheEntry == null || timestamp - cacheEntry.timestamp > tangoContext.serverSideCacheExpirationDelay) {
+            logger.debug("Cache miss!");
         } else {
-            chain.doFilter(req, resp);
-        }
-    }
-
-    private void returnCachedValue(CacheEntry cacheEntry, ServletResponse resp) throws IOException {
-        ServletOutputStream outputStream = resp.getOutputStream();
-        outputStream.write(cacheEntry.value);//byte[]
-    }
-
-    public void init(FilterConfig config) throws ServletException {
-        tangoContext = (TangoContext) config.getServletContext().getAttribute(TangoContext.TANGO_CONTEXT);
-    }
-
-    private static class CachedResponseWrapper extends HttpServletResponseWrapper {
-        private final PrintWriter writer;
-        private final ByteArrayOutputStream cached;
-        private final ServletOutputStream outputStream;
-
-        /**
-         * Creates a ServletResponse adaptor wrapping the given response object.
-         *
-         * @param response
-         * @throws IllegalArgumentException if the response is null.
-         */
-        public CachedResponseWrapper(HttpServletResponse response) {
-            super(response);
-            cached = new ByteArrayOutputStream(/*super.getBufferSize()*/);
-            writer = new PrintWriter(cached);
-            outputStream = new ServletOutputStream() {
-                @Override
-                public void write(int b) throws IOException {
-                    cached.write(b);
-                }
-            };
-        }
-
-        @Override
-        public PrintWriter getWriter() throws IOException {
-            return writer;
-        }
-
-        @Override
-        public ServletOutputStream getOutputStream() throws IOException {
-            return outputStream;
-        }
-    }
-
-    private static class CacheEntry{
-        private final byte[] value;
-        private final long timestamp;
-
-        private CacheEntry(long timestamp, byte[] value) {
-            this.value = value;
-            this.timestamp = timestamp;
+            logger.debug("Cache hit!");
+            requestContext.abortWith(Response.ok(cacheEntry.value).build());
         }
     }
 }
