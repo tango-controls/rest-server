@@ -29,8 +29,6 @@
             org.tango.web.server.providers.TangoDatabaseProvider,
             org.tango.web.server.resolvers.JacksonConfiguration,
             org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
-            org.tango.web.server.providers.AttributeValueCacheProvider,
-            org.tango.web.server.providers.StaticValueCacheProvider,
             org.tango.web.server.providers.PartitionProvider,
             org.tango.web.server.providers.TangoRestFilterProvider
         </param-value>
@@ -59,7 +57,7 @@
 
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
-        <url-pattern>/rest</url-pattern>
+        <url-pattern>/rest/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

@@ -1,10 +1,11 @@
 package org.tango.rest;
 
+import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.tango.web.server.TangoContext;
 import org.tango.web.server.cache.SimpleBinaryCache;
-import org.tango.web.server.filters.SimpleCacheFilter;
-import org.tango.web.server.interceptors.ResponseCacheWriterInterceptor;
+import org.tango.web.server.providers.AttributeValueCacheProvider;
+import org.tango.web.server.providers.StaticValueCacheProvider;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -50,11 +51,15 @@ public class TangoRestApi extends Application {
         SimpleBinaryCache cache = new SimpleBinaryCache(1000);
         tangoContext.isCacheEnabled = true;
         tangoContext.serverSideCacheExpirationDelay = 30000L;
-        SimpleCacheFilter cacheFilter = new SimpleCacheFilter(tangoContext, cache);//TODO inject TangoContext
-        singletons.add(cacheFilter);
-        ResponseCacheWriterInterceptor responseCacheWriterInterceptor = new ResponseCacheWriterInterceptor(cache);
-        singletons.add(responseCacheWriterInterceptor);
+//        SimpleCacheFilter cacheFilter = new SimpleCacheFilter(tangoContext, cache);//TODO inject TangoContext
+//        singletons.add(cacheFilter);
+//        ResponseCacheWriterInterceptor responseCacheWriterInterceptor = new ResponseCacheWriterInterceptor(cache);
+//        singletons.add(responseCacheWriterInterceptor);
 
+
+        singletons.add(new ServerCacheFeature(cache));
+        singletons.add(new AttributeValueCacheProvider());
+        singletons.add(new StaticValueCacheProvider());
 
         return singletons;
     }
