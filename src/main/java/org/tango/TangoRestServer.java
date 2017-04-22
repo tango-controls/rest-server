@@ -118,7 +118,7 @@ public class TangoRestServer {
 
             logger.trace("Add webapp[tango] tomcat for device");
             org.apache.catalina.Context context =
-                    tangoRestServer.tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
+                    tangoRestServer.tomcat.addWebapp("tango", "/home/ingvord/Projects/hzg.wpn.projects/mTango/mtangorest.server/target/webapp"/*tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString()*/);
 
             WebappLoader loader =
                     new WebappLoader(Thread.currentThread().getContextClassLoader());

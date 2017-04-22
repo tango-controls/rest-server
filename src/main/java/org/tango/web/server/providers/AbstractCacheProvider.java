@@ -8,10 +8,7 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,10 +30,12 @@ public abstract class AbstractCacheProvider implements ContainerResponseFilter {
 
         TangoContext context = ResteasyProviderFactory.getContextData(TangoContext.class);
         if(!context.isCacheEnabled) return;
-        responseContext.getHeaders().putSingle("Expires",
-                DATE_FORMAT.format(new Date(System.currentTimeMillis() + getDelay(context))));
-        responseContext.getHeaders().putSingle("Cache-Control", String.format("public, max-age=%d",
-                TimeUnit.SECONDS.convert(getDelay(context), TimeUnit.MILLISECONDS)));
+        responseContext.getHeaders().put("Expires",
+                Arrays.<Object>asList(
+                        DATE_FORMAT.format(new Date(System.currentTimeMillis() + getDelay(context)))));
+        responseContext.getHeaders().put("Cache-Control",
+                Arrays.<Object>asList(
+                        String.format("public, max-age=%d", TimeUnit.SECONDS.convert(getDelay(context), TimeUnit.MILLISECONDS))));
     }
 
     protected abstract long getDelay(TangoContext context);
