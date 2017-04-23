@@ -44,12 +44,13 @@ public class TangoRestServer {
     public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_METHOD";
     public static final String TOMCAT_USERS = "TOMCAT_USERS";
     public static final String TOMCAT_PASSWORDS = "TOMCAT_PASSWORDS";
+    public static final String TOMCAT_CACHE_SIZE = "TOMCAT_CACHE_SIZE";
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "plain";
     // descriptions
     public static final String CACHE_ENABLED_DESC = "Enables/disables client and server cache. Client cache means adding HTTP request headers.";
-    public static final String SERVER_SIDE_DESC = "Defines how long server keeps an attribute value of a remote Tango device.";
+
     public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
     public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
     private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
@@ -69,6 +70,8 @@ public class TangoRestServer {
     private String[] tomcatUsers;
     @DeviceProperty(name = TOMCAT_PASSWORDS, defaultValue = {"test", "tango"})
     private String[] tomcatPasswords;
+    @DeviceProperty(name = TOMCAT_CACHE_SIZE, defaultValue = "1000")
+    private int tomcatCacheSize;
 
     @State
     private DevState state = DevState.OFF;
@@ -118,7 +121,7 @@ public class TangoRestServer {
 
             logger.trace("Add webapp[tango] tomcat for device");
             org.apache.catalina.Context context =
-                    tangoRestServer.tomcat.addWebapp("tango", "/home/ingvord/Projects/hzg.wpn.projects/mTango/mtangorest.server/target/webapp"/*tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString()*/);
+                    tangoRestServer.tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
 
             WebappLoader loader =
                     new WebappLoader(Thread.currentThread().getContextClassLoader());
@@ -147,7 +150,7 @@ public class TangoRestServer {
     @Init
     @StateMachine(endState = DeviceState.ON)
     public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
-        logger.trace("Init'ing TangoRestServer device...");
+        logger.info("Initializing TangoRestServer device...");
         tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
         logger.debug("TANGO_DB_NAME={}", tangoDbNameProp);
         tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
@@ -219,18 +222,6 @@ public class TangoRestServer {
     @AttributeProperties(description = CACHE_ENABLED_DESC)
     public void setCacheEnabled(boolean v) {
         ctx.isCacheEnabled = v;
-    }
-
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
-    public long getServerSideCacheExpirationDelay(){
-        return ctx.serverSideCacheExpirationDelay;
-    }
-
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = SERVER_SIDE_DESC)
-    public void setServerSideCacheExpirationDelay(long v) {
-        ctx.serverSideCacheExpirationDelay = v;
     }
 
     @Attribute(isMemorized = true)
@@ -316,5 +307,13 @@ public class TangoRestServer {
 
     public TangoContext getCtx(){
         return ctx;
+    }
+
+    public int getTomcatCacheSize() {
+        return tomcatCacheSize;
+    }
+
+    public void setTomcatCacheSize(int tomcatCacheSize) {
+        this.tomcatCacheSize = tomcatCacheSize;
     }
 }
