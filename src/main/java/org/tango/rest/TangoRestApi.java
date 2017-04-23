@@ -47,6 +47,8 @@ public class TangoRestApi extends Application {
 
         // = = = Cache = = =
         TangoContext tangoContext = (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
+        //TODO dirty hack to fix NPE in -nodb mode
+        if (tangoContext == null) tangoContext = new TangoContext();
         SimpleBinaryCache cache = new SimpleBinaryCache(tangoContext.cacheCapacity);
 
         singletons.add(new ServerCacheFeature(cache));

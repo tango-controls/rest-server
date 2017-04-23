@@ -33,7 +33,7 @@ public class TangoContext {
     public volatile TimeUnit tangoProxyKeepAliveDelayTimeUnit = TimeUnit.MINUTES;
     public volatile long attributeValueExpirationDelay = 200L;
     public volatile long staticDataExpirationDelay = 30000L;
-    public volatile int cacheCapacity;
+    public volatile int cacheCapacity = 100;
     public volatile boolean isCacheEnabled = false;
     //defines tangoHost specified at start via tango rest server device properties or environmental variable
     public volatile String tangoHost = TANGO_LOCALHOST;
