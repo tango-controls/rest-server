@@ -4,6 +4,8 @@ import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.tango.web.server.TangoContext;
 import org.tango.web.server.cache.SimpleBinaryCache;
+import org.tango.web.server.filters.JsonpMethodFilter;
+import org.tango.web.server.interceptors.JsonpResponseWrapper;
 import org.tango.web.server.providers.AttributeValueCacheProvider;
 import org.tango.web.server.providers.StaticValueCacheProvider;
 
@@ -54,6 +56,9 @@ public class TangoRestApi extends Application {
         singletons.add(new ServerCacheFeature(cache));
         singletons.add(new AttributeValueCacheProvider());
         singletons.add(new StaticValueCacheProvider());
+
+        singletons.add(new JsonpMethodFilter());
+        singletons.add(new JsonpResponseWrapper());
 
         return singletons;
     }
