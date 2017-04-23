@@ -4,16 +4,16 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.Failures;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
+import org.tango.web.server.exception.mapper.GeneralExceptionMapper;
+import org.tango.web.server.exception.mapper.NoSuchCommand;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
@@ -54,9 +54,10 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
         } catch (TangoProxyException e) {
-            requestContext.abortWith(Response.serverError().entity(Failures.createInstance(e)).build());
+            requestContext.abortWith(new GeneralExceptionMapper().toResponse(e));
         } catch (NoSuchCommandException e) {
-            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
+            assert false;
+            requestContext.abortWith(new NoSuchCommand().toResponse(e));
         }
     }
 }
