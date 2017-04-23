@@ -17,6 +17,7 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
+import org.tango.web.server.AuthConfiguration;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoContext;
 import org.tango.web.server.TangoProxyCreationPolicy;
@@ -40,16 +41,19 @@ public class TangoRestServer {
     public static final String TANGO_DB = "TANGO_DB";
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
     public static final String TOMCAT_PORT = "TOMCAT_PORT";
-    public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_CONFIG_CLASS";
+    public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_METHOD";
+    public static final String TOMCAT_USERS = "TOMCAT_USERS";
+    public static final String TOMCAT_PASSWORDS = "TOMCAT_PASSWORDS";
     public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
-    public static final String DEFAULT_AUTH_CLASS = "org.tango.web.server.PlainTextAuthConfiguration";
+    public static final String DEFAULT_AUTH_CLASS = "plain";
     // descriptions
     public static final String CACHE_ENABLED_DESC = "Enables/disables client and server cache. Client cache means adding HTTP request headers.";
     public static final String SERVER_SIDE_DESC = "Defines how long server keeps an attribute value of a remote Tango device.";
     public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
     public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
     private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
+
     private final TangoContext ctx = new TangoContext();
     @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbNameProp;
@@ -60,13 +64,19 @@ public class TangoRestServer {
     @DeviceProperty(name = TOMCAT_PORT, defaultValue = "10001")
     private int tomcatPort = 10001;
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
-    private String tomcatAuthConfigurationClass;
+    private String tomcatAuthMethod;
+    @DeviceProperty(name = TOMCAT_USERS, defaultValue = {"ingvord", "tango-cs"})
+    private String[] tomcatUsers;
+    @DeviceProperty(name = TOMCAT_PASSWORDS, defaultValue = {"test", "tango"})
+    private String[] tomcatPasswords;
+
     @State
     private DevState state = DevState.OFF;
     @Status
     private String status;
     private String tangoDbHost;
     private Tomcat tomcat;
+    private AuthConfiguration authConfiguration;
 
     public static void main(String[] args) throws Exception {
         String instance = args[0];
@@ -108,7 +118,7 @@ public class TangoRestServer {
 
             logger.trace("Add webapp[tango] tomcat for device");
             org.apache.catalina.Context context =
-                    tangoRestServer.tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
+                    tangoRestServer.tomcat.addWebapp("tango", "/home/ingvord/Projects/hzg.wpn.projects/mTango/mtangorest.server/target/webapp"/*tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString()*/);
 
             WebappLoader loader =
                     new WebappLoader(Thread.currentThread().getContextClassLoader());
@@ -116,11 +126,7 @@ public class TangoRestServer {
             context.setLoader(loader);
 
             logger.trace("Configure tomcat auth for device");
-            Object authConfig =
-                    TangoRestServer.class.getClassLoader().loadClass(tangoRestServer.tomcatAuthConfigurationClass).newInstance();
-
-            authConfig.getClass().getMethod("configure", Tomcat.class)
-                    .invoke(authConfig, tangoRestServer.tomcat);
+            tangoRestServer.authConfiguration.configure(tangoRestServer.tomcat);
 
             logger.trace("Start tomcat of device");
             tangoRestServer.tomcat.start();
@@ -151,14 +157,21 @@ public class TangoRestServer {
         logger.debug("TANGO_ACCESS={}", tangoAccessProp);
         System.setProperty(TANGO_ACCESS, tangoAccessProp);
 
-        TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
-        DatabaseDs databaseDs = new DatabaseDs(dbProxy);
+        try {
+            TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
+            DatabaseDs databaseDs = new DatabaseDs(dbProxy);
+            tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
+            logger.debug("TANGO_DB_HOST={}", tangoDbHost);
+            if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
+        } catch (TangoProxyException e) {
+            logger.warn("Failed to create DatabaseProxy! Ignore if in -nodb mode...", e);
+        }
 
-        tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
-        logger.debug("TANGO_DB_HOST={}", tangoDbHost);
-        if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
+
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
+
+        authConfiguration = new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords);
     }
 
     @Delete
@@ -273,8 +286,24 @@ public class TangoRestServer {
         this.tomcatPort = tomcatPort;
     }
 
-    public void setTomcatAuthConfigurationClass(String tomcatAuthConfig) {
-        this.tomcatAuthConfigurationClass = tomcatAuthConfig;
+    public void setTomcatAuthMethod(String tomcatAuthConfig) {
+        this.tomcatAuthMethod = tomcatAuthConfig;
+    }
+
+    public String[] getTomcatUsers() {
+        return tomcatUsers;
+    }
+
+    public void setTomcatUsers(String[] tomcatUsers) {
+        this.tomcatUsers = tomcatUsers;
+    }
+
+    public String[] getTomcatPasswords() {
+        return tomcatPasswords;
+    }
+
+    public void setTomcatPasswords(String[] tomcatPasswords) {
+        this.tomcatPasswords = tomcatPasswords;
     }
 
     public String getStatus() {
