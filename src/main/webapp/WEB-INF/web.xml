@@ -15,12 +15,6 @@
         <param-value>SLF4J</param-value>
     </context-param>
     <context-param>
-        <param-name>resteasy.resources</param-name>
-        <param-value>
-            org.tango.rest.EntryPoint
-        </param-value>
-    </context-param>
-    <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
             org.tango.web.server.interceptors.CommandInputMessageBodyReader,
@@ -35,8 +29,6 @@
             org.tango.web.server.providers.TangoDatabaseProvider,
             org.tango.web.server.resolvers.JacksonConfiguration,
             org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
-            org.tango.web.server.providers.AttributeValueCacheProvider,
-            org.tango.web.server.providers.StaticValueCacheProvider,
             org.tango.web.server.providers.PartitionProvider,
             org.tango.web.server.providers.TangoRestFilterProvider
         </param-value>
@@ -53,8 +45,8 @@
         <servlet-name>RestTangoService</servlet-name>
         <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
         <init-param>
-            <param-name>resteasy.servlet.mapping.prefix</param-name>
-            <param-value>/rest</param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.tango.rest.TangoRestApi</param-value>
         </init-param>
     </servlet>
 
@@ -84,7 +76,7 @@
             <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
-            <role-name>mtango-rest</role-name>
+            <role-name>*</role-name>
         </auth-constraint>
     </security-constraint>
     <security-constraint>
@@ -105,6 +97,10 @@
         <form-error-page>/fail_login.html</form-error-page>
         </form-login-config>-->
     </login-config>
+    <security-role>
+        <description>compatibility with DESY kerberos</description>
+        <role-name>desy-user</role-name>
+    </security-role>
     <security-role>
         <description>mtango rest api user</description>
         <role-name>mtango-rest</role-name>

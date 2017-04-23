@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 27.11.2015
  */
-@Path("/")
+@Path("/rest")
 @Produces("application/json")
 public class EntryPoint {
     private final Map<String, Object> supportedVersions = new HashMap<>(3);
