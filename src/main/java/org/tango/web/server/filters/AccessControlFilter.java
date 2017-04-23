@@ -5,8 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.Failures;
 import org.tango.web.server.AccessControl;
+import org.tango.web.server.exception.mapper.GeneralExceptionMapper;
+import org.tango.web.server.exception.mapper.NoSuchCommand;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ import java.io.IOException;
 @Provider
 @PreMatching
 public class AccessControlFilter implements ContainerRequestFilter {
-    private static final Logger LOG = LoggerFactory.getLogger(AccessControlFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(AccessControlFilter.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -50,16 +51,13 @@ public class AccessControlFilter implements ContainerRequestFilter {
             String member = pathParams.getFirst("member");
 
             String device = domain + "/" + family + "/" + member;
-            //workaround jsonp limitation
-            String method;
-            method = httpServletRequest.getParameter("_method");
-            if(method == null) method = requestContext.getMethod();
+            String method = requestContext.getMethod();
             switch (method) {
                 case "GET":
                     if (!accessControl.checkUserCanRead(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have read access to %s", user, device);
                         requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
-                        LOG.info(msg);
+                        logger.debug(msg);
                     }
 
                     break;
@@ -69,18 +67,19 @@ public class AccessControlFilter implements ContainerRequestFilter {
                     if (!accessControl.checkUserCanWrite(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have write access to %s", user, device);
                         requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
-                        LOG.info(msg);
+                        logger.debug(msg);
                     }
                     break;
                 default:
                     requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).build());
-                    LOG.info("Method is not allowed: " + method);
+                    logger.debug("Method is not allowed: " + method);
             }
 
         } catch (NoSuchCommandException e) {
-            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
+            assert false;
+            requestContext.abortWith(new NoSuchCommand().toResponse(e));
         } catch (TangoProxyException e) {
-            requestContext.abortWith(Response.serverError().entity(Failures.createInstance(e)).build());
+            requestContext.abortWith(new GeneralExceptionMapper().toResponse(e));
         }
     }
 }

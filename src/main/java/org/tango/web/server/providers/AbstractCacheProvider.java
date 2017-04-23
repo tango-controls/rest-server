@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * @since 15.12.2015
  */
 public abstract class AbstractCacheProvider implements ContainerResponseFilter {
-    private static final SimpleDateFormat DATE_FORMAT;
+    public static final SimpleDateFormat DATE_FORMAT;
     static {
         Calendar calendar = Calendar.getInstance();
         DATE_FORMAT = new SimpleDateFormat(

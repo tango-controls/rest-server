@@ -158,7 +158,6 @@ public class DeviceAttribute {
     }
 
     @PUT
-    @org.tango.web.server.providers.AttributeValue
     @Path("/value")
     public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async,
                                           @Context TangoProxy proxy) throws Exception {
