@@ -46,16 +46,8 @@ public class TangoRestApi extends Application {
         singletons.add(cors);
 
         // = = = Cache = = =
-        //TODO inject
-        TangoContext tangoContext = new TangoContext();
-        SimpleBinaryCache cache = new SimpleBinaryCache(1000);
-        tangoContext.isCacheEnabled = true;
-        tangoContext.serverSideCacheExpirationDelay = 30000L;
-//        SimpleCacheFilter cacheFilter = new SimpleCacheFilter(tangoContext, cache);//TODO inject TangoContext
-//        singletons.add(cacheFilter);
-//        ResponseCacheWriterInterceptor responseCacheWriterInterceptor = new ResponseCacheWriterInterceptor(cache);
-//        singletons.add(responseCacheWriterInterceptor);
-
+        TangoContext tangoContext = (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
+        SimpleBinaryCache cache = new SimpleBinaryCache(tangoContext.cacheCapacity);
 
         singletons.add(new ServerCacheFeature(cache));
         singletons.add(new AttributeValueCacheProvider());

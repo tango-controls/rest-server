@@ -19,30 +19,25 @@ import java.util.concurrent.*;
  * @since 14.12.2015
  */
 public class TangoContext {
-    private final Logger logger = LoggerFactory.getLogger(TangoContext.class);
-
     public static final String TANGO_CONTEXT = "org.tango.rest.server.context";
-
-
+    public static final int INITIAL_POOL_CAPACITY = 100;
+    public static final long DELAY = 30L;
+    public static final String SYS_DATABASE_2 = "sys/database/2";
+    public static final String TANGO_LOCALHOST = "localhost:10000";
+    public final TangoProxyPool hostsPool = new TangoProxyPool();
+    public final TangoProxyPool proxyPool = new TangoProxyPool();
+    public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(TangoContext.class);
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
             new ThreadFactoryBuilder()
                     .setNameFormat("tango-proxies-pool-manager for TangoContext@" + this.hashCode())
                     .setDaemon(true)
                     .build());
-
-    public static final int INITIAL_POOL_CAPACITY = 100;
-    public static final long DELAY = 30L;
-    public static final String SYS_DATABASE_2 = "sys/database/2";
-    public static final String TANGO_LOCALHOST = "localhost:10000";
-
     public volatile long tangoProxyKeepAliveDelay = DELAY;
     public volatile TimeUnit tangoProxyKeepAliveDelayTimeUnit = TimeUnit.MINUTES;
-
     public volatile long attributeValueExpirationDelay = 200L;
     public volatile long staticDataExpirationDelay = 30000L;
-
-    public volatile long serverSideCacheExpirationDelay = 200L;
-
+    public volatile int cacheCapacity;
     public volatile boolean isCacheEnabled = false;
     //defines tangoHost specified at start via tango rest server device properties or environmental variable
     public volatile String tangoHost = TANGO_LOCALHOST;
@@ -50,12 +45,6 @@ public class TangoContext {
     public volatile String tangoDbName = SYS_DATABASE_2;
     //defines full path to tango db to which application connects at start
     public volatile String tangoDb = "tango://" + TANGO_LOCALHOST + "/" + SYS_DATABASE_2;
-
-    public final TangoProxyPool hostsPool = new TangoProxyPool();
-
-    public final TangoProxyPool proxyPool = new TangoProxyPool();
-
-    public final ConcurrentMap<String, TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentHashMap<>();
 
     @Override
     public String toString() {

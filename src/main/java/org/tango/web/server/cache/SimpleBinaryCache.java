@@ -10,7 +10,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.Map;
 
 /**
- * C&Ped from {@link org.jboss.resteasy.plugins.cache.server.SimpleServerCache} to override get behaviour
+ * C&Ped from {@link org.jboss.resteasy.plugins.cache.server.SimpleServerCache} to override some behaviour
  */
 public class SimpleBinaryCache implements ServerCache {
     private Map<String, CacheEntry> cache;
@@ -27,7 +27,7 @@ public class SimpleBinaryCache implements ServerCache {
     }
 
     public Entry add(String uri, MediaType mediaType, CacheControl cc, MultivaluedMap<String, Object> headers, byte[] entity, String etag, MultivaluedMap<String, String> varyHeaders) {
-        CacheEntry cacheEntry = new CacheEntry(headers, entity, cc.getMaxAge(), etag, varyHeaders);
+        CacheEntry cacheEntry = new CacheEntry(headers, entity, cc.getMaxAge(), Long.parseLong(cc.getCacheExtension().get("max-age-millis")), etag, varyHeaders);
         cache.put(uri, cacheEntry);
         return cacheEntry;
     }
@@ -43,15 +43,17 @@ public class SimpleBinaryCache implements ServerCache {
     public static class CacheEntry implements Entry {
         private final byte[] cached;
         private final int expires;
+        private final long maxAgeMillis;
         private final long timestamp = System.currentTimeMillis();
         private final MultivaluedMap<String, Object> headers;
         private final MultivaluedMap<String, String> varyHeaders;
         private String etag;
 
-        private CacheEntry(MultivaluedMap<String, Object> headers, byte[] cached, int expires, String etag, MultivaluedMap<String, String> varyHeaders) {
+        private CacheEntry(MultivaluedMap<String, Object> headers, byte[] cached, int expires, long maxAgeMillis, String etag, MultivaluedMap<String, String> varyHeaders) {
             this.cached = cached;
             this.expires = expires;
             this.headers = headers;
+            this.maxAgeMillis = maxAgeMillis;
             this.etag = etag;
             this.varyHeaders = varyHeaders;
         }
@@ -61,7 +63,7 @@ public class SimpleBinaryCache implements ServerCache {
         }
 
         public boolean isExpired() {
-            return System.currentTimeMillis() - timestamp >= expires * 1000L;
+            return System.currentTimeMillis() - timestamp >= maxAgeMillis;
         }
 
         public String getEtag() {

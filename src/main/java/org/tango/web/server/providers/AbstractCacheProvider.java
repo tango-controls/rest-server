@@ -6,6 +6,8 @@ import org.tango.web.server.TangoContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -30,12 +32,19 @@ public abstract class AbstractCacheProvider implements ContainerResponseFilter {
 
         TangoContext context = ResteasyProviderFactory.getContextData(TangoContext.class);
         if(!context.isCacheEnabled) return;
-        responseContext.getHeaders().put("Expires",
-                Arrays.<Object>asList(
-                        DATE_FORMAT.format(new Date(System.currentTimeMillis() + getDelay(context)))));
-        responseContext.getHeaders().put("Cache-Control",
-                Arrays.<Object>asList(
-                        String.format("public, max-age=%d", TimeUnit.SECONDS.convert(getDelay(context), TimeUnit.MILLISECONDS))));
+
+
+        MultivaluedMap<String, Object> headers = responseContext.getHeaders();
+
+        headers.putSingle("Expires",
+                DATE_FORMAT.format(new Date(System.currentTimeMillis()/*TODO last modified*/ + getDelay(context))));
+
+        CacheControl cc = new CacheControl();
+        cc.setPrivate(false);
+        cc.setMaxAge((int) TimeUnit.SECONDS.convert(getDelay(context), TimeUnit.MILLISECONDS));
+        cc.getCacheExtension().put("max-age-millis", String.valueOf(getDelay(context)));
+
+        headers.put("Cache-Control", Arrays.<Object>asList(cc));
     }
 
     protected abstract long getDelay(TangoContext context);
