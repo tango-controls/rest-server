@@ -133,10 +133,14 @@ public class TangoRestServer {
 
             logger.trace("Start tomcat of device");
             tangoRestServer.tomcat.start();
-            tangoRestServer.setStatus("Running tomcat on port " + tangoRestServer.tomcatPort);
+            tangoRestServer.setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tangoRestServer.tomcatPort));
         }
 
         logger.trace("Done.");
+    }
+
+    public static String getVersion() {
+        return TangoRestServer.class.getPackage().getImplementationVersion();
     }
 
     public DevState getState() {
