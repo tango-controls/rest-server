@@ -61,9 +61,6 @@ public class Launcher implements ServletContextListener {
             context.tangoDb = System.getProperty(TangoRestServer.TANGO_DB, "tango://" + context.tangoHost + "/" + context.tangoDbName);
 
             context.cacheCapacity = tangoRestServer.getTomcatCacheSize();
-            //TODO replace with TangoContext.hostsPool
-            DatabaseDs db = new DatabaseDs(context.hostsPool.getProxy(context.tangoDb));//puts proxy instance into cache
-            sce.getServletContext().setAttribute(DatabaseDs.TANGO_DB, db);//for backward compatability
 
             String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.DEFAULT_ACCESS_CONTROL);
 
