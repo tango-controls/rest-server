@@ -1,6 +1,8 @@
 package org.tango.rest;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttrQuality;
 import fr.esrf.Tango.DevFailed;
@@ -15,9 +17,11 @@ import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
+import org.tango.web.server.attribute.AttributeProperty;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -25,6 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author ingvord
@@ -108,9 +113,30 @@ public class DeviceAttribute {
     }
 
     @GET
+    @StaticValue
     @Path("/properties")
-    public DbAttribute deviceAttributeProperties(@Context TangoProxy proxy) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_property(name);
+    public List<AttributeProperty> deviceAttributeProperties(@Context TangoProxy proxy) throws DevFailed {
+        return Lists.transform(proxy.toDeviceProxy().get_attribute_property(name), new Function<DbDatum, AttributeProperty>() {
+            @Override
+            public AttributeProperty apply(@Nullable DbDatum input) {
+                return new AttributeProperty(input);
+            }
+        });
+    }
+
+    @GET
+    @StaticValue
+    @Path("/properties/{prop}")
+    public AttributeProperty deviceAttributeProperties(@PathParam("prop") final String property, @Context TangoProxy proxy) throws DevFailed {
+        Iterable<? extends DbDatum> datumCollection = Iterables.filter(proxy.toDeviceProxy().get_attribute_property(name), new Predicate<DbDatum>() {
+            @Override
+            public boolean apply(@Nullable DbDatum input) {
+                return property.equalsIgnoreCase(input.name);
+            }
+        });
+        if (!datumCollection.iterator().hasNext()) throw new NotFoundException(
+                String.format("Device attribute [%s/%s] has no property[%s]", proxy.getName(), name, property));
+        return new AttributeProperty(datumCollection.iterator().next());
     }
 
     @PUT
