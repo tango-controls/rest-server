@@ -41,7 +41,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
         ServletContext servletContext = ResteasyProviderFactory.getContextData(ServletContext.class);
 
         AccessControl accessControl = (AccessControl) servletContext.getAttribute(AccessControl.TANGO_ACCESS);
-        if(accessControl == null) return;//TODO configure via interface 'use AccessControl'
+        if (accessControl == null) return;
         try {
             UriInfo uriInfo = requestContext.getUriInfo();
 
