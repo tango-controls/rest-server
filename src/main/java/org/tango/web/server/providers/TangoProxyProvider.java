@@ -39,16 +39,17 @@ public class TangoProxyProvider implements ContainerRequestFilter {
         String family = pathParams.getFirst("family");
         String member = pathParams.getFirst("member");
 
+        if(host == null || port == null)
+            return;
+
         if(domain == null || family == null || member == null)
             return;
 
         TangoProxy result = null;
         DatabaseDs db = null;
+
         try {
-            if(host == null || port == null)
-                db = new DatabaseDs(tangoContext.getHostProxy());
-            else
-                db = new DatabaseDs(tangoContext.getHostProxy(host, port));
+            db = new DatabaseDs(tangoContext.getHostProxy(host, port));
 
             result = tangoContext.proxyPool.getProxy(db.getDeviceAddress(domain + "/" + family + "/" + member));
 
