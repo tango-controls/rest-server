@@ -1,3 +1,13 @@
+rc4-1.3
+-------
+
+  - respect timeout query parameter in event related requests
+  - SimpleCache redesigned
+  - support for JsonP is added
+  - reading attribute properties is fixed
+  - use TangoAccessControl on demand
+  - miscellaneous
+
 rc4-0.4
 -------
   THIS IS AN UNSTABLE VERSION DO NOT USE IT IN PRODUCTION
