@@ -1,7 +1,5 @@
 package org.tango;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevSource;
 import fr.esrf.Tango.DevState;
@@ -28,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,7 +60,7 @@ public class TangoRestServer {
     @DeviceProperty(name = TANGO_DB, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbProp;
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = DEFAULT_ACCESS_CONTROL)
-    private String tangoAccessProp;
+    private String tangoAccessControlProperty;
     @DeviceProperty(name = TOMCAT_PORT, defaultValue = "10001")
     private int tomcatPort = 10001;
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
@@ -161,9 +160,9 @@ public class TangoRestServer {
         tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
         logger.debug("TANGO_DB={}", tangoDbProp);
         System.setProperty(TANGO_DB, tangoDbProp);
-        tangoAccessProp = System.getProperty(TANGO_ACCESS, tangoAccessProp);
-        logger.debug("TANGO_ACCESS={}", tangoAccessProp);
-        System.setProperty(TANGO_ACCESS, tangoAccessProp);
+        tangoAccessControlProperty = System.getProperty(TANGO_ACCESS, tangoAccessControlProperty);
+        logger.debug("TANGO_ACCESS={}", tangoAccessControlProperty);
+        System.setProperty(TANGO_ACCESS, tangoAccessControlProperty);
 
         try {
             TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
@@ -192,15 +191,7 @@ public class TangoRestServer {
 
     @Attribute
     public String[] getAliveProxies() throws Exception {
-        List<String> result = Lists.transform(
-                ctx.proxyPool.proxies(),
-                new Function<TangoProxy, String>() {
-                    @Override
-                    public String apply(TangoProxy input) {
-                        return input.getName();
-                    }
-                });
-
+        Collection<String> result = ctx.proxyPool.proxies();
         return result.toArray(new String[result.size()]);
     }
 
@@ -273,8 +264,12 @@ public class TangoRestServer {
         this.tangoDbProp = tangoDbProp;
     }
 
-    public void setTangoAccessProp(String tangoAccessProp) {
-        this.tangoAccessProp = tangoAccessProp;
+    public void setTangoAccessControlProperty(String tangoAccessControlProperty) {
+        this.tangoAccessControlProperty = tangoAccessControlProperty;
+    }
+
+    public String getTangoAccessControlProperty() {
+        return this.tangoAccessControlProperty;
     }
 
     public void setTomcatPort(int tomcatPort) {

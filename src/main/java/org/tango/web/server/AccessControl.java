@@ -15,7 +15,6 @@ import java.util.concurrent.*;
 public class AccessControl {
     public static final String READ = "read";
     public static final String WRITE = "write";
-    public static final String TANGO_ACCESS = "tango.access_control";
 
     private final TangoProxy proxy;
 

@@ -2,11 +2,13 @@ package org.tango.rest;
 
 import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
+import org.tango.TangoRestServer;
 import org.tango.web.server.TangoContext;
 import org.tango.web.server.cache.SimpleBinaryCache;
 import org.tango.web.server.filters.JsonpMethodFilter;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
 import org.tango.web.server.providers.AttributeValueCacheProvider;
+import org.tango.web.server.providers.CustomProvider;
 import org.tango.web.server.providers.StaticValueCacheProvider;
 
 import javax.servlet.ServletContext;
@@ -39,16 +41,11 @@ public class TangoRestApi extends Application {
         Set<Object> singletons = new HashSet<>();
 
         // = = = CORS = = =
-        CorsFilter cors = new CorsFilter();
-        cors.getAllowedOrigins().add("*");
-        cors.setAllowCredentials(true);
-        cors.setAllowedMethods("GET,POST,PUT,DELETE,HEAD");
-        cors.setCorsMaxAge(1209600);
-        cors.setAllowedHeaders("Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,Accept-Encoding,Accept-Language,Access-Control-Request-Method,Cache-Control,Connection,Host,Referer,User-Agent");
+        CorsFilter cors = getCorsFilter();
         singletons.add(cors);
 
         // = = = Cache = = =
-        TangoContext tangoContext = (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
+        TangoContext tangoContext = getTangoContext();
         //TODO dirty hack to fix NPE in -nodb mode
         if (tangoContext == null) tangoContext = new TangoContext();
         SimpleBinaryCache cache = new SimpleBinaryCache(tangoContext.cacheCapacity);
@@ -60,6 +57,26 @@ public class TangoRestApi extends Application {
         singletons.add(new JsonpMethodFilter());
         singletons.add(new JsonpResponseWrapper());
 
+        singletons.add(new CustomProvider());
+
         return singletons;
+    }
+
+    private CorsFilter getCorsFilter() {
+        CorsFilter cors = new CorsFilter();
+        cors.getAllowedOrigins().add("*");
+        cors.setAllowCredentials(true);
+        cors.setAllowedMethods("GET,POST,PUT,DELETE,HEAD");
+        cors.setCorsMaxAge(1209600);
+        cors.setAllowedHeaders("Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,Accept-Encoding,Accept-Language,Access-Control-Request-Method,Cache-Control,Connection,Host,Referer,User-Agent");
+        return cors;
+    }
+
+    private TangoContext getTangoContext(){
+        return (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
+    }
+
+    private TangoRestServer getTangoRestServer(){
+        return (TangoRestServer) servletContext.getAttribute(TangoRestServer.class.getName());
     }
 }

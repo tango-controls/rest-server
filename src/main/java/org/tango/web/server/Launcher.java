@@ -10,6 +10,7 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.util.List;
@@ -35,7 +36,7 @@ public class Launcher implements ServletContextListener {
         try {
             startTangoServer();//calls TangoRestServer.init - sets System properties from Device properties
 
-            initializeTangoServletContext(sce, tangoHost);
+            initializeTangoServletContext(sce.getServletContext(), tangoHost);
 
             logger.info("TangoRestServer servlet engine is initialized.");
         } catch (TangoProxyException e) {
@@ -44,34 +45,26 @@ public class Launcher implements ServletContextListener {
         }
     }
 
-    private void initializeTangoServletContext(ServletContextEvent sce, String tangoHost) throws TangoProxyException {
+    private void initializeTangoServletContext(ServletContext servletContext, String tangoHost) throws TangoProxyException {
         String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
         if ("-nodb".equals(instance)) {
             logger.info("Skipping TangoServlet context creation in -nodb mode.");
             return;
         }
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
-        if(tangoRestServers.size() > 1) throw new RuntimeException("This Tango server must have exactly one defined device.");
-        for (TangoRestServer tangoRestServer : tangoRestServers) {
-            TangoContext context = tangoRestServer.getCtx();
-            context.tangoHost = tangoHost;
+        if (tangoRestServers.size() > 1)
+            throw new RuntimeException("This Tango server must have exactly one defined device.");
+        TangoRestServer tangoRestServer = tangoRestServers.get(0);
 
-            context.tangoDbName = System.getProperty(TangoRestServer.TANGO_DB_NAME, TangoContext.SYS_DATABASE_2);
+        servletContext.setAttribute(TangoRestServer.class.getName(), tangoRestServer);
 
-            context.tangoDb = System.getProperty(TangoRestServer.TANGO_DB, "tango://" + context.tangoHost + "/" + context.tangoDbName);
+        String accessControlProp = tangoRestServer.getTangoAccessControlProperty();
 
-            context.cacheCapacity = tangoRestServer.getTomcatCacheSize();
-
-            String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.DEFAULT_ACCESS_CONTROL);
-
-            boolean skipAccessControl = accessControlProp.isEmpty() || "none".equalsIgnoreCase(accessControlProp);
-            if (!skipAccessControl) {
-                TangoProxy accessCtlProxy = TangoProxies.newDeviceProxyWrapper(accessControlProp);
-                AccessControl accessControl = new AccessControl(accessCtlProxy);
-                sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
-            }
-
-            sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
+        boolean skipAccessControl = accessControlProp.isEmpty() || "none".equalsIgnoreCase(accessControlProp);
+        if (!skipAccessControl) {
+            TangoProxy accessCtlProxy = TangoProxies.newDeviceProxyWrapper(accessControlProp);
+            AccessControl accessControl = new AccessControl(accessCtlProxy);
+            servletContext.setAttribute(AccessControl.class.getName(), accessControl);
         }
     }
 
