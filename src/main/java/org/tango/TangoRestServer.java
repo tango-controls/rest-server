@@ -45,7 +45,7 @@ public class TangoRestServer {
     public static final String TOMCAT_USERS = "TOMCAT_USERS";
     public static final String TOMCAT_PASSWORDS = "TOMCAT_PASSWORDS";
     public static final String TOMCAT_CACHE_SIZE = "TOMCAT_CACHE_SIZE";
-    public static final String SYS_ACCESS_CONTROL_1 = "sys/access_control/1";
+    public static final String DEFAULT_ACCESS_CONTROL = "none";//"sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "plain";
     // descriptions
@@ -60,7 +60,7 @@ public class TangoRestServer {
     private String tangoDbNameProp;
     @DeviceProperty(name = TANGO_DB, defaultValue = TangoContext.SYS_DATABASE_2)
     private String tangoDbProp;
-    @DeviceProperty(name = TANGO_ACCESS, defaultValue = SYS_ACCESS_CONTROL_1)
+    @DeviceProperty(name = TANGO_ACCESS, defaultValue = DEFAULT_ACCESS_CONTROL)
     private String tangoAccessProp;
     @DeviceProperty(name = TOMCAT_PORT, defaultValue = "10001")
     private int tomcatPort = 10001;

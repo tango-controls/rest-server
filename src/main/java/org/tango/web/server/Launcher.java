@@ -65,12 +65,14 @@ public class Launcher implements ServletContextListener {
             DatabaseDs db = new DatabaseDs(context.hostsPool.getProxy(context.tangoDb));//puts proxy instance into cache
             sce.getServletContext().setAttribute(DatabaseDs.TANGO_DB, db);//for backward compatability
 
-            String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.SYS_ACCESS_CONTROL_1);
+            String accessControlProp = System.getProperty(TangoRestServer.TANGO_ACCESS, TangoRestServer.DEFAULT_ACCESS_CONTROL);
 
-            TangoProxy accessCtlProxy = TangoProxies.newDeviceProxyWrapper(accessControlProp);
-            AccessControl accessControl = new AccessControl(accessCtlProxy);
-
-            sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
+            boolean skipAccessControl = accessControlProp.isEmpty() || "none".equalsIgnoreCase(accessControlProp);
+            if (!skipAccessControl) {
+                TangoProxy accessCtlProxy = TangoProxies.newDeviceProxyWrapper(accessControlProp);
+                AccessControl accessControl = new AccessControl(accessCtlProxy);
+                sce.getServletContext().setAttribute(AccessControl.TANGO_ACCESS, accessControl);
+            }
 
             sce.getServletContext().setAttribute(TangoContext.TANGO_CONTEXT, context);
         }
