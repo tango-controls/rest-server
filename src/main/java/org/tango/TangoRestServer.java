@@ -53,7 +53,7 @@ public class TangoRestServer {
 
     public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
     public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
-    private static final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
+    private final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
 
     private final TangoContext ctx = new TangoContext();
     @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
@@ -86,61 +86,62 @@ public class TangoRestServer {
         System.setProperty(TANGO_INSTANCE, instance);
         ServerManager.getInstance().start(args, TangoRestServer.class);//calls init method
 
-        startTomcat(instance);//calls Launcher.onContextCreated, i.e. creates TangoContext using properties set in init method
-    }
+        List<TangoRestServer> tangoRestServers =
+                ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
 
-    private static void startTomcat(String instance) throws Exception {
-        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
-
-        if(tangoRestServers.size() > 1)
+        if (tangoRestServers.size() > 1)
             throw new IllegalStateException("TangoRestServer must have exactly one device! Actually has: " + tangoRestServers.size());
 
-
-        for (TangoRestServer tangoRestServer : tangoRestServers) {
-            logger.trace("Configure tomcat for device");
-
-            Path tomcatBaseDir;
-            try {
-                tomcatBaseDir = Files.createTempDirectory("tomcat_");
-                Files.createDirectory(tomcatBaseDir.resolve("webapps"));
-            } catch (IOException e) {
-                throw new RuntimeException("Can not create tomcat temp dir", e);
-            }
-            try {
-                InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
-
-
-                Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                throw new RuntimeException("Can not extract webapp.war to a temp dir", e);
-            }
-
-            tangoRestServer.tomcat = new Tomcat();
-            tangoRestServer.tomcat.setPort(tangoRestServer.tomcatPort);
-            tangoRestServer.tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
-
-            logger.trace("Add webapp[tango] tomcat for device");
-            org.apache.catalina.Context context =
-                    tangoRestServer.tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
-
-            WebappLoader loader =
-                    new WebappLoader(Thread.currentThread().getContextClassLoader());
-            loader.setDelegate(true);
-            context.setLoader(loader);
-
-            logger.trace("Configure tomcat auth for device");
-            tangoRestServer.authConfiguration.configure(tangoRestServer.tomcat);
-
-            logger.trace("Start tomcat of device");
-            tangoRestServer.tomcat.start();
-            tangoRestServer.setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tangoRestServer.tomcatPort));
-        }
-
-        logger.trace("Done.");
+        tangoRestServers.get(0).startTomcat();//calls Launcher.onContextCreated, i.e. creates TangoContext using properties set in init method
     }
 
     public static String getVersion() {
         return TangoRestServer.class.getPackage().getImplementationVersion();
+    }
+
+    private void startTomcat() throws Exception {
+        logger.debug("Configure tomcat for device");
+
+        Path tomcatBaseDir;
+        try {
+            tomcatBaseDir = Files.createTempDirectory("tomcat_");
+            Files.createDirectory(tomcatBaseDir.resolve("webapps"));
+        } catch (IOException e) {
+            logger.error("Failed to create tomcat temp dir", e);
+            throw e;
+        }
+        try {
+            InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
+
+
+            Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            logger.error(String.format(
+                    "Failed to extract webapp.war to the temp dir %s", tomcatBaseDir.toAbsolutePath().toString()), e);
+            throw e;
+        }
+
+        tomcat = new Tomcat();
+        tomcat.setPort(tomcatPort);
+        tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
+
+        logger.debug("Add webapp[tango] tomcat for device");
+        org.apache.catalina.Context context =
+                tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
+
+        WebappLoader loader =
+                new WebappLoader(Thread.currentThread().getContextClassLoader());
+        loader.setDelegate(true);
+        context.setLoader(loader);
+
+        logger.debug("Configure tomcat auth for device");
+        authConfiguration.configure(tomcat);
+
+        logger.debug("Start tomcat of device");
+        tomcat.start();
+        setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tomcatPort));
+
+        logger.debug("Done.");
     }
 
     public DevState getState() {
@@ -173,7 +174,6 @@ public class TangoRestServer {
         } catch (TangoProxyException e) {
             logger.warn("Failed to create DatabaseProxy! Ignore if in -nodb mode...", e);
         }
-
 
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
@@ -230,7 +230,7 @@ public class TangoRestServer {
 
     @Attribute(isMemorized = true)
     @AttributeProperties(unit = "minutes")
-    public long getProxyKeepAliveDelay(){
+    public long getProxyKeepAliveDelay() {
         return ctx.tangoProxyKeepAliveDelay;
     }
 
@@ -309,7 +309,7 @@ public class TangoRestServer {
         this.status = status;
     }
 
-    public TangoContext getCtx(){
+    public TangoContext getCtx() {
         return ctx;
     }
 
