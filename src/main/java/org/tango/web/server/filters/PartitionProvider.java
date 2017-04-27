@@ -1,7 +1,8 @@
-package org.tango.web.server.providers;
+package org.tango.web.server.filters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.web.server.binding.Partitionable;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -19,9 +20,8 @@ import java.util.List;
 @Partitionable
 @Provider
 public class PartitionProvider implements ContainerResponseFilter {
-    private static final Logger LOG = LoggerFactory.getLogger(PartitionProvider.class);
-
     public static final String RANGE = "range";
+    private static final Logger LOG = LoggerFactory.getLogger(PartitionProvider.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {

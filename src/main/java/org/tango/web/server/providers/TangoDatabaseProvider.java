@@ -1,15 +1,13 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.TangoContext;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -22,13 +20,15 @@ import java.io.IOException;
  */
 @Provider
 public class TangoDatabaseProvider implements ContainerRequestFilter {
-    @Context
-    private ServletContext servletContext;
+    private final TangoRestServer tangoRestServer;
+
+    public TangoDatabaseProvider(TangoRestServer tangoRestServer) {
+        this.tangoRestServer = tangoRestServer;
+    }
+
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        TangoContext tangoContext = (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
-
         UriInfo uriInfo = requestContext.getUriInfo();
         MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
         String host = pathParams.getFirst("host");
@@ -38,7 +38,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
         DatabaseDs db = null;
         try{
-            db = new DatabaseDs(tangoContext.getHostProxy(host,  port));
+            db = new DatabaseDs(tangoRestServer.getHostProxy(host, port, /*TODO matrix param*/"sys/database/2"));
 
             ResteasyProviderFactory.pushContext(DatabaseDs.class, db);
         } catch (TangoProxyException e){

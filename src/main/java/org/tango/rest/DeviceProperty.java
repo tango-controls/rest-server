@@ -3,7 +3,7 @@ package org.tango.rest;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DbDatum;
 import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.web.server.providers.AttributeValue;
+import org.tango.web.server.binding.DynamicValue;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -27,7 +27,7 @@ public class DeviceProperty {
 
 
     @GET
-    @AttributeValue
+    @DynamicValue
     public Object get(@Context TangoProxy proxy) throws DevFailed {
         return DeviceHelper.dbDatumToResponse(proxy.toDeviceProxy().get_property(name));
     }
@@ -38,7 +38,7 @@ public class DeviceProperty {
     }
 
     @POST
-    @AttributeValue
+    @DynamicValue
     public Object devicePropertyPost(@FormParam("value") String[] value,
                                      @QueryParam("async") boolean async,
                                      @Context TangoProxy proxy) throws DevFailed {
@@ -46,7 +46,7 @@ public class DeviceProperty {
     }
 
     @PUT
-    @AttributeValue
+    @DynamicValue
     public Object devicePropertyPut(@QueryParam("value") String[] value,
                                     @QueryParam("async") boolean async,
                                     @Context TangoProxy proxy) throws DevFailed {

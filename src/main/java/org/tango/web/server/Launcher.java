@@ -26,8 +26,7 @@ public class Launcher implements ServletContextListener {
     //org.jboss.resteasy.spi.ResteasyProviderFactory
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        String tangoHost = System.getProperty(TANGO_HOST, System.getenv(TANGO_HOST));
-        if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TangoContext.TANGO_LOCALHOST);
+        String tangoHost = getTangoHost();
         logger.info("TANGO_HOST={}", tangoHost);
 
         logger.info("TANGO_INSTANCE={}", System.getProperty(TangoRestServer.TANGO_INSTANCE,
@@ -36,7 +35,7 @@ public class Launcher implements ServletContextListener {
         try {
             startTangoServer();//calls TangoRestServer.init - sets System properties from Device properties
 
-            initializeTangoServletContext(sce.getServletContext(), tangoHost);
+            initializeTangoServletContext(sce.getServletContext());
 
             logger.info("TangoRestServer servlet engine is initialized.");
         } catch (TangoProxyException e) {
@@ -45,12 +44,15 @@ public class Launcher implements ServletContextListener {
         }
     }
 
-    private void initializeTangoServletContext(ServletContext servletContext, String tangoHost) throws TangoProxyException {
+    public String getTangoHost() {
+        String tangoHost = System.getProperty(TANGO_HOST, System.getenv(TANGO_HOST));
+        if (tangoHost == null) System.setProperty(TANGO_HOST, tangoHost = TangoRestServer.TANGO_LOCALHOST);
+        return tangoHost;
+    }
+
+    private void initializeTangoServletContext(ServletContext servletContext) throws TangoProxyException {
         String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
-        if ("-nodb".equals(instance)) {
-            logger.info("Skipping TangoServlet context creation in -nodb mode.");
-            return;
-        }
+
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
         if (tangoRestServers.size() > 1)
             throw new RuntimeException("This Tango server must have exactly one defined device.");

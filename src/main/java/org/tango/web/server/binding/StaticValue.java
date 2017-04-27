@@ -1,4 +1,4 @@
-package org.tango.web.server.providers;
+package org.tango.web.server.binding;
 
 import javax.ws.rs.NameBinding;
 import java.lang.annotation.ElementType;
@@ -8,10 +8,10 @@ import java.lang.annotation.Target;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 17.12.2015
+ * @since 15.12.2015
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD,ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @NameBinding
-public @interface Partitionable {
+public @interface StaticValue {
 }

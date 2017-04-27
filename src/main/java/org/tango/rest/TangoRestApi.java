@@ -3,13 +3,16 @@ package org.tango.rest;
 import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.tango.TangoRestServer;
-import org.tango.web.server.TangoContext;
+import org.tango.web.server.AccessControl;
 import org.tango.web.server.cache.SimpleBinaryCache;
+import org.tango.web.server.filters.AccessControlFilter;
+import org.tango.web.server.filters.DynamicValueCacheControlProvider;
 import org.tango.web.server.filters.JsonpMethodFilter;
+import org.tango.web.server.filters.StaticValueCacheControlProvider;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
-import org.tango.web.server.providers.AttributeValueCacheProvider;
-import org.tango.web.server.providers.CustomProvider;
-import org.tango.web.server.providers.StaticValueCacheProvider;
+import org.tango.web.server.providers.TangoContextProvider;
+import org.tango.web.server.providers.TangoDatabaseProvider;
+import org.tango.web.server.providers.TangoProxyProvider;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -44,20 +47,27 @@ public class TangoRestApi extends Application {
         CorsFilter cors = getCorsFilter();
         singletons.add(cors);
 
+        // = = = AccessControl = = =
+        AccessControl accessControl = (AccessControl) servletContext.getAttribute(AccessControl.class.getName());
+        if (accessControl != null) {
+            singletons.add(new AccessControlFilter(accessControl));
+        }
+
+        // = = = Providers = = =
+        singletons.add(new TangoContextProvider(getTangoRestServer()));
+        singletons.add(new TangoDatabaseProvider(getTangoRestServer()));
+        singletons.add(new TangoProxyProvider(getTangoRestServer()));
+
         // = = = Cache = = =
-        TangoContext tangoContext = getTangoContext();
-        //TODO dirty hack to fix NPE in -nodb mode
-        if (tangoContext == null) tangoContext = new TangoContext();
-        SimpleBinaryCache cache = new SimpleBinaryCache(tangoContext.cacheCapacity);
+        SimpleBinaryCache cache = new SimpleBinaryCache(getTangoRestServer().getTomcatCacheSize());
 
         singletons.add(new ServerCacheFeature(cache));
-        singletons.add(new AttributeValueCacheProvider());
-        singletons.add(new StaticValueCacheProvider());
+        singletons.add(new DynamicValueCacheControlProvider(getTangoRestServer()));
+        singletons.add(new StaticValueCacheControlProvider(getTangoRestServer()));
 
+        // = = = JsonP  = = =
         singletons.add(new JsonpMethodFilter());
         singletons.add(new JsonpResponseWrapper());
-
-        singletons.add(new CustomProvider());
 
         return singletons;
     }
@@ -70,10 +80,6 @@ public class TangoRestApi extends Application {
         cors.setCorsMaxAge(1209600);
         cors.setAllowedHeaders("Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,Accept-Encoding,Accept-Language,Access-Control-Request-Method,Cache-Control,Connection,Host,Referer,User-Agent");
         return cors;
-    }
-
-    private TangoContext getTangoContext(){
-        return (TangoContext) servletContext.getAttribute(TangoContext.TANGO_CONTEXT);
     }
 
     private TangoRestServer getTangoRestServer(){

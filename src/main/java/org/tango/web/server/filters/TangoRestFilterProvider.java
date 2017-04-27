@@ -1,4 +1,4 @@
-package org.tango.web.server.providers;
+package org.tango.web.server.filters;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;

@@ -1,23 +1,21 @@
 package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import fr.esrf.Tango.DevFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.NoSuchCommandException;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.Device;
 import org.tango.rest.SupportedAuthentication;
 import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.TangoContext;
-import org.tango.web.server.providers.Partitionable;
-import org.tango.web.server.providers.StaticValue;
+import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.binding.StaticValue;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -28,6 +26,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +42,7 @@ public class Rc4ApiImpl {
     private final Logger logger = LoggerFactory.getLogger(Rc4ApiImpl.class);
 
     @GET
-    public Map<String, String> authentication(@Context UriInfo uriInfo, @Context ServletContext context, @Context TangoContext tangoContext) {
+    public Map<String, String> authentication(@Context UriInfo uriInfo, @Context ServletContext context, @Context TangoRestServer tangoContext) {
         Map<String, String> result = new HashMap<>();
 
         result.put("hosts", uriInfo.getAbsolutePath() + "/hosts");
@@ -54,20 +53,17 @@ public class Rc4ApiImpl {
 
     @GET
     @Path("/hosts")
-    public Map<String, String> getHosts(@Context final UriInfo uriInfo, @Context TangoContext tangoContext) throws TangoProxyException {
+    public Map<String, String> getHosts(@Context final UriInfo uriInfo, @Context TangoRestServer tangoContext) throws TangoProxyException {
         Map<String, String> result = Maps.newHashMap();
 
-        for (Map.Entry<String, String> entry : Lists.transform(tangoContext.hostsPool.proxies(), new Function<TangoProxy, Map.Entry<String, String>>() {
+        for (Map.Entry<String, String> entry : Collections2.transform(tangoContext.hostsPool.proxies(), new Function<String, Map.Entry<String, String>>() {
             @Override
-            public Map.Entry<String, String> apply(@Nullable TangoProxy input) {
+            public Map.Entry<String, String> apply(@Nullable String input) {
                 if (input == null) return null;
-                try {
-                    String tango_host = input.toDeviceProxy().get_tango_host();
-                    return new AbstractMap.SimpleEntry<>(tango_host, uriInfo.getAbsolutePath() + "/" + tango_host.replace(':', '/'));
-                } catch (DevFailed devFailed) {
-                    DevFailedUtils.logDevFailed(devFailed, logger);
-                    return null;//TODO skip
-                }
+                URI uri = URI.create(input);
+                return new AbstractMap.SimpleEntry<>(
+                        String.format("%s:%d", uri.getHost(), uri.getPort()),
+                        String.format("%s%s/%d", uriInfo.getAbsolutePath(), uri.getHost(), uri.getPort()));
             }
         }))
             result.put(entry.getKey(), entry.getValue());
