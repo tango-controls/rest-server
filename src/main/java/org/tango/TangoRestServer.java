@@ -9,14 +9,12 @@ import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
 import org.tango.web.server.AuthConfiguration;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.TangoProxyPool;
 
 import javax.servlet.ServletException;
@@ -35,10 +33,9 @@ import java.util.List;
 @Device(transactionType = TransactionType.NONE)
 public class TangoRestServer {
     public static final String WEBAPP_WAR = "webapp.war";
-    public static final String TANGO_DB_NAME = "TANGO_DB_NAME";
-    public static final String TANGO_DB = "TANGO_DB";
+
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
-    public static final String TOMCAT_PORT = "TOMCAT_PORT";
+    public static final String TOMCAT_PORT_PROPERTY = "TOMCAT_PORT";
     public static final String TOMCAT_AUTH_CONFIG = "TOMCAT_AUTH_METHOD";
     public static final String TOMCAT_USERS = "TOMCAT_USERS";
     public static final String TOMCAT_PASSWORDS = "TOMCAT_PASSWORDS";
@@ -56,13 +53,9 @@ public class TangoRestServer {
     public final TangoProxyPool hostsPool = new TangoProxyPool();
     public final TangoProxyPool proxyPool = new TangoProxyPool();
     private final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
-    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = SYS_DATABASE_2)
-    private String tangoDbNameProp;
-    @DeviceProperty(name = TANGO_DB, defaultValue = SYS_DATABASE_2)
-    private String tangoDbProp;
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = DEFAULT_ACCESS_CONTROL)
     private String tangoAccessControlProperty;
-    @DeviceProperty(name = TOMCAT_PORT, defaultValue = "10001")
+    @DeviceProperty(name = TOMCAT_PORT_PROPERTY, defaultValue = "10001")
     private int tomcatPort = 10001;
     @DeviceProperty(name = TOMCAT_AUTH_CONFIG, defaultValue = DEFAULT_AUTH_CLASS)
     private String tomcatAuthMethod;
@@ -163,27 +156,12 @@ public class TangoRestServer {
     @StateMachine(endState = DeviceState.ON)
     public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
         logger.info("Initializing TangoRestServer device...");
-        tangoDbNameProp = System.getProperty(TANGO_DB, tangoDbNameProp);
-        logger.debug("TANGO_DB_NAME={}", tangoDbNameProp);
-        tangoDbProp = System.getProperty(TANGO_DB, tangoDbProp);
-        logger.debug("TANGO_DB={}", tangoDbProp);
-        System.setProperty(TANGO_DB, tangoDbProp);
+
         tangoAccessControlProperty = System.getProperty(TANGO_ACCESS, tangoAccessControlProperty);
         logger.debug("TANGO_ACCESS={}", tangoAccessControlProperty);
         System.setProperty(TANGO_ACCESS, tangoAccessControlProperty);
 
-        try {
-            TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
-            DatabaseDs databaseDs = new DatabaseDs(dbProxy);
-            String tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
-            logger.debug("TANGO_DB_HOST={}", tangoDbHost);
-            if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
-        } catch (TangoProxyException e) {
-            logger.warn("Failed to create DatabaseProxy! Ignore if in -nodb mode...", e);
-        }
-
-
-        tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT, Integer.toString(tomcatPort)));
+        tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT_PROPERTY, Integer.toString(tomcatPort)));
 
         authConfiguration = new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords);
     }
@@ -250,14 +228,6 @@ public class TangoRestServer {
 
     public void setStaticValueExpirationDelay(long v) {
         staticValueExpirationDelay = v;
-    }
-
-    public void setTangoDbNameProp(String tangoDbName) {
-        this.tangoDbNameProp = tangoDbName;
-    }
-
-    public void setTangoDbProp(String tangoDbProp) {
-        this.tangoDbProp = tangoDbProp;
     }
 
     public String getTangoAccessControlProperty() {
