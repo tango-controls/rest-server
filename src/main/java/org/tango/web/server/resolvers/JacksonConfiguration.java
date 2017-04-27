@@ -26,7 +26,7 @@ import org.tango.client.ez.data.format.TangoDataFormat;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.web.server.providers.TangoRestFilterProvider;
+import org.tango.web.server.filters.TangoRestFilterProvider;
 
 import javax.imageio.ImageIO;
 import javax.ws.rs.Produces;

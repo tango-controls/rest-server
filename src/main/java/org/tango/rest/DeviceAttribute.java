@@ -18,8 +18,9 @@ import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.attribute.AttributeProperty;
-import org.tango.web.server.providers.Partitionable;
-import org.tango.web.server.providers.StaticValue;
+import org.tango.web.server.binding.DynamicValue;
+import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.binding.StaticValue;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -175,7 +176,7 @@ public class DeviceAttribute {
     }
 
     @GET
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/value")
     public Object deviceAttributeValueGet(@Context TangoProxy proxy) throws Exception {
         final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
@@ -200,14 +201,14 @@ public class DeviceAttribute {
     }
 
     @GET
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/value/plain")
     public Object deviceAttributeGetValuePlain(@Context TangoProxy proxy) throws Exception {
         return proxy.readAttribute(name);
     }
 
     @GET
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/value/image")
     public Object deviceAttributeGetValueImage(@Context TangoProxy proxy) throws Exception {
         //TODO may throw ClassCast in case non image attribute is requested

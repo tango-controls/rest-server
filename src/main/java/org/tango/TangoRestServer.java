@@ -17,8 +17,7 @@ import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
 import org.tango.web.server.AuthConfiguration;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.TangoContext;
-import org.tango.web.server.TangoProxyCreationPolicy;
+import org.tango.web.server.TangoProxyPool;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -50,14 +49,16 @@ public class TangoRestServer {
     // descriptions
     public static final String CACHE_ENABLED_DESC = "Enables/disables client and server cache. Client cache means adding HTTP request headers.";
 
-    public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for attribute values.";
-    public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values, aka list of the devices in a db (defined in the source code).";
+    public static final String ATTR_VAL_DESC = "Defines HTTP response expiration header value for dynamic values and for how long server will keep the value. (aka attribute value)";
+    public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values and for how long server will keep the value. (aka list of the devices in a db).";
+    public static final String SYS_DATABASE_2 = "sys/database/2";
+    public static final String TANGO_LOCALHOST = "localhost:10000";
+    public final TangoProxyPool hostsPool = new TangoProxyPool();
+    public final TangoProxyPool proxyPool = new TangoProxyPool();
     private final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
-
-    private final TangoContext ctx = new TangoContext();
-    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = TangoContext.SYS_DATABASE_2)
+    @DeviceProperty(name = TANGO_DB_NAME, defaultValue = SYS_DATABASE_2)
     private String tangoDbNameProp;
-    @DeviceProperty(name = TANGO_DB, defaultValue = TangoContext.SYS_DATABASE_2)
+    @DeviceProperty(name = TANGO_DB, defaultValue = SYS_DATABASE_2)
     private String tangoDbProp;
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = DEFAULT_ACCESS_CONTROL)
     private String tangoAccessControlProperty;
@@ -69,14 +70,21 @@ public class TangoRestServer {
     private String[] tomcatUsers;
     @DeviceProperty(name = TOMCAT_PASSWORDS, defaultValue = {"test", "tango"})
     private String[] tomcatPasswords;
-    @DeviceProperty(name = TOMCAT_CACHE_SIZE, defaultValue = "1000")
+    @DeviceProperty(name = TOMCAT_CACHE_SIZE, defaultValue = "100")
     private int tomcatCacheSize;
-
+    @Attribute(isMemorized = true)
+    @AttributeProperties(description = CACHE_ENABLED_DESC)
+    private volatile boolean cacheEnabled;
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = ATTR_VAL_DESC)
+    private volatile long dynamicValueExpirationDelay;
+    @Attribute(isMemorized = true)
+    @AttributeProperties(unit = "millis", description = STATIC_VAL_DESC)
+    private volatile long staticValueExpirationDelay;
     @State
     private DevState state = DevState.OFF;
     @Status
     private String status;
-    private String tangoDbHost;
     private Tomcat tomcat;
     private AuthConfiguration authConfiguration;
 
@@ -167,7 +175,7 @@ public class TangoRestServer {
         try {
             TangoProxy dbProxy = TangoProxies.newDeviceProxyWrapper(tangoDbProp);
             DatabaseDs databaseDs = new DatabaseDs(dbProxy);
-            tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
+            String tangoDbHost = dbProxy.toDeviceProxy().get_tango_host();
             logger.debug("TANGO_DB_HOST={}", tangoDbHost);
             if (tangoDbHost.endsWith("10000")) tangoDbHost = tangoDbHost.substring(0, tangoDbHost.indexOf(':'));
         } catch (TangoProxyException e) {
@@ -191,7 +199,7 @@ public class TangoRestServer {
 
     @Attribute
     public String[] getAliveProxies() throws Exception {
-        Collection<String> result = ctx.proxyPool.proxies();
+        Collection<String> result = proxyPool.proxies();
         return result.toArray(new String[result.size()]);
     }
 
@@ -200,60 +208,48 @@ public class TangoRestServer {
         String[] svalue = input.svalue;
         for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
             String device = svalue[i];
-            TangoProxy proxy = ctx.proxyPool.getProxy(device);
+            TangoProxy proxy = proxyPool.getProxy(device);
             DevSource new_src = DevSource.from_int(input.lvalue[i]);
             proxy.toDeviceProxy().set_source(new_src);
-            ctx.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyCreationPolicy(new_src));
+            proxyPool.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyPool.TangoProxyCreationPolicy(new_src));
         }
     }
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(description = CACHE_ENABLED_DESC)
-    public boolean getCacheEnabled() {
-        return ctx.isCacheEnabled;
+    public boolean isCacheEnabled() {
+        return cacheEnabled;
     }
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(description = CACHE_ENABLED_DESC)
     public void setCacheEnabled(boolean v) {
-        ctx.isCacheEnabled = v;
+        cacheEnabled = v;
     }
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "minutes")
-    public long getProxyKeepAliveDelay() {
-        return ctx.tangoProxyKeepAliveDelay;
+//    @Attribute(isMemorized = true)
+//    @AttributeProperties(unit = "minutes")
+//    public long getProxyKeepAliveDelay() {
+//        return ctx.tangoProxyKeepAliveDelay;
+//    }
+//
+//    @Attribute(isMemorized = true)
+//    @AttributeProperties(unit = "minutes")
+//    public void setProxyKeepAliveDelay(long v) {
+//        ctx.tangoProxyKeepAliveDelay = v;
+//    }
+
+    public long getDynamicValueExpirationDelay() {
+        return dynamicValueExpirationDelay;
     }
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "minutes")
-    public void setProxyKeepAliveDelay(long v) {
-        ctx.tangoProxyKeepAliveDelay = v;
-    }
-
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = ATTR_VAL_DESC)
-    public long getAttributeValueExpirationDelay() {
-        return ctx.attributeValueExpirationDelay;
-    }
-
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = ATTR_VAL_DESC)
-    public void setAttributeValueExpirationDelay(long v) {
-        ctx.attributeValueExpirationDelay = v;
+    public void setDynamicValueExpirationDelay(long v) {
+        dynamicValueExpirationDelay = v;
     }
 
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = STATIC_VAL_DESC)
     public long getStaticValueExpirationDelay() {
-        return ctx.staticDataExpirationDelay;
+        return staticValueExpirationDelay;
     }
 
-    @Attribute(isMemorized = true)
-    @AttributeProperties(unit = "millis", description = STATIC_VAL_DESC)
     public void setStaticValueExpirationDelay(long v) {
-        ctx.staticDataExpirationDelay = v;
+        staticValueExpirationDelay = v;
     }
 
     public void setTangoDbNameProp(String tangoDbName) {
@@ -264,12 +260,12 @@ public class TangoRestServer {
         this.tangoDbProp = tangoDbProp;
     }
 
-    public void setTangoAccessControlProperty(String tangoAccessControlProperty) {
-        this.tangoAccessControlProperty = tangoAccessControlProperty;
-    }
-
     public String getTangoAccessControlProperty() {
         return this.tangoAccessControlProperty;
+    }
+
+    public void setTangoAccessControlProperty(String tangoAccessControlProperty) {
+        this.tangoAccessControlProperty = tangoAccessControlProperty;
     }
 
     public void setTomcatPort(int tomcatPort) {
@@ -304,15 +300,15 @@ public class TangoRestServer {
         this.status = status;
     }
 
-    public TangoContext getCtx() {
-        return ctx;
-    }
-
     public int getTomcatCacheSize() {
         return tomcatCacheSize;
     }
 
     public void setTomcatCacheSize(int tomcatCacheSize) {
         this.tomcatCacheSize = tomcatCacheSize;
+    }
+
+    public TangoProxy getHostProxy(String host, String port, String dbName) throws TangoProxyException {
+        return hostsPool.getProxy("tango://" + host + ":" + port + "/" + dbName);
     }
 }

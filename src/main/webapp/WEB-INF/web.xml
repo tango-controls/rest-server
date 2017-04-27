@@ -23,14 +23,10 @@
             org.tango.web.server.exception.mapper.NoSuchAttribute,
             org.tango.web.server.exception.mapper.NoSuchCommand,
             org.tango.web.server.exception.mapper.NotFoundExceptionMapper,
-            org.tango.web.server.filters.AccessControlFilter,
-            org.tango.web.server.providers.TangoContextProvider,
-            org.tango.web.server.providers.TangoProxyProvider,
-            org.tango.web.server.providers.TangoDatabaseProvider,
             org.tango.web.server.resolvers.JacksonConfiguration,
             org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
-            org.tango.web.server.providers.PartitionProvider,
-            org.tango.web.server.providers.TangoRestFilterProvider
+            org.tango.web.server.filters.PartitionProvider,
+            org.tango.web.server.filters.TangoRestFilterProvider
         </param-value>
     </context-param>
 

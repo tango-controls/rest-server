@@ -22,9 +22,9 @@ import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.providers.AttributeValue;
-import org.tango.web.server.providers.Partitionable;
-import org.tango.web.server.providers.StaticValue;
+import org.tango.web.server.binding.DynamicValue;
+import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.binding.StaticValue;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -80,7 +80,7 @@ public class Device {
 
     @GET
     @Partitionable
-    @AttributeValue
+    @DynamicValue
     @Path("/attributes/info")
     public fr.esrf.TangoApi.AttributeInfoEx[] deviceAttributeInfos(@QueryParam("attr") String[] attrs,
                                                                     @Context TangoProxy proxy,
@@ -91,7 +91,7 @@ public class Device {
 
     @GET
     @Partitionable
-    @AttributeValue
+    @DynamicValue
     @Path("/attributes/value")
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs,
                                         @Context TangoProxy proxy,
@@ -102,7 +102,7 @@ public class Device {
 
     @PUT
     @Partitionable
-    @AttributeValue
+    @DynamicValue
     @Path("/attributes/value")
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValuesPut(@Context final TangoProxy proxy,
                                                                         @Context ServletContext context,
@@ -168,7 +168,7 @@ public class Device {
     }
 
     @GET
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/state")
     public Object deviceState(@Context TangoProxy proxy, @Context ServletContext context, @Context UriInfo uriInfo) {
         try {
@@ -210,7 +210,7 @@ public class Device {
 
     @GET
     @Partitionable
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/properties")
     public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
         String[] propnames = proxy.toDeviceProxy().get_property_list("*");
@@ -226,14 +226,14 @@ public class Device {
     }
 
     @POST
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/properties")
     public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
         return devicePropertiesPut(request, proxy);
     }
 
     @PUT
-    @org.tango.web.server.providers.AttributeValue
+    @DynamicValue
     @Path("/properties")
     public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
         Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());

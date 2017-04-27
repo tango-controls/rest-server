@@ -3,7 +3,7 @@ package org.tango.rest;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
 import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.web.server.providers.AttributeValue;
+import org.tango.web.server.binding.DynamicValue;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -25,7 +25,7 @@ public class DevicePipe {
     }
 
     @GET
-    @AttributeValue
+    @DynamicValue
     public Object get(@Context UriInfo uriInfo) throws DevFailed {
         final String href = uriInfo.getAbsolutePath().toString();
         final fr.esrf.TangoApi.DevicePipe result = proxy.toDeviceProxy().readPipe(name);
@@ -42,7 +42,7 @@ public class DevicePipe {
 
     @PUT
     @Consumes("application/json")
-    @AttributeValue
+    @DynamicValue
     public Object devicePipePut(@QueryParam("async") boolean async, @Context UriInfo info, PipeBlob blob) throws DevFailed {
         proxy.toDeviceProxy().writePipe(name, blob);
         if (async) return null;

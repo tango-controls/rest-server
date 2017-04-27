@@ -9,7 +9,6 @@ import org.tango.web.server.AccessControl;
 import org.tango.web.server.exception.mapper.GeneralExceptionMapper;
 import org.tango.web.server.exception.mapper.NoSuchCommand;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -29,6 +28,12 @@ import java.io.IOException;
 public class AccessControlFilter implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(AccessControlFilter.class);
 
+    private final AccessControl accessControl;
+
+    public AccessControlFilter(AccessControl accessControl) {
+        this.accessControl = accessControl;
+    }
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         HttpServletRequest httpServletRequest = ResteasyProviderFactory.getContextData(HttpServletRequest.class);
@@ -38,10 +43,6 @@ public class AccessControlFilter implements ContainerRequestFilter {
             return;
         }
 
-        ServletContext servletContext = ResteasyProviderFactory.getContextData(ServletContext.class);
-
-        AccessControl accessControl = (AccessControl) servletContext.getAttribute(AccessControl.class.getName());
-        if (accessControl == null) return;
         try {
             UriInfo uriInfo = requestContext.getUriInfo();
 

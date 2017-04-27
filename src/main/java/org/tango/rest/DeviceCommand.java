@@ -13,8 +13,8 @@ import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.rest.entities.CommandResult;
 import org.tango.rest.entities.Failures;
+import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.command.CommandInput;
-import org.tango.web.server.providers.Partitionable;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;

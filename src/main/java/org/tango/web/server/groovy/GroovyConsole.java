@@ -6,7 +6,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.context.Context;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.tango.web.server.TangoContext;
+import org.tango.TangoRestServer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -29,7 +29,7 @@ public class GroovyConsole extends HttpServlet {
     public void init() throws ServletException {
         Binding binding = new Binding();
 
-        binding.setProperty("context", getServletContext().getAttribute(TangoContext.TANGO_CONTEXT));
+        binding.setProperty("context", getServletContext().getAttribute(TangoRestServer.class.getName()));
 
         groovyShell = new GroovyShell(getClass().getClassLoader(), binding);
 
