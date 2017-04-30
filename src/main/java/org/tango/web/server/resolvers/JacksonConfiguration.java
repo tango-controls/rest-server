@@ -49,10 +49,8 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
-    private ObjectMapper mapper;
-
-    {
-        mapper = new ObjectMapper();
+    private ObjectMapper newObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
         // Set human readable date format
         SimpleModule tangoModule = new SimpleModule("TangoModule", new Version(1, 9, 12, null));
         tangoModule.addSerializer(new DeviceAttributeSerializer(DeviceAttribute.class));
@@ -76,11 +74,14 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         mapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
     }
 
     public ObjectMapper getContext(Class<?> objectType) {
         TangoRestFilterProvider.JsonFieldFilter filter =
                 ResteasyProviderFactory.getContextData(TangoRestFilterProvider.JsonFieldFilter.class);
+
+        ObjectMapper mapper = newObjectMapper();
 
         if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
@@ -94,6 +95,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         } else {
             mapper.setFilters(new SimpleFilterProvider());
         }
+
 
         return mapper;
     }
