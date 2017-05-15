@@ -2,6 +2,7 @@ package org.tango.web.server.exception.mapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.TangoProxyException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -14,10 +15,10 @@ import static org.tango.web.server.exception.mapper.Helper.getResponse;
  * @since 27.02.2015
  */
 @Provider
-public class GeneralExceptionMapper implements ExceptionMapper<Exception>{
-    private final Logger logger = LoggerFactory.getLogger(GeneralExceptionMapper.class);
+public class TangoProxyExceptionMapper implements ExceptionMapper<TangoProxyException> {
+    private final Logger logger = LoggerFactory.getLogger(TangoProxyExceptionMapper.class);
     @Override
-    public Response toResponse(Exception exception) {
+    public Response toResponse(TangoProxyException exception) {
         logger.error(exception.getLocalizedMessage(), exception);
         return getResponse(exception, Response.Status.INTERNAL_SERVER_ERROR);
     }

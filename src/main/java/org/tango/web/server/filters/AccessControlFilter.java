@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.AccessControl;
-import org.tango.web.server.exception.mapper.GeneralExceptionMapper;
 import org.tango.web.server.exception.mapper.NoSuchCommand;
+import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -80,7 +80,7 @@ public class AccessControlFilter implements ContainerRequestFilter {
             assert false;
             requestContext.abortWith(new NoSuchCommand().toResponse(e));
         } catch (TangoProxyException e) {
-            requestContext.abortWith(new GeneralExceptionMapper().toResponse(e));
+            requestContext.abortWith(new TangoProxyExceptionMapper().toResponse(e));
         }
     }
 }

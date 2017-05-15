@@ -2,17 +2,14 @@ package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.Device;
+import org.tango.rest.Devices;
 import org.tango.rest.SupportedAuthentication;
-import org.tango.rest.entities.Failures;
-import org.tango.rest.entities.NamedEntity;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
@@ -22,9 +19,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.AbstractMap;
@@ -88,28 +83,9 @@ public class Rc4ApiImpl {
         };
     }
 
-    @GET
     @Path("/hosts/{host}/{port}/devices")
-    @StaticValue
-    @Partitionable
-    public Object get(@QueryParam("wildcard") String wildcard,
-                      @Context final UriInfo uriInfo,
-                      @Context DatabaseDs db,
-                      @Context final ServletContext context) {
-        try {
-            List<String> result = db.getDeviceList(wildcard == null ? "*" : wildcard);
-            List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
-                @Override
-                public NamedEntity apply(final String input) {
-                    return new NamedEntity(input, uriInfo.getAbsolutePath() + "/" + input);
-                }
-            });
-            return transform;
-        } catch (NoSuchCommandException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build();
-        } catch (TangoProxyException e) {
-            return Response.serverError().entity(Failures.createInstance(e)).build();
-        }
+    public Object get() {
+        return new Devices();
     }
 
     @Path("/hosts/{host}/{port}/devices/{domain}/{family}/{member}")

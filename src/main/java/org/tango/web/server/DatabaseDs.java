@@ -6,14 +6,11 @@ import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoApi.DeviceProxy;
 import org.tango.client.ez.proxy.NoSuchCommandException;
-import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.client.ez.util.TangoUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,18 +49,18 @@ public class DatabaseDs {
         return Arrays.asList(result);
     }
 
-    public List<String> getDomainsList() throws TangoProxyException, NoSuchCommandException {
-        String[] result = proxy.executeCommand("DbGetDeviceDomainList","*");
+    public List<String> getDomainsList(String wildcard) throws TangoProxyException, NoSuchCommandException {
+        String[] result = proxy.executeCommand("DbGetDeviceDomainList", wildcard);
         return Arrays.asList(result);
     }
 
-    public List<String> getFamiliesList(String domain) throws TangoProxyException, NoSuchCommandException {
-        String[] result = proxy.executeCommand("DbGetDeviceFamilyList", domain + "/*");
+    public List<String> getFamiliesList(String domain, String wildcard) throws TangoProxyException, NoSuchCommandException {
+        String[] result = proxy.executeCommand("DbGetDeviceFamilyList", domain + "/" + wildcard);
         return Arrays.asList(result);
     }
 
-    public List<String> getMembersList(String domain, String family) throws TangoProxyException, NoSuchCommandException {
-        String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/*");
+    public List<String> getMembersList(String domain, String family, String wildcard) throws TangoProxyException, NoSuchCommandException {
+        String[] result = proxy.executeCommand("DbGetDeviceMemberList", domain + "/" + family + "/" + wildcard);
         return Arrays.asList(result);
     }
 

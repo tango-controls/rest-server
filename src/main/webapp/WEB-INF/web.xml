@@ -19,6 +19,7 @@
         <param-value>
             org.tango.web.server.interceptors.CommandInputMessageBodyReader,
             org.tango.web.server.exception.mapper.DevFailedMapper,
+            org.tango.web.server.exception.mapper.TangoProxyExceptionMapper,
             org.tango.web.server.exception.mapper.NoSuchAttribute,
             org.tango.web.server.exception.mapper.NoSuchCommand,
             org.tango.web.server.exception.mapper.NotFoundExceptionMapper,
