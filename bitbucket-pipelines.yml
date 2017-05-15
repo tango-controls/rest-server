@@ -1,0 +1,16 @@
+# This is a sample build configuration for Maven.
+# Check our guides at https://confluence.atlassian.com/x/VYk8Lw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: maven:3.3.3
+
+pipelines:
+  default:
+    - step:
+        script: # Modify the commands below to build your repository.          
+          - mvn clean package
+          - java -DTANGO_HOST=localhost:10000 -jar target/mtangorest.server-rc4-1.5-SNAPSHOT.jar -nodb -dlist test/rest/0 &
+          - sleep 10
+          - curl -u "tango-cs:tango" http://localhost:10001/tango/rest/rc4 | grep "\"hosts\":\"http://localhost:10001/tango/rest/rc4/hosts\""
+          - killall java
