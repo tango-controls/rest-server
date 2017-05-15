@@ -1,13 +1,11 @@
 package org.tango.web.server.groovy;
 
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.context.Context;
-import org.codehaus.groovy.control.CompilationFailedException;
 import org.tango.TangoRestServer;
 
+import javax.script.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,18 +18,19 @@ import java.util.Properties;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 2/5/16
  */
-public class GroovyConsole extends HttpServlet {
+public class JsConsole extends HttpServlet {
 
     public static final String GROOVY_VM = "groovy.vm";
-    private GroovyShell groovyShell;
+    private ScriptEngine engine;
+    private Bindings bindings;
 
     @Override
     public void init() throws ServletException {
-        Binding binding = new Binding();
+        bindings = new SimpleBindings();
 
-        binding.setProperty("context", getServletContext().getAttribute(TangoRestServer.class.getName()));
+        bindings.put("context", getServletContext().getAttribute(TangoRestServer.class.getName()));
 
-        groovyShell = new GroovyShell(getClass().getClassLoader(), binding);
+        engine = new ScriptEngineManager().getEngineByName("nashorn");
 
         Properties p = new Properties();
         p.setProperty("file.resource.loader.path", getServletContext().getRealPath("/"));
@@ -54,8 +53,8 @@ public class GroovyConsole extends HttpServlet {
             result = "";
         } else {
             try {
-                result = String.valueOf(groovyShell.run(source, "dynamic.groovy", new String[0]));
-            } catch (CompilationFailedException e) {
+                result = String.valueOf(engine.eval(source, bindings));
+            } catch (ScriptException e) {
                 throw new ServletException(e);
             }
         }
