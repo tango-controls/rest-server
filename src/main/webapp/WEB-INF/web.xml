@@ -47,8 +47,8 @@
     </servlet>
 
     <servlet>
-        <servlet-name>GroovyConsole</servlet-name>
-        <servlet-class>org.tango.web.server.groovy.GroovyConsole</servlet-class>
+        <servlet-name>Console</servlet-name>
+        <servlet-class>org.tango.web.server.groovy.JsConsole</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -57,8 +57,8 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>GroovyConsole</servlet-name>
-        <url-pattern>/groovy</url-pattern>
+        <servlet-name>Console</servlet-name>
+        <url-pattern>/console</url-pattern>
     </servlet-mapping>
 
     <security-constraint>
@@ -78,7 +78,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Tango REST groovy consolw</web-resource-name>
-            <url-pattern>/groovy</url-pattern>
+            <url-pattern>/console</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>mtango-groovy</role-name>
