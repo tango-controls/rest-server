@@ -6,8 +6,8 @@ import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.exception.mapper.GeneralExceptionMapper;
 import org.tango.web.server.exception.mapper.NoSuchCommand;
+import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -48,7 +48,7 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
         } catch (TangoProxyException e) {
-            requestContext.abortWith(new GeneralExceptionMapper().toResponse(e));
+            requestContext.abortWith(new TangoProxyExceptionMapper().toResponse(e));
         } catch (NoSuchCommandException e) {
             assert false;
             requestContext.abortWith(new NoSuchCommand().toResponse(e));
