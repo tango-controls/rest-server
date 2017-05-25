@@ -2,6 +2,8 @@ package org.tango.rest;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.AttrQuality;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
@@ -25,6 +27,7 @@ public class Event {
     //TODO parameters
     private static final long MAX_AWAIT = 30000L;
     private static final long DELTA = 256L;
+    private final Logger logger = LoggerFactory.getLogger(Event.class);
     private final String attribute;
     private final TangoEvent evt;
     private final TangoProxy proxy;
@@ -114,11 +117,21 @@ public class Event {
             @Override
             public void onEvent(EventData<Object> data) {
                 Event.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
+                try {
+                    proxy.removeEventListener(attribute, evt, listener);
+                } catch (TangoProxyException e) {
+                    logger.warn("Should not happen", new AssertionError());
+                }
             }
 
             @Override
             public void onError(Exception cause) {
                 Event.this.set(Failures.createInstance(cause));
+                try {
+                    proxy.removeEventListener(attribute, evt, listener);
+                } catch (TangoProxyException e) {
+                    logger.warn("Should not happen", new AssertionError());
+                }
             }
         };
         proxy.addEventListener(attribute, evt, listener);
