@@ -61,7 +61,7 @@ public class DeviceAttribute {
                                        @DefaultValue("3000") @QueryParam("timeout") long timeout,
                                        @QueryParam("state") Event.State state,
                                        @Context ServletContext context,
-                                       @Context TangoProxy proxy, @Context UriInfo uriInfo
+                                       @Context UriInfo uriInfo
     ) throws Exception {
         TangoEvent event = null;
         try {
@@ -75,8 +75,7 @@ public class DeviceAttribute {
     @GET
     @Partitionable
     @Path("/history")
-    public Object deviceAttributeHistory(@Context TangoProxy proxy,
-                                         @Context ServletContext context) throws DevFailed {
+    public Object deviceAttributeHistory(@Context ServletContext context) throws DevFailed {
         return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(name)), new Function<DeviceDataHistory, Object>() {
             @Override
             public Object apply(DeviceDataHistory input) {
@@ -100,14 +99,14 @@ public class DeviceAttribute {
     @GET
     @StaticValue
     @Path("/info")
-    public AttributeInfo deviceAttributeInfo(@Context TangoProxy proxy) throws DevFailed {
+    public AttributeInfo deviceAttributeInfo() throws DevFailed {
         return proxy.toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @PUT
     @Consumes("application/json")
     @Path("/info")
-    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, @Context TangoProxy proxy, AttributeConfig config) throws DevFailed {
+    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, AttributeConfig config) throws DevFailed {
         proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config.wrapped)});
         if (async) return null;
         return proxy.toDeviceProxy().get_attribute_info(name);
@@ -116,7 +115,7 @@ public class DeviceAttribute {
     @GET
     @StaticValue
     @Path("/properties")
-    public List<AttributeProperty> deviceAttributeProperties(@Context TangoProxy proxy) throws DevFailed {
+    public List<AttributeProperty> deviceAttributeProperties() throws DevFailed {
         return Lists.transform(proxy.toDeviceProxy().get_attribute_property(name), new Function<DbDatum, AttributeProperty>() {
             @Override
             public AttributeProperty apply(@Nullable DbDatum input) {
@@ -128,7 +127,7 @@ public class DeviceAttribute {
     @GET
     @StaticValue
     @Path("/properties/{prop}")
-    public AttributeProperty deviceAttributeProperties(@PathParam("prop") final String property, @Context TangoProxy proxy) throws DevFailed {
+    public AttributeProperty deviceAttributeProperties(@PathParam("prop") final String property) throws DevFailed {
         Iterable<? extends DbDatum> datumCollection = Iterables.filter(proxy.toDeviceProxy().get_attribute_property(name), new Predicate<DbDatum>() {
             @Override
             public boolean apply(@Nullable DbDatum input) {
@@ -144,8 +143,7 @@ public class DeviceAttribute {
     @Path("/properties/{prop}")
     public DbAttribute deviceAttributePropertyPut(@PathParam("prop") final String propName,
                                                   @QueryParam("value") final String propValue,
-                                                  @QueryParam("async") boolean async,
-                                                  @Context TangoProxy proxy) throws DevFailed {
+                                                  @QueryParam("async") boolean async) throws DevFailed {
         DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
 
         DbDatum datum = dbAttribute.datum(propName);
@@ -161,8 +159,7 @@ public class DeviceAttribute {
 
     @DELETE
     @Path("/properties/{prop}")
-    public void deviceAttributePropertyDelete(@PathParam("prop") final String propName,
-                                              @Context TangoProxy proxy) throws DevFailed {
+    public void deviceAttributePropertyDelete(@PathParam("prop") final String propName) throws DevFailed {
         DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
 
         for (Iterator<DbDatum> iterator = dbAttribute.iterator(); iterator.hasNext(); ) {
@@ -178,7 +175,7 @@ public class DeviceAttribute {
     @GET
     @DynamicValue
     @Path("/value")
-    public Object deviceAttributeValueGet(@Context TangoProxy proxy) throws Exception {
+    public Object deviceAttributeValueGet() throws Exception {
         final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
 
         return new AttributeValue<Object>(DeviceAttribute.this.name, result.value, result.quality.toString(), result.time);
@@ -186,8 +183,7 @@ public class DeviceAttribute {
 
     @PUT
     @Path("/value")
-    public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async,
-                                          @Context TangoProxy proxy) throws Exception {
+    public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async) throws Exception {
 
         TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(name);
         Class<?> targetType = attributeInfo.getClazz();
@@ -197,20 +193,20 @@ public class DeviceAttribute {
         if (async) {
             return null;
         }
-        return deviceAttributeValueGet(proxy);
+        return deviceAttributeValueGet();
     }
 
     @GET
     @DynamicValue
     @Path("/value/plain")
-    public Object deviceAttributeGetValuePlain(@Context TangoProxy proxy) throws Exception {
+    public Object deviceAttributeGetValuePlain() throws Exception {
         return proxy.readAttribute(name);
     }
 
     @GET
     @DynamicValue
     @Path("/value/image")
-    public Object deviceAttributeGetValueImage(@Context TangoProxy proxy) throws Exception {
+    public Object deviceAttributeGetValueImage() throws Exception {
         //TODO may throw ClassCast in case non image attribute is requested
         final TangoImage image =  proxy.readAttribute(name);
         return new ImageAttributeValue(image);

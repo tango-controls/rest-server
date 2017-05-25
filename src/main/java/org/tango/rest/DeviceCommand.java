@@ -39,14 +39,12 @@ public class DeviceCommand {
 
     @GET
     public Object get(@PathParam("cmd") String cmdName,
-                      @Context TangoProxy proxy,
                       @Context UriInfo uriInfo) throws DevFailed {
         return DeviceHelper.commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getAbsolutePath().toString());
     }
 
     @PUT
     public Object deviceCommandPut(@QueryParam("async") boolean async,
-                                   @Context TangoProxy proxy,
                                    @Context UriInfo uriInfo,
                                    CommandInput value) throws Exception {
         final String href = uriInfo.getAbsolutePath().toString();
@@ -71,7 +69,7 @@ public class DeviceCommand {
     @GET
     @Partitionable
     @Path("/history")
-    public Object deviceCommandHistory(@PathParam("cmd") String cmdName, @Context TangoProxy proxy, @Context UriInfo uriInfo) throws DevFailed {
+    public Object deviceCommandHistory(@PathParam("cmd") String cmdName, @Context UriInfo uriInfo) throws DevFailed {
         return Lists.transform(
                 Arrays.asList(proxy.toDeviceProxy().command_history(cmdName)), new Function<DeviceDataHistory, Object>() {
                     @Override

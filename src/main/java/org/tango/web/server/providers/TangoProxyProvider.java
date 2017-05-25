@@ -9,6 +9,7 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.exception.mapper.NoSuchCommand;
 import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
 
+import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
@@ -21,6 +22,7 @@ import java.io.IOException;
  * @since 04.12.2015
  */
 @Provider
+@Priority(1200)
 public class TangoProxyProvider implements ContainerRequestFilter {
     private final TangoRestServer tangoRestServer;
 
