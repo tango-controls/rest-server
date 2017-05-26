@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
@@ -127,9 +128,9 @@
             <version>1.4.2</version>
         </dependency>
         <dependency>
-            <groupId>org.tango</groupId>
+            <groupId>org.tango-controls</groupId>
             <artifactId>rest-api-rc4</artifactId>
-            <version>0.1</version>
+            <version>0.2</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
@@ -330,6 +331,11 @@
     </build>
 
     <repositories>
+        <!-- tango-controls bintray maven repo to resolve dependencies-->
+        <repository>
+            <id>bintray-tango-controls-maven</id>
+            <url>http://dl.bintray.com/tango-controls/maven</url>
+        </repository>
         <repository>
             <snapshots>
                 <enabled>false</enabled>
@@ -337,18 +343,6 @@
             <id>bintray-release</id>
             <name>bintray</name>
             <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
-        </repository>
-        <repository>
-            <id>soleil</id>
-            <url>http://www2.synchrotron-soleil.fr/controle/maven2/soleil</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </snapshots>
         </repository>
     </repositories>
 
@@ -377,9 +371,13 @@
                                         <argument>ingvord:${bitbucket.ingvord.password}</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
-                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads</argument>
+                                        <argument>
+                                            https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads
+                                        </argument>
                                         <argument>-F</argument>
-                                        <argument>files=@${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                                        <argument>
+                                            files=@${project.build.directory}/${project.artifactId}-${project.version}.jar
+                                        </argument>
                                         <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
@@ -398,9 +396,13 @@
                                         <argument>ingvord:${bitbucket.ingvord.password}</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
-                                        <argument>https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads</argument>
+                                        <argument>
+                                            https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads
+                                        </argument>
                                         <argument>-F</argument>
-                                        <argument>files=@${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
+                                        <argument>
+                                            files=@${project.build.directory}/${project.artifactId}-${project.version}.zip
+                                        </argument>
                                         <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
