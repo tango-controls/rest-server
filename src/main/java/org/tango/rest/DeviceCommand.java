@@ -57,11 +57,8 @@ public class DeviceCommand {
             proxy.toDeviceProxy().command_inout_asynch(name, data);
             return null;
         } else {
-            final Object result = proxy.executeCommand(name, value.input);
-            return new Object() {
-                public String name = DeviceCommand.this.name;
-                public Object output = result;
-            };
+            final Object output = proxy.executeCommand(name, value.input);
+            return new CommandResult<>(name, output);
         }
     }
 
@@ -80,14 +77,7 @@ public class DeviceCommand {
 
                                 TangoDataType type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                                CommandResult<Object, Object> result = new CommandResult<>();
-
-                                result.name = input.getName();
-                                result.input = null;
-                                result.output = type.extract(wrapper);
-
-
-                                return result;
+                                return new CommandResult<>(input.getName(), type.extract(wrapper));
                             } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
                                 return Failures.createInstance(e);
                             }
