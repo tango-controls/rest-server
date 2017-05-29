@@ -22,6 +22,7 @@ public class DevFailedMapper implements ExceptionMapper<DevFailed> {
     @Override
     public Response toResponse(DevFailed exception) {
         DevFailedUtils.logDevFailed(exception, logger);
+        logger.error(exception.getMessage(), exception);
         return getResponse(exception, Response.Status.INTERNAL_SERVER_ERROR);
     }
 }

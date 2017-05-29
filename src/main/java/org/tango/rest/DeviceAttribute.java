@@ -6,7 +6,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.AttrQuality;
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.*;
+import fr.esrf.TangoApi.AttributeInfoEx;
+import fr.esrf.TangoApi.DbAttribute;
+import fr.esrf.TangoApi.DbDatum;
+import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
@@ -99,17 +102,19 @@ public class DeviceAttribute {
     @GET
     @StaticValue
     @Path("/info")
-    public AttributeInfo deviceAttributeInfo() throws DevFailed {
+    //TODO return AttributeInfo from rest-api
+    public AttributeInfoEx deviceAttributeInfo() throws DevFailed {
         return proxy.toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @PUT
     @Consumes("application/json")
     @Path("/info")
-    public AttributeInfo deviceAttributeInfoPut(@QueryParam("async") boolean async, AttributeConfig config) throws DevFailed {
+    //TODO return AttributeInfo from rest-api
+    public AttributeInfoEx deviceAttributeInfoPut(@QueryParam("async") boolean async, AttributeConfig config) throws DevFailed {
         proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config.wrapped)});
         if (async) return null;
-        return proxy.toDeviceProxy().get_attribute_info(name);
+        return proxy.toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @GET
