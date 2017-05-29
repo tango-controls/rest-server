@@ -57,7 +57,7 @@ public class AttributeConfig {
             Object converted = ConvertUtils.convert(value, fld.getType());
             fld.set(wrapped, converted);
         } catch (NoSuchFieldException e) {
-            logger.warn("NoSuchFieldException: " + name);
+            logger.warn("NoSuchFieldException in class AttributeConfig_5: " + name);
         }
     }
 }
