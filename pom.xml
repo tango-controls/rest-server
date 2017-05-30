@@ -4,7 +4,7 @@
 
     <groupId>de.hzg.wpi.tango</groupId>
     <artifactId>mtangorest.server-rc4</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.8</version>
     <packaging>war</packaging>
 
     <developers>
@@ -29,7 +29,7 @@
         <connection>scm:hg:https://bitbucket.org/hzgwpn/mtangorest.server</connection>
         <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</developerConnection>
         <url>ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</url>
-        <tag>mtangorest.server-rc4-0.1</tag>
+        <tag>mtangorest.server-rc4-1.8</tag>
     </scm>
 
     <dependencies>
