@@ -102,12 +102,16 @@ public class Event {
      * @throws InterruptedException
      */
     public Object get(long timeout) throws InterruptedException {
-        synchronized (guard){
-            guard.wait(timeout);
+        try {
+            synchronized (guard) {
+                guard.wait(timeout);
+            }
+            return value == null ?
+                    Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance("value has not been updated")).build()
+                    : value;
+        } finally {
+            proxy.removeEventListener(attribute, evt, listener);
         }
-        return value == null ?
-                Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance("value has not been updated")).build()
-                : value;
     }
 
     public void subscribe() throws TangoProxyException, NoSuchAttributeException {
@@ -116,22 +120,14 @@ public class Event {
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
+                logger.debug(this + "#onEvent");
                 Event.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
-                try {
-                    proxy.removeEventListener(attribute, evt, listener);
-                } catch (TangoProxyException e) {
-                    logger.warn("Should not happen", new AssertionError());
-                }
             }
 
             @Override
             public void onError(Exception cause) {
+                logger.debug(this + "#onError ", cause);
                 Event.this.set(Failures.createInstance(cause));
-                try {
-                    proxy.removeEventListener(attribute, evt, listener);
-                } catch (TangoProxyException e) {
-                    logger.warn("Should not happen", new AssertionError());
-                }
             }
         };
         proxy.addEventListener(attribute, evt, listener);
