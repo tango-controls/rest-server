@@ -1,6 +1,7 @@
 package org.tango.web.server;
 
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevSource;
@@ -21,7 +22,13 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 public class TangoProxyPool {
+    //TODO export as Tango attributes
     public static final int POOL_CAPACITY = 1000;
+    public static final long TANGO_PROXY_REMOVAL_DELAY = 7L;
+    private static final ScheduledExecutorService MAINTENANCE = Executors.newScheduledThreadPool(1,
+            new ThreadFactoryBuilder().setNameFormat("tango-proxy-pool-maintenance-thread").setDaemon(true).build()
+    );
+    private static final TangoProxyCreationPolicy DEFAULT_CREATION_POLICY = new TangoProxyCreationPolicy(DevSource.CACHE);
     public final ConcurrentMap<String, TangoProxyPool.TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentLinkedHashMap.Builder<String, TangoProxyPool.TangoProxyCreationPolicy>()
             .maximumWeightedCapacity(POOL_CAPACITY)
             .build();
@@ -40,14 +47,16 @@ public class TangoProxyPool {
     public TangoProxy getProxy(final String devname) throws TangoProxyException {
         FutureTask<TangoProxy> ft = cache.get(devname);
         if (ft == null) {
-            Callable<TangoProxy> callable = new Callable<TangoProxy>() {
-                public TangoProxy call() throws Exception {
+            Callable<TangoProxy> callable = () -> {
 //                            String url = devname.startsWith("tango://") ? devname : DeviceMapper.this.ctx.databaseDs.getDeviceAddress(devname);//TODO db NPE?
-                    TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(devname);
-                    TangoProxyCreationPolicy tangoProxyCreationPolicy = tangoProxyCreationPolicies.get(proxy.getName());
-                            if(tangoProxyCreationPolicy != null) tangoProxyCreationPolicy.apply(proxy);
-                    return proxy;
-                }
+                TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(devname);
+                TangoProxyCreationPolicy tangoProxyCreationPolicy = tangoProxyCreationPolicies.getOrDefault(proxy.getName(), DEFAULT_CREATION_POLICY);
+                tangoProxyCreationPolicy.apply(proxy);
+                MAINTENANCE.schedule(() -> {
+                    logger.debug("Removing tango proxy for {}", devname);
+                    cache.remove(devname);
+                }, TANGO_PROXY_REMOVAL_DELAY, TimeUnit.DAYS);
+                return proxy;
             };
 
             FutureTask<TangoProxy> f = new FutureTask<>(callable);
