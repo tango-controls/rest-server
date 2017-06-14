@@ -28,7 +28,7 @@ public class TangoProxyPool {
     private static final ScheduledExecutorService MAINTENANCE = Executors.newScheduledThreadPool(1,
             new ThreadFactoryBuilder().setNameFormat("tango-proxy-pool-maintenance-thread").setDaemon(true).build()
     );
-    private static final TangoProxyCreationPolicy DEFAULT_CREATION_POLICY = new TangoProxyCreationPolicy(DevSource.CACHE);
+    private static final TangoProxyCreationPolicy DEFAULT_CREATION_POLICY = new TangoProxyCreationPolicy(DevSource.CACHE_DEV);
     public final ConcurrentMap<String, TangoProxyPool.TangoProxyCreationPolicy> tangoProxyCreationPolicies = new ConcurrentLinkedHashMap.Builder<String, TangoProxyPool.TangoProxyCreationPolicy>()
             .maximumWeightedCapacity(POOL_CAPACITY)
             .build();
