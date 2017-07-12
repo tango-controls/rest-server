@@ -50,8 +50,8 @@ public class AccessControlFilter implements ContainerRequestFilter {
             String method;
             method = httpServletRequest.getParameter("_method");
             if(method == null) method = requestContext.getMethod();
-            switch (method) {
-                case "GET":
+            switch (method.toLowerCase()) {
+                case "get":
                     if (!accessControl.checkUserCanRead(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have read access to %s", user, device);
                         requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
@@ -59,9 +59,9 @@ public class AccessControlFilter implements ContainerRequestFilter {
                     }
 
                     break;
-                case "PUT":
-                case "POST":
-                case "DELETE":
+                case "put":
+                case "post":
+                case "delete":
                     if (!accessControl.checkUserCanWrite(user, httpServletRequest.getRemoteAddr(), device)){
                         String msg = String.format("User %s does not have write access to %s", user, device);
                         requestContext.abortWith(Response.status(Response.Status.METHOD_NOT_ALLOWED).entity(msg).build());
