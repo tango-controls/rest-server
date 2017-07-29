@@ -15,36 +15,40 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoDs.TangoConst;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.javatuples.Triplet;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.util.Base64;
-import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.rest.response.Responses;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import java.awt.image.*;
+import java.awt.image.RenderedImage;
 import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @Path("/mtango")
 @NoCache
 public class MtangoImpl {
+    private static TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
+        DeviceMapper mapper = (DeviceMapper) ctx.getAttribute(DeviceMapper.TANGO_MAPPER);
+        return mapper.map(domain + "/" + name + "/" + instance);
+    }
+
     @GET
     @Path("devices")
     @Produces("application/json")
@@ -115,7 +119,6 @@ public class MtangoImpl {
             return Responses.createFailureResult("Can not get device list from the db " + DatabaseDs.DEFAULT_ID,e);
         }
     }
-
 
     @GET
     @Path("members")
@@ -260,7 +263,7 @@ public class MtangoImpl {
         }
 
         if (proxy.hasCommand(member)) {
-            return new CommandHelper(proxy).execute(member, arg);
+            return new CommandHelper(proxy).execute(member, Arrays.asList(arg));
         } else if (proxy.hasAttribute(member)) {
             return new WriteAttributeHelper(proxy).write(member, arg);
         } else
@@ -364,6 +367,7 @@ public class MtangoImpl {
                              @PathParam("instance") String instance,
                              @PathParam("cmd_or_attr") String cmd,
                              @PathParam("arg") String arg,
+                             @QueryParam("argin") List<String> argin,
                              @QueryParam("_method") String method,
                              @Context ServletContext ctx) throws TangoProxyException, NoSuchAttributeException {
         TangoProxy proxy = null;
@@ -380,13 +384,8 @@ public class MtangoImpl {
             } else
                 return Responses.createFailureResult(String.format("Device %s does not have command %s", proxy.getName(), cmd));
         } else {
-            return new CommandHelper(proxy).execute(cmd, arg);
+            return new CommandHelper(proxy).execute(cmd, argin);
         }
-    }
-
-    private static TangoProxy lookupTangoProxy(String domain, String name, String instance, ServletContext ctx) throws TangoProxyException {
-        DeviceMapper mapper = (DeviceMapper) ctx.getAttribute(DeviceMapper.TANGO_MAPPER);
-        return mapper.map(domain + "/" + name + "/" + instance);
     }
 
     public static class ImageAttributeHelper {
@@ -400,7 +399,7 @@ public class MtangoImpl {
 
         public void send(String attribute, OutputStream responseStream) throws IOException {
             Writer writer = new BufferedWriter(new OutputStreamWriter(responseStream));
-            Triplet<?,Long,Quality> valueTimeQuality = null;
+            ValueTimeQuality<?> valueTimeQuality = null;
             try {
                 valueTimeQuality = proxy.readAttributeValueTimeQuality(attribute);
             } catch (NoSuchAttributeException|TangoProxyException e) {
@@ -423,16 +422,16 @@ public class MtangoImpl {
                 writer.write("\",\"errors\":[\"Failed to commit image into response!\"],\"quality\":\"INVALID\"");
             }
             writer.write(",\"timestamp\":");
-            writer.write(Long.toString(valueTimeQuality.getValue1()));
+            writer.write(Long.toString(valueTimeQuality.time));
             writer.write("}");
 
             writer.flush();
             writer.close();
         }
 
-        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer) throws IOException{
+        RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer) throws IOException {
             //the first is a two dim array
-            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.getValue0();
+            TangoImage<?> tangoImage = (TangoImage<?>) valueTimeQuality.value;
 
             Class<?> componentType = tangoImage.getData().getClass().getComponentType();
             if(componentType != int.class) {
@@ -445,17 +444,6 @@ public class MtangoImpl {
         }
     }
 
-    public class EncodedAttributeHelper extends ImageAttributeHelper{
-        public EncodedAttributeHelper(TangoProxy proxy, String realPath) {
-            super(proxy, realPath);
-        }
-
-        @Override
-        RenderedImage getImage(Triplet<?, Long, Quality> valueTimeQuality, Writer writer){
-            return (RenderedImage) valueTimeQuality.getValue0();
-        }
-    }
-
     private static class CommandHelper {
         private TangoProxy proxy;
 
@@ -464,7 +452,7 @@ public class MtangoImpl {
         }
 
 
-        Response execute(String member, String arg) {
+        Response execute(String member, List<String> arg) {
             Class<?> targetType = null;
             try {
                 targetType = proxy.getCommandInfo(member).getArginType();
@@ -493,11 +481,11 @@ public class MtangoImpl {
         }
 
         Response read(String attr){
-            Triplet<Object, Long, Quality> result = null;
+            ValueTimeQuality<Object> result = null;
             try {
                 result = proxy.readAttributeValueTimeQuality(attr);
                 return Responses.createAttributeSuccessResult(
-                        result.getValue0(), result.getValue1(), result.getValue2().name());
+                        result.value, result.time, result.quality.toString());
             } catch (NoSuchAttributeException|TangoProxyException e) {
                 return Responses.createFailureResult(
                         String.format("Can not read attribute[%s/%s]",proxy.getName(),attr),e);
@@ -520,6 +508,17 @@ public class MtangoImpl {
             proxy.writeAttribute(attrName, converted);
             //TODO read actual value
             return Responses.createSuccessResult(null);
+        }
+    }
+
+    public class EncodedAttributeHelper extends ImageAttributeHelper {
+        public EncodedAttributeHelper(TangoProxy proxy, String realPath) {
+            super(proxy, realPath);
+        }
+
+        @Override
+        RenderedImage getImage(ValueTimeQuality<?> valueTimeQuality, Writer writer) {
+            return (RenderedImage) valueTimeQuality.value;
         }
     }
 }

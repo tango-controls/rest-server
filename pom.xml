@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>hzg.wpn</groupId>
     <artifactId>mtango.server</artifactId>
-    <version>rc1-0.4</version>
+    <version>rc1-0.5</version>
     <packaging>war</packaging>
 
     <developers>
@@ -93,12 +93,12 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>1.1.18</version>
+            <version>2.0.8</version>
         </dependency>
         <dependency>
-            <groupId>org.tango</groupId>
+            <groupId>org.tango.hzg</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>9.0.5.hzg</version>
+            <version>9.2.10</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
