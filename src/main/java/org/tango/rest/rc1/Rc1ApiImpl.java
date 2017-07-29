@@ -7,23 +7,25 @@ import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.*;
-import fr.esrf.TangoApi.CommandInfo;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.javatuples.Triplet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.type.*;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.client.ez.data.type.ValueExtractionException;
 import org.tango.client.ez.proxy.*;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.entities.*;
-import org.tango.rest.entities.DeviceInfo;
+import org.tango.rest.entities.AttributeValue;
+import org.tango.rest.entities.Device;
+import org.tango.rest.entities.DeviceState;
+import org.tango.rest.entities.NamedEntity;
 import org.tango.rest.response.Response;
+import org.tango.rest.response.Responses;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.DeviceMapper;
 import org.tango.web.server.EventHelper;
-import org.tango.rest.response.Responses;
 import org.tango.web.server.providers.Partitionable;
 import org.tango.web.server.providers.StaticValue;
 import org.tango.web.server.providers.TangoDatabaseBackend;
@@ -35,7 +37,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -44,10 +49,42 @@ import java.util.*;
 @Path("/rc1")
 @Produces("application/json")
 public class Rc1ApiImpl {
+    public static final String ASYNC = "async";
     private static final Logger logger = LoggerFactory.getLogger(Rc1ApiImpl.class);
 
+    private static Object attributeInfoExToResponse(final AttributeInfoEx input, final TangoProxy proxy, final String href) {
+        try {
+            return new Object() {
+                public String name = input.name;
+                public String value = href + "/value";
+                public Object info = input;
+                public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
+                public Object _links = new Object() {
+                    public String _parent = href;
+                    //TODO use LinksProvider
+                };
+            };
+        } catch (DevFailed devFailed) {
+            return Responses.createFailureResult(devFailed);
+        }
+    }
 
-    public static final String ASYNC = "async";
+    private static Object commandInfoToResponse(final CommandInfo input, final String href) {
+        return new Object() {
+            public String name = input.cmd_name;
+            public Object info = input;
+            public Object _links = new Object() {
+                public String _self = href + "/" + name;
+            };
+        };
+    }
+
+    private static Object dbDatumToResponse(final DbDatum dbDatum) {
+        return new Object() {
+            public String name = dbDatum.name;
+            public String[] values = dbDatum.extractStringArray();
+        };
+    }
 
     @GET
     @Partitionable
@@ -158,36 +195,19 @@ public class Rc1ApiImpl {
         return attributeInfoExToResponse(proxy.toDeviceProxy().get_attribute_info_ex(attrName), proxy, href);
     }
 
-    private static Object attributeInfoExToResponse(final AttributeInfoEx input, final TangoProxy proxy, final String href) {
-        try {
-            return new Object() {
-                public String name = input.name;
-                public String value = href + "/value";
-                public Object info = input;
-                public Object properties = proxy.toDeviceProxy().get_attribute_property(name);
-                public Object _links = new Object() {
-                    public String _parent = href;
-                    //TODO use LinksProvider
-                };
-            };
-        } catch (DevFailed devFailed) {
-            return Responses.createFailureResult(devFailed);
-        }
-    }
-
     @GET
     @org.tango.web.server.providers.AttributeValue
     @Path("devices/{domain}/{family}/{member}/attributes/{attr}/value")
     public Object deviceAttributeValueGet(@PathParam("attr") final String attrName,
                                           @Context TangoProxy proxy) throws Exception {
-        final Triplet<Object, Long, Quality> result = proxy.readAttributeValueTimeQuality(attrName);
+        final ValueTimeQuality<?> result = proxy.readAttributeValueTimeQuality(attrName);
 
 
         return new Object() {
             public String name = attrName;
-            public Object value = result.getValue0();
-            public String quality = result.getValue2().name();
-            public long timestamp = result.getValue1();
+            public Object value = result.value;
+            public String quality = result.quality.toString();
+            public long timestamp = result.time;
             public Object _links;
         };
     }
@@ -225,11 +245,12 @@ public class Rc1ApiImpl {
                         try {
                             DeviceAttribute result = new DeviceAttribute(input.getKey());
 
-                            Class<?> clazz = proxy.getAttributeInfo(input.getKey()).getClazz();
+                            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(input.getKey());
+                            Class<?> clazz = attributeInfo.getClazz();
                             TangoDataType<?> tangoDataType = TangoDataTypes.forClass(clazz);
 
                             ((TangoDataType<Object>) tangoDataType).insert(
-                                    TangoDataWrapper.create(result), ConvertUtils.convert(input.getValue()[0], clazz));
+                                    TangoDataWrapper.create(result, attributeInfo), ConvertUtils.convert(input.getValue()[0], clazz));
 
                             return result;
                         } catch (Exception e) {
@@ -249,7 +270,7 @@ public class Rc1ApiImpl {
                     try {
                         return new Object() {
                             public String name = input.getName();
-                            public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input));
+                            public Object value = TangoDataTypes.forTangoDevDataType(input.getType()).extract(TangoDataWrapper.create(input, null));
                             public String quality = input.getQuality().toString();
                             public long timestamp = input.getTime();
                             public Object _links = new Object() {
@@ -323,16 +344,6 @@ public class Rc1ApiImpl {
                                 @Context TangoProxy proxy,
                                 @Context UriInfo uriInfo) throws DevFailed {
         return commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getPath());
-    }
-
-    private static Object commandInfoToResponse(final CommandInfo input, final String href) {
-        return new Object() {
-            public String name = input.cmd_name;
-            public Object info = input;
-            public Object _links = new Object() {
-                public String _self = href + "/" + name;
-            };
-        };
     }
 
     @PUT
@@ -450,13 +461,6 @@ public class Rc1ApiImpl {
                                      @Context HttpServletRequest request,
                                      @Context TangoProxy proxy) throws DevFailed {
         proxy.toDeviceProxy().delete_property(propName);
-    }
-
-    private static Object dbDatumToResponse(final DbDatum dbDatum){
-        return new Object(){
-            public String name = dbDatum.name;
-            public String[] values = dbDatum.extractStringArray();
-        };
     }
 
     @GET

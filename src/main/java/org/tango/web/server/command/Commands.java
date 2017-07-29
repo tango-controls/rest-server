@@ -14,6 +14,10 @@ import java.util.concurrent.*;
  * @since 11.10.12
  */
 public class Commands {
+    public static final long REMOVE_TASK_DEFAULT_DELAY = 200L;
+    private static final ScheduledExecutorService EXEC = Executors.newSingleThreadScheduledExecutor();
+    private static final ConcurrentMap<Command, FutureTask<Object>> currentTasks = new ConcurrentHashMap<Command, FutureTask<Object>>();
+
     private Commands() {
     }
 
@@ -45,7 +49,7 @@ public class Commands {
         try {
             Method method = proxy.getClass().getMethod("writeAttribute", String.class, Object.class);
             String attributeName = info.target;
-            Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataType());
+            Object arg = Json.GSON.fromJson(info.argin, proxy.getAttributeInfo(attributeName).getType().getDataTypeClass());
 
             return new Command(proxy, method, attributeName, arg);
         } catch (NoSuchAttributeException| NoSuchMethodException | TangoProxyException e) {
@@ -64,12 +68,6 @@ public class Commands {
             throw new AssertionError(e);
         }
     }
-
-    public static final long REMOVE_TASK_DEFAULT_DELAY = 200L;
-    private static final ScheduledExecutorService EXEC = Executors.newSingleThreadScheduledExecutor();
-
-
-    private static final ConcurrentMap<Command, FutureTask<Object>> currentTasks = new ConcurrentHashMap<Command, FutureTask<Object>>();
 
     public static Object execute(final Command cmd) throws Exception {
         FutureTask<Object> task = currentTasks.get(cmd);

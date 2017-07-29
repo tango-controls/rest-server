@@ -1,10 +1,9 @@
 package org.tango.web.server;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import org.javatuples.Triplet;
+import fr.esrf.Tango.AttrQuality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.attribute.Quality;
 import org.tango.client.ez.proxy.*;
 import org.tango.rest.response.Response;
 import org.tango.rest.response.Responses;
@@ -27,6 +26,18 @@ public class EventHelper {
     private static final long DELTA = 256L;
 
     private static final Logger log = LoggerFactory.getLogger(EventHelper.class);
+    private final String attribute;
+    private final TangoEvent evt;
+    private final TangoProxy proxy;
+    private final Object guard = new Object();
+    private volatile Response<?> value;
+    private TangoEventListener<Object> listener;
+
+    public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
+        this.attribute = attribute;
+        this.evt = evt;
+        this.proxy = proxy;
+    }
 
     public static Response<?> handleEvent(String member, long timeout, State state, TangoProxy proxy,
                                      TangoEvent event) throws TangoProxyException, InterruptedException, NoSuchAttributeException {
@@ -37,11 +48,11 @@ public class EventHelper {
             EventHelper oldHelper = event_helpers.putIfAbsent(eventKey, helper);
             if (oldHelper == null) {
                 //read initial value from the proxy
-                Triplet<?,Long, Quality> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
+                ValueTimeQuality<?> attrTimeQuality = proxy.readAttributeValueTimeQuality(member);
                 Response<?> result = Responses.createAttributeSuccessResult(
-                        attrTimeQuality.getValue0(),
-                        attrTimeQuality.getValue1(),
-                        attrTimeQuality.getValue2().name()
+                        attrTimeQuality.value,
+                        attrTimeQuality.time,
+                        attrTimeQuality.quality.toString()
                 );
 
                 helper.set(result);
@@ -61,25 +72,6 @@ public class EventHelper {
         //block this servlet until event or timeout
         return helper.get(timeout);
         }
-    }
-
-    public static enum State {
-        UNDEFINED,
-        INITIAL,
-        CONTINUATION
-    }
-
-    private final String attribute;
-    private final TangoEvent evt;
-    private final TangoProxy proxy;
-
-    private volatile Response<?> value;
-
-    private final Object guard = new Object();
-    public EventHelper(String attribute, TangoEvent evt, TangoProxy proxy) {
-        this.attribute = attribute;
-        this.evt = evt;
-        this.proxy = proxy;
     }
 
     public void set(Response<?> value) {
@@ -115,7 +107,6 @@ public class EventHelper {
         return value;
     }
 
-    private TangoEventListener<Object> listener;
     public void subscribe() throws TangoProxyException, NoSuchAttributeException {
         proxy.subscribeToEvent(attribute, evt);
 
@@ -123,7 +114,7 @@ public class EventHelper {
             @Override
             public void onEvent(EventData<Object> data) {
                 log.debug(proxy.getName() +"/" + attribute + "." + evt +" onEvent!");
-                EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), Quality.VALID.name()));
+                EventHelper.this.set(Responses.createAttributeSuccessResult(data.getValue(), data.getTime(), AttrQuality.ATTR_VALID.toString()));
             }
 
             @Override
@@ -133,5 +124,11 @@ public class EventHelper {
             }
         };
         proxy.addEventListener(attribute, evt, listener);
+    }
+
+    public static enum State {
+        UNDEFINED,
+        INITIAL,
+        CONTINUATION
     }
 }
