@@ -18,7 +18,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -32,7 +32,7 @@ public class TangoRestApi extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
-        Set<Class<?>> classes = new HashSet<>();
+        Set<Class<?>> classes = new LinkedHashSet<>();
 
         classes.add(EntryPoint.class);
 
@@ -41,7 +41,7 @@ public class TangoRestApi extends Application {
 
     @Override
     public Set<Object> getSingletons() {
-        Set<Object> singletons = new HashSet<>();
+        Set<Object> singletons = new LinkedHashSet<>();
 
         // = = = CORS = = =
         CorsFilter cors = getCorsFilter();
