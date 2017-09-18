@@ -63,6 +63,13 @@
 
     <security-constraint>
         <web-resource-collection>
+            <web-resource-name>CORS preflight</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>OPTIONS</http-method>
+        </web-resource-collection>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
             <web-resource-name>Tango RESTful gateway</web-resource-name>
             <url-pattern>/rest/*</url-pattern>
             <http-method>GET</http-method>
@@ -72,7 +79,8 @@
             <http-method>DELETE</http-method>
         </web-resource-collection>
         <auth-constraint>
-            <role-name>*</role-name>
+            <role-name>mtango-rest</role-name>
+            <role-name>desy-user</role-name>
         </auth-constraint>
     </security-constraint>
     <security-constraint>
