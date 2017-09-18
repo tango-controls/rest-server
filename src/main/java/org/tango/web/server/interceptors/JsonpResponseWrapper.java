@@ -35,7 +35,7 @@ public class JsonpResponseWrapper implements WriterInterceptor {
 
     @Override
     public void aroundWriteTo(WriterInterceptorContext context) throws IOException, WebApplicationException {
-        logger.debug("Method : aroundWriteTo");
+        logger.trace("Method : aroundWriteTo");
         String callback = getCallbackQueryParameter();
 
         if (callback == null) {

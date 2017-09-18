@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * @since 5/25/14@1:54 AM
  */
 public class TimeWatcher implements Filter {
-    private static final Logger LOG = LoggerFactory.getLogger(TimeWatcher.class);
+    private final Logger logger = LoggerFactory.getLogger(TimeWatcher.class);
 
     public void destroy() {
     }
@@ -23,14 +23,14 @@ public class TimeWatcher implements Filter {
             chain.doFilter(req, resp);
             return;
         }
-        LOG.info("Serving request. Stopwatch is active.");
+        logger.info("Serving request. Stopwatch is active.");
         long start = System.nanoTime();
         chain.doFilter(req, resp);
         long end = System.nanoTime();
         long delta = end - start;
         long delta_ms = TimeUnit.MILLISECONDS.convert(delta, TimeUnit.NANOSECONDS);
-        LOG.info("Request processing time (nano):" + delta);
-        LOG.info("Request processing time (ms):" + delta_ms);
+        logger.info("Request processing time (nano):" + delta);
+        logger.info("Request processing time (ms):" + delta_ms);
     }
 
     public void init(FilterConfig config) throws ServletException {
