@@ -21,7 +21,7 @@ import java.util.List;
 @Provider
 public class PartitionProvider implements ContainerResponseFilter {
     public static final String RANGE = "range";
-    private static final Logger LOG = LoggerFactory.getLogger(PartitionProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(PartitionProvider.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
@@ -31,7 +31,7 @@ public class PartitionProvider implements ContainerResponseFilter {
         }
 
 
-        LOG.debug("Start partitioning...");
+        logger.debug("Start partitioning...");
         String[] split = uriInfo.getQueryParameters().getFirst(RANGE).split("-");
         final int start = Integer.parseInt(split[0]);
         final int end =  Integer.parseInt(split[1]);
@@ -60,6 +60,6 @@ public class PartitionProvider implements ContainerResponseFilter {
 
         responseContext.setStatus(206);
         responseContext.setEntity(partition);
-        LOG.debug("Done partitioning.");
+        logger.debug("Done partitioning.");
     }
 }

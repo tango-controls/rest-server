@@ -1,12 +1,12 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.DatabaseDs;
-import org.tango.web.server.exception.mapper.NoSuchCommand;
 import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
 
 import javax.annotation.Priority;
@@ -24,6 +24,8 @@ import java.io.IOException;
 @Provider
 @Priority(1200)
 public class TangoProxyProvider implements ContainerRequestFilter {
+    private final Logger logger = LoggerFactory.getLogger(TangoProxyProvider.class);
+
     private final TangoRestServer tangoRestServer;
 
     public TangoProxyProvider(TangoRestServer tangoRestServer) {
@@ -50,10 +52,8 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
         } catch (TangoProxyException e) {
+            logger.error("Failed to get proxy for {}/{}/{}", domain, family, member);
             requestContext.abortWith(new TangoProxyExceptionMapper().toResponse(e));
-        } catch (NoSuchCommandException e) {
-            assert false;
-            requestContext.abortWith(new NoSuchCommand().toResponse(e));
         }
     }
 }

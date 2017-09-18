@@ -5,7 +5,6 @@ import fr.esrf.Tango.DevSource;
 import fr.esrf.Tango.DevState;
 import fr.esrf.Tango.DevVarLongStringArray;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,15 +13,13 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
-import org.tango.web.server.AuthConfiguration;
+import org.tango.web.server.tomcat.AuthConfiguration;
 import org.tango.web.server.TangoProxyPool;
+import org.tango.web.server.tomcat.TomcatBootstrap;
+import org.tango.web.server.tomcat.WebappConfiguration;
 
 import javax.servlet.ServletException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,7 +29,6 @@ import java.util.List;
  */
 @Device(transactionType = TransactionType.NONE)
 public class TangoRestServer {
-    public static final String WEBAPP_WAR = "webapp.war";
 
     public static final String TANGO_ACCESS = "TANGO_ACCESS";
     public static final String TOMCAT_PORT_PROPERTY = "TOMCAT_PORT";
@@ -79,7 +75,6 @@ public class TangoRestServer {
     @Status
     private String status;
     private Tomcat tomcat;
-    private AuthConfiguration authConfiguration;
 
     public static void main(String[] args) throws Exception {
         String instance = args[0];
@@ -100,48 +95,12 @@ public class TangoRestServer {
     }
 
     private void startTomcat() throws Exception {
-        logger.debug("Configure tomcat for device");
+        Path baseDir = TomcatBootstrap.initializeBaseDir();
 
-        Path tomcatBaseDir;
-        try {
-            tomcatBaseDir = Files.createTempDirectory("tomcat_");
-            Files.createDirectory(tomcatBaseDir.resolve("webapps"));
-        } catch (IOException e) {
-            logger.error("Failed to create tomcat temp dir", e);
-            throw e;
-        }
-        try {
-            InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war");
-
-
-            Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            logger.error(String.format(
-                    "Failed to extract webapp.war to the temp dir %s", tomcatBaseDir.toAbsolutePath().toString()), e);
-            throw e;
-        }
-
-        tomcat = new Tomcat();
-        tomcat.setPort(tomcatPort);
-        tomcat.setBaseDir(tomcatBaseDir.toAbsolutePath().toString());
-
-        logger.debug("Add webapp[tango] tomcat for device");
-        org.apache.catalina.Context context =
-                tomcat.addWebapp("tango", tomcatBaseDir.resolve(WEBAPP_WAR).toAbsolutePath().toString());
-
-        WebappLoader loader =
-                new WebappLoader(Thread.currentThread().getContextClassLoader());
-        loader.setDelegate(true);
-        context.setLoader(loader);
-
-        logger.debug("Configure tomcat auth for device");
-        authConfiguration.configure(tomcat);
-
-        logger.debug("Start tomcat of device");
-        tomcat.start();
+        tomcat = new TomcatBootstrap(tomcatPort, baseDir,
+                new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords),
+                new WebappConfiguration(baseDir.toAbsolutePath().toString())).bootstrap();
         setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tomcatPort));
-
-        logger.debug("Done.");
     }
 
     public DevState getState() {
@@ -162,8 +121,6 @@ public class TangoRestServer {
         System.setProperty(TANGO_ACCESS, tangoAccessControlProperty);
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT_PROPERTY, Integer.toString(tomcatPort)));
-
-        authConfiguration = new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords);
     }
 
     @Delete

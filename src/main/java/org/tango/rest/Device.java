@@ -57,7 +57,7 @@ public class Device {
         try {
             final String devname = domain + "/" + family + "/" + member;
             return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
-        } catch (NoSuchCommandException | TangoProxyException e) {
+        } catch (TangoProxyException e) {
             return Failures.createInstance(e);
         }
     }

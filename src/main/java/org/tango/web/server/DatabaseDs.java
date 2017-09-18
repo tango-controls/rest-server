@@ -33,13 +33,17 @@ public class DatabaseDs {
         }
     }
 
-    public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException, NoSuchCommandException {
-        DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo", devname);
-        DeviceInfo deviceInfo = new DeviceInfo(info);
-        return deviceInfo;
+    public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException {
+        try {
+            DevVarLongStringArray info = proxy.executeCommand("DbGetDeviceInfo", devname);
+            DeviceInfo deviceInfo = new DeviceInfo(info);
+            return deviceInfo;
+        } catch (NoSuchCommandException e) {
+            throw new AssertionError("Can not find DbGetDeviceInfo");
+        }
     }
 
-    public String getDeviceAddress(String devname) throws TangoProxyException, NoSuchCommandException {
+    public String getDeviceAddress(String devname) throws TangoProxyException {
         DeviceInfo info = getDeviceInfo(devname);
         return "tango://" + tangoHost + "/" + info.name;
     }

@@ -1,9 +1,11 @@
-package org.tango.web.server;
+package org.tango.web.server.tomcat;
 
 import de.hzg.wpi.utils.authorization.Kerberos;
 import de.hzg.wpi.utils.authorization.PlainText;
 import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -16,6 +18,8 @@ import java.util.Map;
  * @since 04.02.2016
  */
 public class AuthConfiguration {
+    private final Logger logger = LoggerFactory.getLogger(AuthConfiguration.class);
+
     public static final String[] DEFAULT_ROLES = {"desy-user", "mtango-rest", "mtango-groovy"};
 
     private Map<String, String> users = new HashMap<>();
@@ -31,6 +35,7 @@ public class AuthConfiguration {
     }
 
     public void configure(Tomcat tomcat){
+        logger.debug("Configure tomcat auth for device");
         switch (authMethod) {
             case "plain":
                 PlainText plainText = new PlainText(tomcat, users, roles);
