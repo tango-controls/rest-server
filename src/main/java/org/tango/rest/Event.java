@@ -106,6 +106,7 @@ public class Event {
             synchronized (guard) {
                 guard.wait(timeout);
             }
+            logger.trace("Got value: {}", value);
             return value == null ?
                     Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance("value has not been updated")).build()
                     : value;
@@ -120,13 +121,13 @@ public class Event {
         listener = new TangoEventListener<Object>() {
             @Override
             public void onEvent(EventData<Object> data) {
-                logger.debug(this + "#onEvent");
+                logger.trace(this + "#onEvent");
                 Event.this.set(new AttributeValue<Object>(attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime()));
             }
 
             @Override
             public void onError(Exception cause) {
-                logger.debug(this + "#onError ", cause);
+                logger.trace(this + "#onError ", cause);
                 Event.this.set(Failures.createInstance(cause));
             }
         };
