@@ -18,24 +18,25 @@ import java.nio.file.StandardCopyOption;
  * @since 9/18/17
  */
 public class TomcatBootstrap {
-    private final Logger logger = LoggerFactory.getLogger(TomcatBootstrap.class);
-
     public static final String WEBAPP_WAR = "webapp.war";
-
+    private final Logger logger = LoggerFactory.getLogger(TomcatBootstrap.class);
     private final int port;
     private final Path baseDir;
+    //TODO DI or mediator or builder
     private final AuthConfiguration authConfiguration;
     private final WebappConfiguration webappConfiguration;
+    private final AccessLogConfiguration accessLogConfiguration;
 
 
     public TomcatBootstrap(int port,
                            Path baseDir,
-                           AuthConfiguration authConfiguration, WebappConfiguration webappConfiguration) {
+                           AuthConfiguration authConfiguration, WebappConfiguration webappConfiguration, AccessLogConfiguration accessLogConfiguration) {
         this.port = port;
         this.baseDir = baseDir;
 
         this.authConfiguration = authConfiguration;
         this.webappConfiguration = webappConfiguration;
+        this.accessLogConfiguration = accessLogConfiguration;
     }
 
     public static Path initializeBaseDir() {
@@ -57,6 +58,7 @@ public class TomcatBootstrap {
         tomcat.setPort(port);
         tomcat.setBaseDir(baseDir);
 
+        accessLogConfiguration.configure(tomcat);
         authConfiguration.configure(tomcat);
         webappConfiguration.configure(tomcat);
         return tomcat;
