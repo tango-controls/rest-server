@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.hzg.wpi.tango</groupId>
@@ -135,11 +136,17 @@
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
             <version>RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.tango.hzg</groupId>
+                    <artifactId>TangORB</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.tango.hzg</groupId>
+            <groupId>org.tango-controls</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>RELEASE</version>
+            <version>9.3.6.hzg</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
