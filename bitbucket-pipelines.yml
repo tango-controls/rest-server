@@ -10,7 +10,7 @@ pipelines:
     - step:
         script: # Modify the commands below to build your repository.          
           - mvn clean package
-          - java -DTANGO_HOST=localhost:10000 -jar target/mtangorest.server-rc4-2.2-SNAPSHOT.jar -nodb -dlist test/rest/0 &
+          - java -DTANGO_HOST=localhost:10000 -jar target/mtangorest.server-rc4-2.3-SNAPSHOT.jar -nodb -dlist test/rest/0 &
           - sleep 10
           - curl -u "tango-cs:tango" http://localhost:10001/tango/rest/rc4 | grep "\"hosts\":\"http://localhost:10001/tango/rest/rc4/hosts\""
           - killall java
