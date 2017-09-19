@@ -13,8 +13,9 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
-import org.tango.web.server.tomcat.AuthConfiguration;
 import org.tango.web.server.TangoProxyPool;
+import org.tango.web.server.tomcat.AccessLogConfiguration;
+import org.tango.web.server.tomcat.AuthConfiguration;
 import org.tango.web.server.tomcat.TomcatBootstrap;
 import org.tango.web.server.tomcat.WebappConfiguration;
 
@@ -99,7 +100,8 @@ public class TangoRestServer {
 
         tomcat = new TomcatBootstrap(tomcatPort, baseDir,
                 new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords),
-                new WebappConfiguration(baseDir.toAbsolutePath().toString())).bootstrap();
+                new WebappConfiguration(baseDir.toAbsolutePath().toString()),
+                new AccessLogConfiguration()).bootstrap();
         setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tomcatPort));
     }
 
