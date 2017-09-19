@@ -59,7 +59,7 @@ public class DeviceAttribute {
     }
 
     @GET
-    @Path("/{event}")
+    @Path("/{event:(?!value).*}")
     public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
                                        @DefaultValue("3000") @QueryParam("timeout") long timeout,
                                        @QueryParam("state") Event.State state,
