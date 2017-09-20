@@ -59,7 +59,7 @@ public class DeviceAttribute {
     }
 
     @GET
-    @Path("/{event:(?!value).*}")
+    @Path("/{event:change|periodic|archive|user}")
     public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
                                        @DefaultValue("3000") @QueryParam("timeout") long timeout,
                                        @QueryParam("state") Event.State state,
@@ -70,7 +70,7 @@ public class DeviceAttribute {
         try {
             event = TangoEvent.valueOf(eventAsString.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(ex)).build();
+            throw new AssertionError("Can not happen! event must be one of change|periodic|archive|user but was " + eventAsString);
         }
         return Event.handleEvent(name, timeout, state, proxy, event);
     }
