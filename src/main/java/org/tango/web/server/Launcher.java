@@ -52,7 +52,7 @@ public class Launcher implements ServletContextListener {
     }
 
     private void initializeTangoServletContext(ServletContext servletContext) throws TangoProxyException {
-        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, servletContext.getInitParameter(TangoRestServer.TANGO_INSTANCE));
 
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
         if (tangoRestServers.size() > 1)
