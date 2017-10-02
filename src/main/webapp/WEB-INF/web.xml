@@ -94,12 +94,7 @@
     </security-constraint>
     <login-config>
         <auth-method>BASIC</auth-method>
-        <realm-name>Basic Authentication</realm-name>
-        <!--<auth-method>FORM</auth-method>
-        <form-login-config>
-        <form-login-page>/login.html</form-login-page>
-        <form-error-page>/fail_login.html</form-error-page>
-        </form-login-config>-->
+        <realm-name>TangoREST</realm-name>
     </login-config>
     <security-role>
         <description>compatibility with DESY kerberos</description>
