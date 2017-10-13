@@ -29,11 +29,12 @@ public class Launcher implements ServletContextListener {
         String tangoHost = getTangoHost();
         logger.info("TANGO_HOST={}", tangoHost);
 
-        logger.info("TANGO_INSTANCE={}", System.getProperty(TangoRestServer.TANGO_INSTANCE,
-                sce.getServletContext().getInitParameter(TangoRestServer.TANGO_INSTANCE)));
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE,
+                sce.getServletContext().getInitParameter(TangoRestServer.TANGO_INSTANCE));
+        logger.info("TANGO_INSTANCE={}", instance);
 
         try {
-            startTangoServer();//calls TangoRestServer.init - sets System properties from Device properties
+            startTangoServer(instance);//calls TangoRestServer.init - sets System properties from Device properties
 
             initializeTangoServletContext(sce.getServletContext());
 
@@ -51,7 +52,7 @@ public class Launcher implements ServletContextListener {
     }
 
     private void initializeTangoServletContext(ServletContext servletContext) throws TangoProxyException {
-        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
+        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, servletContext.getInitParameter(TangoRestServer.TANGO_INSTANCE));
 
         List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
         if (tangoRestServers.size() > 1)
@@ -72,11 +73,11 @@ public class Launcher implements ServletContextListener {
 
     /**
      * NoOp if already started, i.e. in {@link TangoRestServer#main(String[])}
+     * @param instance
      */
-    private void startTangoServer() {
-        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, "development");
-
-        ServerManager.getInstance().start(new String[]{instance}, TangoRestServer.class);
+    private void startTangoServer(String instance) {
+        ServerManager.getInstance().start(
+                new String[]{System.getProperty(TangoRestServer.TANGO_INSTANCE, instance)}, TangoRestServer.class);
     }
 
     @Override
