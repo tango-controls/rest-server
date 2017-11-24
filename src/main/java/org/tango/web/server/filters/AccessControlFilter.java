@@ -9,7 +9,9 @@ import org.tango.web.server.AccessControl;
 import org.tango.web.server.exception.mapper.NoSuchCommand;
 import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
 
+import javax.annotation.Priority;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
@@ -24,7 +26,7 @@ import java.io.IOException;
  * @since 01.07.14
  */
 @Provider
-@PreMatching
+@Priority(Priorities.AUTHORIZATION)
 public class AccessControlFilter implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(AccessControlFilter.class);
 
@@ -53,6 +55,8 @@ public class AccessControlFilter implements ContainerRequestFilter {
 
             String device = domain + "/" + family + "/" + member;
             String method = requestContext.getMethod();
+
+            logger.debug("Validating user rights: {}, {}, {}", user, httpServletRequest.getRemoteAddr(), device);
             switch (method) {
                 case "GET":
                     if (!accessControl.checkUserCanRead(user, httpServletRequest.getRemoteAddr(), device)){
