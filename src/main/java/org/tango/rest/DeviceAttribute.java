@@ -21,6 +21,7 @@ import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.attribute.AttributeProperty;
+import org.tango.web.server.attribute.EventBuffer;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
@@ -29,11 +30,11 @@ import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NavigableSet;
 
 /**
  * @author ingvord
@@ -62,7 +63,7 @@ public class DeviceAttribute {
     @Path("/{event:change|periodic|archive|user}")
     public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
                                        @DefaultValue("3000") @QueryParam("timeout") long timeout,
-                                       @QueryParam("state") Event.State state,
+                                       @DefaultValue("0") @QueryParam("last") long last,
                                        @Context ServletContext context,
                                        @Context UriInfo uriInfo
     ) throws Exception {
@@ -72,7 +73,18 @@ public class DeviceAttribute {
         } catch (IllegalArgumentException ex) {
             throw new AssertionError("Can not happen! event must be one of change|periodic|archive|user but was " + eventAsString);
         }
-        return Event.handleEvent(name, timeout, state, proxy, event);
+
+        EventBuffer buffer = (EventBuffer) context.getAttribute(EventBuffer.class.getName());
+
+        EventBuffer.EventKey eventKey = new EventBuffer.EventKey(proxy, name, event);
+        if (last > 0) {
+            NavigableSet<?> result = buffer.getTail(eventKey, last);
+            if (!result.isEmpty()) {
+                return result.toArray(new Object[result.size()]);
+            }
+        }
+
+        return buffer.createEvent(eventKey, proxy).get(timeout);
     }
 
     @GET

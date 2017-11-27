@@ -9,6 +9,7 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
+import org.tango.web.server.attribute.EventBuffer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -69,6 +70,8 @@ public class Launcher implements ServletContextListener {
             AccessControl accessControl = new AccessControl(accessCtlProxy);
             servletContext.setAttribute(AccessControl.class.getName(), accessControl);
         }
+
+        servletContext.setAttribute(EventBuffer.class.getName(), new EventBuffer());
     }
 
     /**
