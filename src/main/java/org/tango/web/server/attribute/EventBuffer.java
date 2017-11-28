@@ -7,7 +7,6 @@ import org.tango.rest.entities.Failure;
 import org.tango.rest.entities.Failures;
 
 import javax.ws.rs.core.Response;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.NavigableSet;
 import java.util.concurrent.*;
@@ -17,6 +16,8 @@ import java.util.concurrent.*;
  * @since 11/27/17
  */
 public class EventBuffer {
+    private static final long KEEP_EVENT_DATA_DELAY = 30_000L;
+
     public static class EventKey implements Comparable<EventKey> {
         private final String proxy;
         private final String attribute;
@@ -114,8 +115,7 @@ public class EventBuffer {
      * @throws NoSuchAttributeException
      */
     public Event createEvent(EventKey key, TangoProxy proxy) throws TangoProxyException, NoSuchAttributeException {
-        //subscribe this buffer if not yet done
-        subscribe(key, proxy);
+
 
         Event newEvent = new Event(key, proxy);
         newEvent.subscribe();
@@ -176,7 +176,7 @@ public class EventBuffer {
     private void removeFirst(long timestamp, ConcurrentSkipListSet<Object> skipListSet) {
         //remove first element if it is older than 10s
         Object oldData = skipListSet.first();
-        if (getTimestamp(oldData) < timestamp - 10_000) skipListSet.remove(oldData);
+        if (getTimestamp(oldData) < timestamp - KEEP_EVENT_DATA_DELAY) skipListSet.remove(oldData);
     }
 
     public NavigableSet<Object> getTail(EventKey eventKey, long timestamp) {

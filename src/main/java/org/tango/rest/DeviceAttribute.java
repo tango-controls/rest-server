@@ -73,10 +73,13 @@ public class DeviceAttribute {
         } catch (IllegalArgumentException ex) {
             throw new AssertionError("Can not happen! event must be one of change|periodic|archive|user but was " + eventAsString);
         }
+        EventBuffer.EventKey eventKey = new EventBuffer.EventKey(proxy, name, event);
 
         EventBuffer buffer = (EventBuffer) context.getAttribute(EventBuffer.class.getName());
 
-        EventBuffer.EventKey eventKey = new EventBuffer.EventKey(proxy, name, event);
+        //subscribe this buffer if not yet done
+        buffer.subscribe(eventKey, proxy);
+
         if (last > 0) {
             NavigableSet<?> result = buffer.getTail(eventKey, last);
             if (!result.isEmpty()) {
