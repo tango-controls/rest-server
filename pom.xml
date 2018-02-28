@@ -2,18 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.hzg.wpi.tango</groupId>
+    <groupId>ru.ingvord</groupId>
     <artifactId>mtangorest.server-rc4</artifactId>
     <version>2.4-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
         <developer>
-            <id>khokhria</id>
-            <name>Igor Khokhriakov</name>
-            <email>igor.khokhriakov@hzg.de</email>
-            <organization>Helmholtz-Zentrum Geesthacht</organization>
-            <organizationUrl>hzg.de</organizationUrl>
+            <id>ingvord</id>
+            <name>Ingvord</name>
+            <email>mail@ingvord.ru</email>
         </developer>
     </developers>
 
@@ -26,10 +24,9 @@
 
 
     <scm>
-        <connection>scm:hg:https://bitbucket.org/hzgwpn/mtangorest.server</connection>
-        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</developerConnection>
-        <url>ssh://hg@bitbucket.org/hzgwpn/mtangorest.server</url>
-        <tag>mtangorest.server-rc4-0.1</tag>
+        <connection>scm:git:git@github.com:ingvord/mtangorest.server</connection>
+        <developerConnection>scm:git:git@github.com:ingvord/mtangorest.server</developerConnection>
+        <url>https://github.com/ingvord/mtangorest.server</url>
     </scm>
 
     <dependencies>
@@ -374,11 +371,11 @@
                                     <arguments>
                                         <argument>-s</argument>
                                         <argument>-u</argument>
-                                        <argument>ingvord:${bitbucket.ingvord.password}</argument>
+                                        <argument>ingvord:${bintray.user.apikey}</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
                                         <argument>
-                                            https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads
+                                            https://api.bintray.com/content/ingvord/generic/mtangorest.server/${project.version}/${project.artifactId}-${project.version}.jar
                                         </argument>
                                         <argument>-F</argument>
                                         <argument>
@@ -399,11 +396,11 @@
                                     <arguments>
                                         <argument>-s</argument>
                                         <argument>-u</argument>
-                                        <argument>ingvord:${bitbucket.ingvord.password}</argument>
+                                        <argument>ingvord:${bintray.user.apikey}</argument>
                                         <argument>-X</argument>
                                         <argument>POST</argument>
                                         <argument>
-                                            https://api.bitbucket.org/2.0/repositories/hzgwpn/mtangorest.server/downloads
+                                            https://api.bintray.com/content/ingvord/generic/mtangorest.server/${project.version}/${project.artifactId}-${project.version}.zip
                                         </argument>
                                         <argument>-F</argument>
                                         <argument>
