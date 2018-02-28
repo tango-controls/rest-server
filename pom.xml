@@ -407,19 +407,13 @@
                                 <configuration>
                                     <executable>curl</executable>
                                     <arguments>
-                                        <argument>-s</argument>
-                                        <argument>-u</argument>
-                                        <argument>ingvord:${bintray.user.apikey}</argument>
-                                        <argument>-X</argument>
-                                        <argument>POST</argument>
+                                        <argument>-v</argument>
+                                        <argument>-T</argument>
+                                        <argument>${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                                        <argument>-uingvord:${bintray.user.apikey}</argument>
                                         <argument>
-                                            https://api.bintray.com/content/ingvord/generic/mtangorest.server/${project.version}/${project.artifactId}-${project.version}.jar
+                                            "https://api.bintray.com/content/ingvord/generic/mtangorest.server/rc4-${project.version}/${project.artifactId}-${project.version}.jar;publish=1"
                                         </argument>
-                                        <argument>-F</argument>
-                                        <argument>
-                                            files=@${project.build.directory}/${project.artifactId}-${project.version}.jar
-                                        </argument>
-                                        <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -432,19 +426,13 @@
                                 <configuration>
                                     <executable>curl</executable>
                                     <arguments>
-                                        <argument>-s</argument>
-                                        <argument>-u</argument>
-                                        <argument>ingvord:${bintray.user.apikey}</argument>
-                                        <argument>-X</argument>
-                                        <argument>POST</argument>
+                                        <argument>-v</argument>
+                                        <argument>-T</argument>
+                                        <argument>${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
+                                        <argument>-uingvord:${bintray.user.apikey}</argument>
                                         <argument>
-                                            https://api.bintray.com/content/ingvord/generic/mtangorest.server/${project.version}/${project.artifactId}-${project.version}.zip
+                                            "https://api.bintray.com/content/ingvord/generic/mtangorest.server/rc4-${project.version}/${project.artifactId}-${project.version}.zip;publish=1"
                                         </argument>
-                                        <argument>-F</argument>
-                                        <argument>
-                                            files=@${project.build.directory}/${project.artifactId}-${project.version}.zip
-                                        </argument>
-                                        <argument>--verbose</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
