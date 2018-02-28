@@ -17,7 +17,7 @@ jdk:
   
 addons:
   sonarcloud:
-    organization: "Ingvord"
+    organization: "ingvord-github"
     token:
       secure: $SONAR_TOKEN  
   
