@@ -27,7 +27,7 @@
         <connection>scm:git:git@github.com:ingvord/mtangorest.server</connection>
         <developerConnection>scm:git:git@github.com:ingvord/mtangorest.server</developerConnection>
         <url>https://github.com/ingvord/mtangorest.server</url>
-      <tag>HEAD</tag>
+      <tag>HEAD</tag><sonar.organization>tango-controls</sonar.organization>
   </scm>
 
     <dependencies>
@@ -356,7 +356,6 @@
             <properties>
                 <sonar.host.url>https://sonarcloud.io</sonar.host.url>
                 <sonar.organization>ingvord-github</sonar.organization>
-                <sonar.branch>master</sonar.branch>
                 <sonar.login>${env.SONAR_TOKEN}</sonar.login>
             </properties>
             <build>
