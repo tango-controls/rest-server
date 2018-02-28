@@ -14,7 +14,7 @@
         ${result}
     </p>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
-    <script src="lib/mode/javascript/javascript.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/javascript/javascript.js"></script>
     <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("script"), {
             lineNumbers: true,
