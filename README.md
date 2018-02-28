@@ -1,3 +1,5 @@
+[![logo](http://www.tango-controls.org/static/tango/img/logo_tangocontrols.png)](http://www.tango-controls.org)
+
 This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
 
 [![Download](https://api.bintray.com/packages/ingvord/generic/mtangorest.server/images/download.svg) ](https://bintray.com/ingvord/generic/mtangorest.server/_latestVersion)
