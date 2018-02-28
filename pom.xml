@@ -27,7 +27,7 @@
         <connection>scm:git:git@github.com:ingvord/mtangorest.server</connection>
         <developerConnection>scm:git:git@github.com:ingvord/mtangorest.server</developerConnection>
         <url>https://github.com/ingvord/mtangorest.server</url>
-      <tag>HEAD</tag><sonar.organization>tango-controls</sonar.organization>
+      <tag>HEAD</tag>
   </scm>
 
     <dependencies>
