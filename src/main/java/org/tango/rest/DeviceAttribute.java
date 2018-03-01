@@ -150,7 +150,7 @@ public class DeviceAttribute {
     public AttributeProperty deviceAttributeProperties(@PathParam("prop") final String property) throws DevFailed {
         Iterable<? extends DbDatum> datumCollection = Iterables.filter(proxy.toDeviceProxy().get_attribute_property(name), new Predicate<DbDatum>() {
             @Override
-            public boolean apply(@Nullable DbDatum input) {
+            public boolean apply(DbDatum input) {
                 return property.equalsIgnoreCase(input.name);
             }
         });

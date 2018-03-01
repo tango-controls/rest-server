@@ -18,15 +18,13 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractCacheControlProvider implements ContainerResponseFilter {
     private SimpleDateFormat dateFormat;
-    {
-        dateFormat = new SimpleDateFormat(
-                "EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
 
     protected final TangoRestServer tangoRestServer;
 
     public AbstractCacheControlProvider(TangoRestServer tangoRestServer) {
+        dateFormat = new SimpleDateFormat(
+                "EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         this.tangoRestServer = tangoRestServer;
     }
 
