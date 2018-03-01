@@ -17,12 +17,11 @@ import java.util.concurrent.TimeUnit;
  * @since 15.12.2015
  */
 public abstract class AbstractCacheControlProvider implements ContainerResponseFilter {
-    public static final SimpleDateFormat DATE_FORMAT;
-    static {
-        Calendar calendar = Calendar.getInstance();
-        DATE_FORMAT = new SimpleDateFormat(
+    private SimpleDateFormat dateFormat;
+    {
+        dateFormat = new SimpleDateFormat(
                 "EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     protected final TangoRestServer tangoRestServer;
@@ -42,7 +41,7 @@ public abstract class AbstractCacheControlProvider implements ContainerResponseF
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();
 
         headers.putSingle("Expires",
-                DATE_FORMAT.format(new Date(System.currentTimeMillis()/*TODO last modified*/ + getDelay())));
+                dateFormat.format(new Date(System.currentTimeMillis()/*TODO last modified*/ + getDelay())));
 
         CacheControl cc = new CacheControl();
         cc.setPrivate(false);

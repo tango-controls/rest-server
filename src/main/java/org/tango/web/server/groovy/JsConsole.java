@@ -20,7 +20,7 @@ import java.util.Properties;
  */
 public class JsConsole extends HttpServlet {
 
-    public static final String GROOVY_VM = "groovy.vm";
+    private static final String GROOVY_VM = "groovy.vm";
     private ScriptEngine engine;
     private Bindings bindings;
 

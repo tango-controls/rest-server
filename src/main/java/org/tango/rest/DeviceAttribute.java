@@ -138,7 +138,7 @@ public class DeviceAttribute {
     public List<AttributeProperty> deviceAttributeProperties() throws DevFailed {
         return Lists.transform(proxy.toDeviceProxy().get_attribute_property(name), new Function<DbDatum, AttributeProperty>() {
             @Override
-            public AttributeProperty apply(@Nullable DbDatum input) {
+            public AttributeProperty apply(DbDatum input) {
                 return new AttributeProperty(input);
             }
         });
