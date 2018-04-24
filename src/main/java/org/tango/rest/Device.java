@@ -1,6 +1,7 @@
 package org.tango.rest;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
@@ -26,6 +27,7 @@ import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -108,37 +110,40 @@ public class Device {
                                                                         @Context ServletContext context,
                                                                         @Context UriInfo uriInfo) throws Exception {
         boolean async = uriInfo.getQueryParameters().containsKey("async");
+        //TODO split into good and bad attributes: write good ones; report bad ones (if present)
         fr.esrf.TangoApi.DeviceAttribute[] attrs =
                 Iterables.toArray(
-                        Iterables.transform(uriInfo.getQueryParameters().entrySet(), new Function<Map.Entry<String, List<String>>, fr.esrf.TangoApi.DeviceAttribute>() {
-                            @Override
-                            public fr.esrf.TangoApi.DeviceAttribute apply(Map.Entry<String, List<String>> stringListEntry) {
-                                String attrName = stringListEntry.getKey();
-                                String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
-                                fr.esrf.TangoApi.DeviceAttribute result;
+                        Iterables.filter(
+                                Iterables.transform(
+                                        uriInfo.getQueryParameters().entrySet(), new Function<Map.Entry<String, List<String>>, fr.esrf.TangoApi.DeviceAttribute>() {
+                                            @Override
+                                            public fr.esrf.TangoApi.DeviceAttribute apply(Map.Entry<String, List<String>> stringListEntry) {
+                                                String attrName = stringListEntry.getKey();
+                                                String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
+                                                fr.esrf.TangoApi.DeviceAttribute result;
 
-                                try {
-                                    result= new fr.esrf.TangoApi.DeviceAttribute(attrName);
-                                    TangoDataType<Object> dataType = (TangoDataType<Object>) proxy.getAttributeInfo(attrName).getType();
-                                    Class<?> type = dataType.getDataTypeClass();
-                                    Object converted = ConvertUtils.convert(value.length == 1 ? value[0]: value,type);
+                                                try {
+                                                    result = new fr.esrf.TangoApi.DeviceAttribute(attrName);
+                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) proxy.getAttributeInfo(attrName).getType();
+                                                    Class<?> type = dataType.getDataTypeClass();
+                                                    Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
 
-                                    dataType.insert(TangoDataWrapper.create(result, null), converted);
+                                                    dataType.insert(TangoDataWrapper.create(result, null), converted);
 
-                                    return result;
-                                } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
-                                    result = mock(fr.esrf.TangoApi.DeviceAttribute.class);
-                                    try {
-                                        doReturn(attrName).when(result).getName();
-                                    } catch (DevFailed devFailed) {
-                                        throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
+                                                    return result;
+                                                } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
+                                                    return null;
+                                                }
+                                            }
+                                        }), new Predicate<fr.esrf.TangoApi.DeviceAttribute>() {
+
+                                    @Override
+                                    public boolean apply(@Nullable fr.esrf.TangoApi.DeviceAttribute input) {
+                                        return input != null;
                                     }
-                                    doReturn(true).when(result).hasFailed();
-                                    doReturn(DevFailedUtils.buildDevError(e.getClass().getSimpleName(), e.getMessage(),0)).when(result).getErrStack();
-                                    return result;
                                 }
-                            }
-                        }), fr.esrf.TangoApi.DeviceAttribute.class);
+
+                        ), fr.esrf.TangoApi.DeviceAttribute.class);
 
 
 
