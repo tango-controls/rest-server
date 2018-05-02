@@ -2,7 +2,9 @@
 
 This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
 
-[![Download](https://api.bintray.com/packages/ingvord/generic/mtangorest.server/images/download.svg) ](https://bintray.com/ingvord/generic/mtangorest.server/_latestVersion)
+[![Build Status](https://travis-ci.org/Ingvord/mtangorest.server.svg?branch=master)](https://travis-ci.org/Ingvord/mtangorest.server)
+
+[![Download](https://img.shields.io/github/release/ingvord/mtangorest.server.svg?style=flat)](https://github.com/ingvord/mtangorest.server/releases/latest)
 
 ## SonarCloud
 
