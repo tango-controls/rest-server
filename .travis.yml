@@ -25,8 +25,8 @@ deploy:
   - provider: releases
     api_key: $GITHUB_OAUTH_TOKEN
     file:
-      - "target/mtangorest.server-$TRAVIS_TAG.jar"
-      - "target/mtangorest.server-$TRAVIS_TAG.zip"
+      - "target/$TRAVIS_TAG.jar"
+      - "target/$TRAVIS_TAG.zip"
     skip_cleanup: true
     on:
       tags: true
