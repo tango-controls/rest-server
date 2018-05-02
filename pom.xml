@@ -20,6 +20,7 @@
         <tomcat.version>8.5.2</tomcat.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <resteasy.version>3.1.2.Final</resteasy.version>
+        <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
     </properties>
 
 
@@ -132,7 +133,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>2.0.10</version>
+            <custom.build.nameversion>2.0.10</custom.build.nameversion>
             <exclusions>
                 <exclusion>
                     <groupId>org.tango.hzg</groupId>
@@ -159,6 +160,7 @@
     </dependencies>
 
     <build>
+        <finalName>${custom.build.name}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

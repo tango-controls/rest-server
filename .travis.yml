@@ -3,8 +3,8 @@ language: java
 sudo: false
 
 script:
-  - mvn clean package -Ptravis
-  - java -DTANGO_HOST=localhost:10000 -jar target/mtangorest.server-rc4-2.5-SNAPSHOT.jar -nodb -dlist test/rest/0 &
+  - mvn clean package -Ptravis -Dcustom.build.name=$TRAVIS_BRANCH
+  - java -DTANGO_HOST=localhost:10000 -jar target/$TRAVIS_BRANCH.jar -nodb -dlist test/rest/0 &
   - sleep 10
   - curl -u "tango-cs:tango" http://localhost:10001/tango/rest/rc4 | grep "\"hosts\":\"http://localhost:10001/tango/rest/rc4/hosts\""
   - killall java
