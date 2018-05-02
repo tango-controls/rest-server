@@ -133,7 +133,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
-            <custom.build.nameversion>2.0.10</custom.build.nameversion>
+            <version>2.0.10</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.tango.hzg</groupId>
