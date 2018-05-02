@@ -20,7 +20,17 @@ addons:
     organization: "ingvord-github"
     token:
       secure: $SONAR_TOKEN  
-  
+
+deploy:
+  - provider: releases
+    api_key: $GITHUB_OAUTH_TOKEN
+    file:
+      - "target/mtangorest.server-$TRAVIS_TAG.jar"
+      - "target/mtangorest.server-$TRAVIS_TAG.zip"
+    skip_cleanup: true
+    on:
+      tags: true
+
 cache:
   directories:
     - '$HOME/.m2/repository'

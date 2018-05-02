@@ -390,56 +390,7 @@
         <profile>
             <id>release</id>
 
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.5.0</version>
-                        <executions>
-                            <execution>
-                                <id>deploy-jar</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>curl</executable>
-                                    <arguments>
-                                        <argument>-v</argument>
-                                        <argument>-T</argument>
-                                        <argument>${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
-                                        <argument>-uingvord:${bintray.user.apikey}</argument>
-                                        <argument>
-                                            "https://api.bintray.com/content/ingvord/generic/mtangorest.server/rc4-${project.version}/${project.artifactId}-${project.version}.jar;publish=1"
-                                        </argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>deploy-zip</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>curl</executable>
-                                    <arguments>
-                                        <argument>-v</argument>
-                                        <argument>-T</argument>
-                                        <argument>${project.build.directory}/${project.artifactId}-${project.version}.zip</argument>
-                                        <argument>-uingvord:${bintray.user.apikey}</argument>
-                                        <argument>
-                                            "https://api.bintray.com/content/ingvord/generic/mtangorest.server/rc4-${project.version}/${project.artifactId}-${project.version}.zip;publish=1"
-                                        </argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                </plugins>
-            </build>
+            <!-- deploy is performed by travis -->
         </profile>
     </profiles>
 </project>
