@@ -19,7 +19,7 @@ public class TangoProxyExceptionMapper implements ExceptionMapper<TangoProxyExce
     private final Logger logger = LoggerFactory.getLogger(TangoProxyExceptionMapper.class);
     @Override
     public Response toResponse(TangoProxyException exception) {
-        logger.error(exception.getLocalizedMessage(), exception);
-        return getResponse(exception, Response.Status.INTERNAL_SERVER_ERROR);
+        logger.warn(exception.getLocalizedMessage());
+        return getResponse(exception, Response.Status.BAD_REQUEST);
     }
 }
