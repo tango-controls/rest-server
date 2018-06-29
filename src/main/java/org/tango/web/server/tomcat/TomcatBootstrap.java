@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -44,13 +45,16 @@ public class TomcatBootstrap {
         try(InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war")) {
             tomcatBaseDir = Files.createTempDirectory(
                     Paths.get(System.getProperty("user.dir")),"tomcat_");
+            tomcatBaseDir.toFile().deleteOnExit();
+
             Files.createDirectory(tomcatBaseDir.resolve("webapps"));
 
             Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
+
+            return tomcatBaseDir;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return tomcatBaseDir;
     }
 
     private Tomcat createTomcat(int port, String baseDir) {
