@@ -77,7 +77,7 @@ public class TangoRestServer {
     private String status;
     private Tomcat tomcat;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String instance = args[0];
         System.setProperty(TANGO_INSTANCE, instance);
         ServerManager.getInstance().start(args, TangoRestServer.class);//calls init method
@@ -85,22 +85,20 @@ public class TangoRestServer {
         List<TangoRestServer> tangoRestServers =
                 ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
 
-        if (tangoRestServers.size() > 1)
-            throw new IllegalStateException("TangoRestServer must have exactly one device! Actually has: " + tangoRestServers.size());
-
-        tangoRestServers.get(0).startTomcat();//calls Launcher.onContextCreated, i.e. creates TangoContext using properties set in init method
+        for(TangoRestServer tangoRestServer : tangoRestServers)
+            tangoRestServer.startTomcat();//calls Launcher.onContextCreated, i.e. creates TangoContext using properties set in init method
     }
 
     public static String getVersion() {
         return TangoRestServer.class.getPackage().getImplementationVersion();
     }
 
-    private void startTomcat() throws Exception {
+    private void startTomcat() {
         Path baseDir = TomcatBootstrap.initializeBaseDir();
 
         tomcat = new TomcatBootstrap(tomcatPort, baseDir,
                 new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords),
-                new WebappConfiguration(baseDir.toAbsolutePath().toString()),
+                new WebappConfiguration(baseDir.toAbsolutePath().toString(), this),
                 new AccessLogConfiguration()).bootstrap();
         setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tomcatPort));
     }

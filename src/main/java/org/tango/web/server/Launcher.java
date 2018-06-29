@@ -9,7 +9,6 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
-import org.tango.web.server.attribute.EventBuffer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -35,7 +34,7 @@ public class Launcher implements ServletContextListener {
         logger.info("TANGO_INSTANCE={}", instance);
 
         try {
-            startTangoServer(instance);//calls TangoRestServer.init - sets System properties from Device properties
+            startTangoServer(instance, sce.getServletContext());//calls TangoRestServer.init - sets System properties from Device properties
 
             initializeTangoServletContext(sce.getServletContext());
 
@@ -53,14 +52,9 @@ public class Launcher implements ServletContextListener {
     }
 
     private void initializeTangoServletContext(ServletContext servletContext) throws TangoProxyException {
-        String instance = System.getProperty(TangoRestServer.TANGO_INSTANCE, servletContext.getInitParameter(TangoRestServer.TANGO_INSTANCE));
+        TangoRestServer tangoRestServer = (TangoRestServer) servletContext.getAttribute(TangoRestServer.class.getName());
 
-        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
-        if (tangoRestServers.size() > 1)
-            throw new RuntimeException("This Tango server must have exactly one defined device.");
-        TangoRestServer tangoRestServer = tangoRestServers.get(0);
-
-        servletContext.setAttribute(TangoRestServer.class.getName(), tangoRestServer);
+        if(tangoRestServer == null) throw new NullPointerException("tangoRestServer is null! Check initialization sequence...");
 
         String accessControlProp = tangoRestServer.getTangoAccessControlProperty();
 
@@ -70,17 +64,26 @@ public class Launcher implements ServletContextListener {
             AccessControl accessControl = new AccessControl(accessCtlProxy);
             servletContext.setAttribute(AccessControl.class.getName(), accessControl);
         }
-
-        servletContext.setAttribute(EventBuffer.class.getName(), new EventBuffer());
     }
 
     /**
      * NoOp if already started, i.e. in {@link TangoRestServer#main(String[])}
+     *
+     * Sets started TangoRestServer device instance as context parameter
+     *
      * @param instance
+     * @param context
      */
-    private void startTangoServer(String instance) {
+    private void startTangoServer(String instance, ServletContext context) {
+        if(ServerManager.getInstance().isStarted()) return;
+
         ServerManager.getInstance().start(
                 new String[]{System.getProperty(TangoRestServer.TANGO_INSTANCE, instance)}, TangoRestServer.class);
+
+        List<TangoRestServer> tangoRestServers = ServerManagerUtils.getBusinessObjects(instance, TangoRestServer.class);
+        if (tangoRestServers.size() > 1)
+            throw new RuntimeException("This Tango server must have exactly one defined device.");
+        context.setAttribute(TangoRestServer.class.getName(), tangoRestServers.get(0));
     }
 
     @Override

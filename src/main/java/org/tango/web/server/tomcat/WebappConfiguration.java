@@ -4,6 +4,7 @@ import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.TangoRestServer;
 
 import javax.servlet.ServletException;
 
@@ -15,9 +16,11 @@ public class WebappConfiguration {
     private final Logger logger = LoggerFactory.getLogger(WebappConfiguration.class);
 
     private final String webappPath;
+    private final TangoRestServer tangoRestServer;
 
-    public WebappConfiguration(String webappPath) {
+    public WebappConfiguration(String webappPath, TangoRestServer tangoRestServer) {
         this.webappPath = webappPath + "/webapp.war";
+        this.tangoRestServer = tangoRestServer;
     }
 
     public void configure(Tomcat tomcat){
@@ -34,5 +37,6 @@ public class WebappConfiguration {
                 new WebappLoader(Thread.currentThread().getContextClassLoader());
         loader.setDelegate(true);
         context.setLoader(loader);
+        context.getServletContext().setAttribute(TangoRestServer.class.getName(), tangoRestServer);
     }
 }
