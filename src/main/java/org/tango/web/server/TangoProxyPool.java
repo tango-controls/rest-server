@@ -68,10 +68,13 @@ public class TangoProxyPool {
         }
         try {
             return ft.get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
             cache.remove(devname);
             logger.error("Failed to get proxy for " + devname, e);
-            throw new TangoProxyException("Failed to get proxy for " + devname, e.getCause());
+            throw new TangoProxyException("Failed to get proxy for " + devname, e.getCause()); //TODO re-throw ExecutionException
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new TangoProxyException("Failed to get proxy for " + devname, e.getCause()); //TODO re-throw Exception
         }
     }
 
