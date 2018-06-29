@@ -61,7 +61,7 @@ public class EventBuffer {
         private final EventKey key;
         private final TangoProxy proxy;
         private final TangoEventListener listener;
-        private CompletableFuture<Object> value = new CompletableFuture<>();
+        private CompletableFuture<Object> future = new CompletableFuture<>();
 
         Event(EventKey key, TangoProxy proxy) {
             this.key = key;
@@ -71,27 +71,29 @@ public class EventBuffer {
                 @Override
                 public void onEvent(EventData<Object> data) {
                     AttributeValue<Object> value = new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
-                    Event.this.value.complete(value);
+                    Event.this.future.complete(value);
                 }
 
                 @Override
                 public void onError(Exception cause) {
-                    Event.this.value.completeExceptionally(cause);
+                    Event.this.future.completeExceptionally(cause);
                 }
             };
         }
 
-        void subscribe() throws TangoProxyException, NoSuchAttributeException {
+        void subscribe() {
             proxy.addEventListener(key.attribute, key.event, listener);
         }
 
         public Object get(long timeout) throws InterruptedException {
             try {
-                return this.value.get(timeout, TimeUnit.MILLISECONDS);
+                return this.future.get(timeout, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
-                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance(e)).build();
+                return Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build();
             } catch (TimeoutException e) {
-                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(Failures.createInstance("value has not been updated")).build();
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(
+                        Failures.createInstance(
+                                String.format("There is no %s event from upstream Tango device[%s]. Timeout[%d ms] has expired!", key.event, proxy.getName(), timeout))).build();
             } finally {
                 proxy.removeEventListener(key.attribute, key.event, listener);
             }
@@ -111,10 +113,8 @@ public class EventBuffer {
      * @param key
      * @param proxy
      * @return
-     * @throws TangoProxyException
-     * @throws NoSuchAttributeException
      */
-    public Event createEvent(EventKey key, TangoProxy proxy) throws TangoProxyException, NoSuchAttributeException {
+    public Event createEvent(EventKey key, TangoProxy proxy) {
 
 
         Event newEvent = new Event(key, proxy);
