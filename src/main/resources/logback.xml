@@ -3,6 +3,7 @@
     <jmxConfigurator/>
 
     <property name="layoutPattern" value="%p %d [%t - %X{deviceName} - %C{1}] %logger{36}.%M:%L - %m%n"/>
+    <property name="log.level" value="${LOG_LEVEL:-DEBUG}"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -20,7 +21,7 @@
                 <file>${LOG_HOME}/${deviceName}.log</file>
                 <Append>true</Append>
                 <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-                    <fileNamePattern>${deviceName}%i.log</fileNamePattern>
+                    <fileNamePattern>${LOG_HOME}/${deviceName}.log.%i</fileNamePattern>
                     <minIndex>1</minIndex>
                     <maxIndex>3</maxIndex>
                 </rollingPolicy>
@@ -43,8 +44,8 @@
     <logger name="org.apache" level="ERROR"/>
     <logger name="org.jacorb" level="ERROR"/>
     <logger name="org.tango" level="ERROR"/>
-    <logger name="org.tango.rest" level="DEBUG"/>
-    <logger name="org.tango.web" level="DEBUG"/>
+    <logger name="org.tango.rest" level="${log.level}"/>
+    <logger name="org.tango.web" level="${log.level}"/>
     <logger name="org.quartz" level="ERROR"/>
     <logger name="net.sf.ehcache" level="ERROR"/>
 
