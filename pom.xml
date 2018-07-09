@@ -154,8 +154,8 @@
         </dependency>
         <dependency>
             <groupId>de.hzg.wpi.utils</groupId>
-            <artifactId>krb-authorization</artifactId>
-            <version>0.3</version>
+            <artifactId>authorization</artifactId>
+            <version>0.4</version>
         </dependency>
     </dependencies>
 
