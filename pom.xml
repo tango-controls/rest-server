@@ -131,26 +131,14 @@
             <version>RELEASE</version>
         </dependency>
         <dependency>
-            <groupId>org.tango</groupId>
+            <groupId>de.hzg.wpi.tango-controls</groupId>
             <artifactId>ezTangORB</artifactId>
-            <version>2.0.10</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.tango.hzg</groupId>
-                    <artifactId>TangORB</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>9.6.4.hzg</version>
         </dependency>
         <dependency>
-            <groupId>org.tango-controls</groupId>
+            <groupId>de.hzg.wpi.tango-controls</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>9.3.6.hzg</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-ext</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>9.6.4.hzg</version>
         </dependency>
         <dependency>
             <groupId>de.hzg.wpi.utils</groupId>
