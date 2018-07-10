@@ -1,3 +1,7 @@
+rc4-2.9
+-------
+  - f37f1d1 -- Integration with LDAP. See wiki for details: link
+
 rc4-2.8
 -------
   - #160 - allow multiple devices
