@@ -22,20 +22,24 @@ public class SimpleBinaryCache implements ServerCache {
                 .build();
     }
 
-    public Entry get(String uri, MediaType accept, MultivaluedMap<String, String> headers) {
+    @Override
+    public Entry get(String uri, MediaType accept) {
         return cache.get(uri);
     }
 
-    public Entry add(String uri, MediaType mediaType, CacheControl cc, MultivaluedMap<String, Object> headers, byte[] entity, String etag, MultivaluedMap<String, String> varyHeaders) {
-        CacheEntry cacheEntry = new CacheEntry(headers, entity, cc.getMaxAge(), Long.parseLong(cc.getCacheExtension().get("max-age-millis")), etag, varyHeaders);
+    @Override
+    public Entry add(String uri, MediaType mediaType, CacheControl cc, MultivaluedMap<String, Object> headers, byte[] entity, String etag) {
+        CacheEntry cacheEntry = new CacheEntry(headers, entity, cc.getMaxAge(), Long.parseLong(cc.getCacheExtension().get("max-age-millis")), etag);
         cache.put(uri, cacheEntry);
         return cacheEntry;
     }
 
+    @Override
     public void remove(String key) {
         cache.remove(key);
     }
 
+    @Override
     public void clear() {
         cache.clear();
     }
@@ -46,16 +50,14 @@ public class SimpleBinaryCache implements ServerCache {
         private final long maxAgeMillis;
         private final long timestamp = System.currentTimeMillis();
         private final MultivaluedMap<String, Object> headers;
-        private final MultivaluedMap<String, String> varyHeaders;
         private String etag;
 
-        private CacheEntry(MultivaluedMap<String, Object> headers, byte[] cached, int expires, long maxAgeMillis, String etag, MultivaluedMap<String, String> varyHeaders) {
+        private CacheEntry(MultivaluedMap<String, Object> headers, byte[] cached, int expires, long maxAgeMillis, String etag) {
             this.cached = cached;
             this.expires = expires;
             this.headers = headers;
             this.maxAgeMillis = maxAgeMillis;
             this.etag = etag;
-            this.varyHeaders = varyHeaders;
         }
 
         public int getExpirationInSeconds() {
@@ -74,14 +76,9 @@ public class SimpleBinaryCache implements ServerCache {
             return headers;
         }
 
-        public MultivaluedMap<String, String> getVaryHeaders() {
-            return varyHeaders;
-        }
-
         public byte[] getCached() {
             return cached;
         }
-
     }
 
 }
