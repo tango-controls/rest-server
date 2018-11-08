@@ -8,10 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.Device;
-import org.tango.rest.Devices;
-import org.tango.rest.DevicesTree;
-import org.tango.rest.SupportedAuthentication;
+import org.tango.rest.*;
 import org.tango.rest.entities.DeviceFilters;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.Partitionable;
@@ -110,5 +107,10 @@ public class Rc4ApiImpl {
                 new LinkedList<>(tango_hosts);
 
         return new DevicesTree(it, filter);
+    }
+
+    @Path("/subscriptions")
+    public Subscriptions getDevicesTree() {
+        return new Subscriptions();
     }
 }
