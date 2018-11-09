@@ -11,8 +11,11 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.*;
 import org.tango.rest.entities.DeviceFilters;
 import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.event.EventsManager;
+import org.tango.web.server.event.SubscriptionsContext;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -110,7 +113,8 @@ public class Rc4ApiImpl {
     }
 
     @Path("/subscriptions")
-    public Subscriptions getDevicesTree() {
-        return new Subscriptions();
+    @EventSystem
+    public Subscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
+        return new Subscriptions(manager, context);
     }
 }

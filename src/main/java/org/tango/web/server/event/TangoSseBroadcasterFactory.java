@@ -15,7 +15,7 @@ public class TangoSseBroadcasterFactory {
         this.sse = sse;
     }
 
-    public TangoSseBroadcaster newInstance() throws Exception {
+    public TangoSseBroadcaster newInstance() {
         return new TangoSseBroadcaster(sse.newBroadcaster());
     }
 

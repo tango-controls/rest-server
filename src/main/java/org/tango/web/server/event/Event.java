@@ -12,8 +12,8 @@ public class Event {
     public final int id;
     public final Target target;
 
-    private transient final TangoEventListener<Object> tangoEventListener;
-    private transient final TangoSseBroadcaster broadcaster;
+    transient final TangoEventListener<Object> tangoEventListener;
+    public transient final TangoSseBroadcaster broadcaster;
 
     public Event(int id, Target target, TangoEventListener<Object> tangoEventListener, TangoSseBroadcaster broadcaster) {
         this.id = id;
@@ -36,19 +36,19 @@ public class Event {
     }
 
     public static class Target {
-        public final String host;
-        public final String device;
-        public final String attribute;
-        public final String type;
-        private final String string;
+        public String host;
+        public String device;
+        public String attribute;
+        public String type;
+
+        public Target() {
+        }
 
         public Target(String host, String device, String attribute, String type) {
             this.host = host;
             this.device = device;
             this.attribute = attribute;
             this.type = type;
-
-            this.string = host + "/" + device + "/" + attribute + "/" + type;
         }
 
         @Override
@@ -69,7 +69,11 @@ public class Event {
 
         @Override
         public String toString() {
-            return string;
+            return "tango://" +  host + "/" + device + "/" + attribute + "/" + type;
+        }
+
+        public String toTangoDeviceURLString(){
+            return "tango://" +  host + "/" + device;
         }
     }
 }

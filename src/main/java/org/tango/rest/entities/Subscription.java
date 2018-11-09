@@ -1,5 +1,8 @@
 package org.tango.rest.entities;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.tango.web.server.event.Event;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -8,8 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.sse.SseEventSink;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Optional;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -17,15 +19,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Path("/{id}")
 public class Subscription {
-    private final int id;
-    private final AtomicBoolean fallbackToPolling = new AtomicBoolean(true);
-    private final ConcurrentLinkedQueue<Event> events = new ConcurrentLinkedQueue<>();
-    private final Object sinkGuard = new Object();
-    private SseEventSink sink = null;
+    public final int id;
+    public final List<Event> events;
+    public final List<Failure> failures;
+    private transient SseEventSink sink = null;
 
-    public Subscription(int id, List<Event> events) {
+    public Subscription(int id, List<Event> events, List<Failure> failures) {
         this.id = id;
-        this.events.addAll(events);
+        this.events = events;
+        this.failures = failures;
     }
 
 
@@ -38,10 +40,8 @@ public class Subscription {
     @Path("/event-stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public void getSubscription(@Context SseEventSink sink){
-        synchronized (sinkGuard) {
-            if(this.sink == null)
-                this.sink = sink;
-        }
+        this.sink = sink;
+        events.forEach(event -> event.broadcaster.register(this.sink));
     }
 
     @PUT
@@ -49,12 +49,8 @@ public class Subscription {
         return this;
     }
 
-    public static class Event {
-        private int id;
-        public String host;
-        public String device;
-        public String attribute;
-        public String type;
-        public int rate;
+    @JsonIgnore
+    public Optional<SseEventSink> getSink(){
+        return Optional.ofNullable(sink);
     }
 }
