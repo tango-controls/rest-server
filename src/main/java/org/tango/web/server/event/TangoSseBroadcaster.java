@@ -69,6 +69,7 @@ public class TangoSseBroadcaster implements SseBroadcaster {
      * @param sseEventSink
      */
     public void deregister(SseEventSink sseEventSink){
+        logger.trace("Deregister SseEventSink {}", sseEventSink);
         //TODO protect with write lock from broadcaster?
         int decrementAndGet = registeredSinks.decrementAndGet();
         logger.debug("Registered sinks: {}", decrementAndGet);
@@ -76,6 +77,7 @@ public class TangoSseBroadcaster implements SseBroadcaster {
 
     @Override
     public CompletionStage<?> broadcast(OutboundSseEvent event) {
+        logger.trace("Broadcasting event {}", event);
         return broadcaster.broadcast(event);
     }
 

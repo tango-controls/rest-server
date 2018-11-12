@@ -1,6 +1,6 @@
 package org.tango.web.server.event;
 
-import org.tango.client.ez.proxy.TangoEventListener;
+import org.tango.client.ez.proxy.*;
 
 import java.util.Objects;
 
@@ -11,13 +11,15 @@ import java.util.Objects;
 public class Event {
     public final int id;
     public final Target target;
+    public final TangoProxy proxy;
 
     transient final TangoEventListener<Object> tangoEventListener;
     public transient final TangoSseBroadcaster broadcaster;
 
-    public Event(int id, Target target, TangoEventListener<Object> tangoEventListener, TangoSseBroadcaster broadcaster) {
+    public Event(int id, Target target, TangoProxy proxy, TangoEventListener<Object> tangoEventListener, TangoSseBroadcaster broadcaster) {
         this.id = id;
         this.target = target;
+        this.proxy = proxy;
         this.tangoEventListener = tangoEventListener;
         this.broadcaster = broadcaster;
     }
@@ -33,6 +35,13 @@ public class Event {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void initialize() throws NoSuchAttributeException, TangoProxyException {
+        TangoEvent tangoEvent = TangoEvent.valueOf(target.type.toUpperCase());
+        proxy.subscribeToEvent(target.attribute, tangoEvent);
+
+        proxy.addEventListener(target.attribute, tangoEvent, tangoEventListener);
     }
 
     public static class Target {
