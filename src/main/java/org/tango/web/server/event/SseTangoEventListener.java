@@ -38,8 +38,8 @@ public class SseTangoEventListener implements TangoEventListener<Object> {
     public void onError(Exception cause) {
         OutboundSseEvent event = sse.newEventBuilder().
                 id(Long.toString(System.currentTimeMillis())).
-                name("error").
-                data(cause.getMessage()).
+                name(Integer.toString(eventId)).
+                data("error: " + cause.getMessage()).
                 reconnectDelay(RECONNECTION_DELAY).
                 build();
 

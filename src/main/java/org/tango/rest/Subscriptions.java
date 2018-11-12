@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
  */
 @Path("/subscriptions")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @EventSystem
 public class Subscriptions {
     private final Logger logger = LoggerFactory.getLogger(Subscriptions.class);
@@ -36,14 +37,22 @@ public class Subscriptions {
 
     @POST
     public Subscription createSubscription(List<Event.Target> events){
+        Subscription subscription = createSubscription();
+
+        subscription.putTargets(events, manager);
+        logger.debug("Create Subscription id={}; events={}; failures={}", subscription.id, subscription.events, subscription.failures);
+
+
+        return subscription;
+    }
+
+    @POST
+    @Consumes(MediaType.WILDCARD)
+    public Subscription createSubscription(){
         int id = context.getNextId();
         logger.debug("Create Subscription id={}", id);
         Subscription subscription = new Subscription(id);
-
-        subscription.putTargets(events, manager);
-        logger.debug("Create Subscription id={}; events={}; failures={}", id, subscription.events, subscription.failures);
         context.addSubscription(subscription);
-
         return subscription;
     }
 
@@ -54,12 +63,4 @@ public class Subscriptions {
         return context.getSubscription(id);
     }
 
-    @DELETE
-    @Path("/{id}")
-    public void deleteSubscription(@PathParam("id") int id){
-        Subscription subscription = context.removeSubscription(id);
-        logger.debug("Delete Subscription id={}", id);
-        subscription.cancel(subscription.events);
-        subscription.getSink().ifPresent(SseEventSink::close);
-    }
 }

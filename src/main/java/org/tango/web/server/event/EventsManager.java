@@ -87,12 +87,10 @@ public class EventsManager {
                 try {
                     ValueTime<Object> valueTime = proxy.readAttributeValueAndTime(target.attribute);
                     event.tangoEventListener.onEvent(new EventData<>(valueTime.getValue(), valueTime.getTime(), null));
-                } catch (ReadAttributeException e1) {
+                } catch (ReadAttributeException|NoSuchAttributeException e1) {
                     event.tangoEventListener.onError(e1);
-                } catch (NoSuchAttributeException e1) {
-                    throw new AssertionError("Should not happen! May happen if the target attribute is dynamic and was deleted.");
                 }
-            }, 0L, EventsManager.FALLBACK_POLLING_DELAY, TimeUnit.SECONDS);
+            }, EventsManager.FALLBACK_POLLING_DELAY, EventsManager.FALLBACK_POLLING_DELAY, TimeUnit.SECONDS);
         }
 
         return event;

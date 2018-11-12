@@ -2,11 +2,13 @@ package org.tango.web.server.event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.web.server.cache.SimpleBinaryCache;
 
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.SseBroadcaster;
 import javax.ws.rs.sse.SseEventSink;
 import java.lang.reflect.Field;
+import java.util.IdentityHashMap;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,11 +23,12 @@ import java.util.function.Consumer;
 public class TangoSseBroadcaster implements SseBroadcaster {
     private final Logger logger = LoggerFactory.getLogger(TangoSseBroadcaster.class);
 
-    private final AtomicInteger registeredSinks = new AtomicInteger(0);
+    private final AtomicInteger registeredSinksCounter = new AtomicInteger(0);
 
     private final SseBroadcaster broadcaster;
     private final ConcurrentLinkedQueue<SseEventSink> outputQueue;
     private final AtomicBoolean closed;
+    private final IdentityHashMap<SseEventSink, Void> registeredSinks = new IdentityHashMap<>();
 
     public TangoSseBroadcaster(SseBroadcaster broadcaster) {
         this.broadcaster = broadcaster;
@@ -41,10 +44,12 @@ public class TangoSseBroadcaster implements SseBroadcaster {
             throw new AssertionError("Failed to extract fields from SseBroadcaster!");
         }
 
-        this.broadcaster.onError((sseEventSink, throwable) -> {
+        this.broadcaster.onClose((sseEventSink) -> {
+            logger.debug("onClose {}, outputQueue {}",sseEventSink.hashCode(), outputQueue.size());
             //we do not need to remove sink as it was removed in original broadcaster
-            logger.debug("Decrement due to {}", sseEventSink, throwable.getMessage());
-            TangoSseBroadcaster.this.registeredSinks.decrementAndGet();
+            if(registeredSinks.containsKey(sseEventSink)){
+                deregister(sseEventSink);
+            }
         });
     }
 
@@ -63,8 +68,9 @@ public class TangoSseBroadcaster implements SseBroadcaster {
     @Override
     public void register(SseEventSink sseEventSink) {
         broadcaster.register(sseEventSink);
-        registeredSinks.incrementAndGet();
-        logger.debug("Registered sinks: {}", registeredSinks.get());
+        registeredSinks.put(sseEventSink, null);
+        registeredSinksCounter.incrementAndGet();
+        logger.debug("Registered sinks: {}", registeredSinksCounter.get());
     }
 
     /**
@@ -73,9 +79,9 @@ public class TangoSseBroadcaster implements SseBroadcaster {
      * @param sseEventSink
      */
     public void deregister(SseEventSink sseEventSink){
-        logger.trace("Deregister SseEventSink {}", sseEventSink);
-        if(outputQueue.remove(sseEventSink))
-            logger.debug("Registered sinks: {}", registeredSinks.decrementAndGet());
+        outputQueue.remove(sseEventSink);
+        registeredSinks.remove(sseEventSink);
+        logger.debug("Deregister SseEventSink. Registered sinks: {}", registeredSinksCounter.decrementAndGet());
     }
 
     @Override
@@ -95,6 +101,6 @@ public class TangoSseBroadcaster implements SseBroadcaster {
     }
 
     public int size() {
-        return registeredSinks.get();
+        return registeredSinksCounter.get();
     }
 }

@@ -5,6 +5,7 @@ import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.web.server.event.Event;
 import org.tango.web.server.event.EventsManager;
+import org.tango.web.server.event.SubscriptionsContext;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -20,7 +21,8 @@ import java.util.stream.Collectors;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11/7/18
  */
-@Path("/{id}")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class Subscription {
     public final int id;
     public final List<Event> events = new ArrayList<>();
@@ -41,7 +43,7 @@ public class Subscription {
     @Path("/event-stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public void getSubscription(@Context SseEventSink sink){
-        this.sink = sink;
+        this.sink = new org.tango.web.server.event.SseEventSink(sink);
         events.forEach(event -> event.broadcaster.register(this.sink));
     }
 
@@ -67,6 +69,15 @@ public class Subscription {
         return this;
     }
 
+
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    public void delete(@Context SubscriptionsContext context){
+        Subscription subscription = context.removeSubscription(id);
+        if(subscription != this) throw new AssertionError("Trying to delete invalid Subscription!");
+        subscription.cancel(subscription.events);
+        subscription.getSink().ifPresent(SseEventSink::close);
+    }
 
 
     private Event newEventWrapper(EventsManager manager, Event.Target target, List<Failure> failures) {

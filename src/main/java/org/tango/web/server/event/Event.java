@@ -1,5 +1,6 @@
 package org.tango.web.server.event;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.client.ez.proxy.*;
 
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.Objects;
 public class Event {
     public final int id;
     public final Target target;
+    @JsonIgnore
     public final TangoProxy proxy;
 
     transient final TangoEventListener<Object> tangoEventListener;
