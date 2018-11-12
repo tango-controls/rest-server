@@ -1,18 +1,17 @@
 package org.tango.rest;
 
-import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.Failure;
-import org.tango.rest.entities.Failures;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.rest.entities.Subscription;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.event.Event;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
+import zmq.Sub;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
+import javax.ws.rs.sse.SseEventSink;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 @EventSystem
 public class Subscriptions {
+    private final Logger logger = LoggerFactory.getLogger(Subscriptions.class);
 
     private final EventsManager manager;
     private final SubscriptionsContext context;
@@ -36,35 +36,30 @@ public class Subscriptions {
 
     @POST
     public Subscription createSubscription(List<Event.Target> events){
-        List<Failure> failures = new ArrayList<>();
-
-        List<Event> list = events.stream()
-                .map(target ->
-                        manager.lookupEvent(target).orElseGet(() -> newEventWrapper(manager, target, failures)))
-                .collect(Collectors.toList());
-
         int id = context.getNextId();
-        Subscription subscription = new Subscription(id, list, failures);
+        logger.debug("Create Subscription id={}", id);
+        Subscription subscription = new Subscription(id);
 
-
+        subscription.putTargets(events, manager);
+        logger.debug("Create Subscription id={}; events={}; failures={}", id, subscription.events, subscription.failures);
         context.addSubscription(subscription);
 
         return subscription;
     }
 
-    private Event newEventWrapper(EventsManager manager, Event.Target target, List<Failure> failures) {
-        try {
-            return manager.newEvent(target);
-        } catch (TangoProxyException|NoSuchAttributeException e) {
-            failures.add(Failures.createInstance(e));
-            return null;
-        }
-    }
+
 
     @Path("/{id}")
     public Subscription getSubscription(@PathParam("id") int id){
         return context.getSubscription(id);
     }
 
-
+    @DELETE
+    @Path("/{id}")
+    public void deleteSubscription(@PathParam("id") int id){
+        Subscription subscription = context.removeSubscription(id);
+        logger.debug("Delete Subscription id={}", id);
+        subscription.cancel(subscription.events);
+        subscription.getSink().ifPresent(SseEventSink::close);
+    }
 }

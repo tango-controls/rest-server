@@ -41,7 +41,11 @@ public class TangoSseBroadcaster implements SseBroadcaster {
             throw new AssertionError("Failed to extract fields from SseBroadcaster!");
         }
 
-        this.broadcaster.onError((sseEventSink, throwable) -> TangoSseBroadcaster.this.deregister(sseEventSink));
+        this.broadcaster.onError((sseEventSink, throwable) -> {
+            //we do not need to remove sink as it was removed in original broadcaster
+            logger.debug("Decrement due to {}", sseEventSink, throwable.getMessage());
+            TangoSseBroadcaster.this.registeredSinks.decrementAndGet();
+        });
     }
 
 
@@ -70,9 +74,8 @@ public class TangoSseBroadcaster implements SseBroadcaster {
      */
     public void deregister(SseEventSink sseEventSink){
         logger.trace("Deregister SseEventSink {}", sseEventSink);
-        //TODO protect with write lock from broadcaster?
-        int decrementAndGet = registeredSinks.decrementAndGet();
-        logger.debug("Registered sinks: {}", decrementAndGet);
+        if(outputQueue.remove(sseEventSink))
+            logger.debug("Registered sinks: {}", registeredSinks.decrementAndGet());
     }
 
     @Override

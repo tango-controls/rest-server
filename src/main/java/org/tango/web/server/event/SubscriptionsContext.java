@@ -59,4 +59,8 @@ public class SubscriptionsContext {
     public Subscription getSubscription(int id){
         return subscriptions.get(id);
     }
+
+    public Subscription removeSubscription(int id) {
+        return subscriptions.remove(id);
+    }
 }
