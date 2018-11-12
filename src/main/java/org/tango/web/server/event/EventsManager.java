@@ -40,6 +40,7 @@ public class EventsManager {
                         Event event = targetEventEntry.getValue();
 
                         events.remove(event.target);
+                        event.broadcaster.close();
 
                         try {
                             TangoProxy proxy = event.proxy;
@@ -49,8 +50,6 @@ public class EventsManager {
                             logger.error("Failed to unsubscribe from event {} due to {}", event.target, e.getMessage());
                             logger.error("Failed to unsubscribe from event:", e);
                         }
-
-                        event.broadcaster.close();
                     });
         },EVENTS_CLEANUP_DELAY, EVENTS_CLEANUP_DELAY, TimeUnit.MINUTES);
     }
