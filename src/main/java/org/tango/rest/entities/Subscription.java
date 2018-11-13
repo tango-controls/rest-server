@@ -56,6 +56,7 @@ public class Subscription {
                 .collect(Collectors.toList());
         this.events.addAll(list);
 
+        getSink().ifPresent(sseEventSink -> list.forEach(event -> event.broadcaster.register(sseEventSink)));
         return this;
     }
 
