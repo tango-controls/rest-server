@@ -1,6 +1,6 @@
 package org.tango.rest;
 
-import org.tango.rest.rc4.Rc4ApiImpl;
+import org.tango.rest.rc5.Rc5ApiImpl;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -25,7 +25,7 @@ public class EntryPoint {
     private UriInfo uriInfo;
 
     {
-        supportedVersions.put("rc4", new Rc4ApiImpl());
+        supportedVersions.put("rc5", new Rc5ApiImpl());
     }
 
     @GET

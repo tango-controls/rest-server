@@ -179,12 +179,7 @@ public class Device {
         try {
             final String href = uriInfo.getAbsolutePath().resolve("..").toString();
             final fr.esrf.TangoApi.DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
-            DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString(), new Object() {
-                public String _state = href + "attributes/State";
-                public String _status = href + "attributes/Status";
-                public String _parent = href;
-                public String _self = href + "state";
-            });
+            DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString());
 
             return result;
         } catch (DevFailed devFailed) {

@@ -21,16 +21,16 @@ import java.util.List;
 public class DatabaseDs {
     public static final String TANGO_DB = "tango.db";
 
+    private final String host;
+    private final String port;
     private final String tangoHost;
     private final TangoProxy proxy;
 
-    public DatabaseDs(TangoProxy dbProxy) throws TangoProxyException{
-        try {
-            tangoHost = dbProxy.toDeviceProxy().getFullTangoHost();
-            proxy = dbProxy;
-        } catch (DevFailed devFailed) {
-            throw new TangoProxyException(dbProxy.getName(), devFailed);
-        }
+    public DatabaseDs(String host, String port, TangoProxy dbProxy) throws TangoProxyException{
+        this.host = host;
+        this.port = port;
+        this.tangoHost = host + ":" + port;
+        this.proxy = dbProxy;
     }
 
     public DeviceInfo getDeviceInfo(String devname) throws TangoProxyException {
@@ -73,9 +73,8 @@ public class DatabaseDs {
         return Arrays.asList(result);
     }
 
-    public List<String> getInfo() throws TangoProxyException, NoSuchCommandException {
-        String[] result = proxy.executeCommand("DbInfo");
-        return Arrays.asList(result);
+    public String[] getInfo() throws TangoProxyException, NoSuchCommandException {
+        return proxy.executeCommand("DbInfo");
     }
 
     public String getDbURL(){
@@ -92,5 +91,17 @@ public class DatabaseDs {
 
     public DeviceProxy toDeviceProxy(){
         return proxy.toDeviceProxy();
+    }
+
+    public String getName() {
+        return proxy.getName();
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public String getHost() {
+        return host;
     }
 }
