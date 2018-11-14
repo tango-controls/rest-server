@@ -1,34 +1,22 @@
 package org.tango.rest.rc5;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
-import org.tango.client.database.DatabaseFactory;
-import org.tango.client.database.ITangoDB;
-import org.tango.client.ez.proxy.TangoProxies;
-import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.*;
-import org.tango.rest.entities.DeviceFilters;
-import org.tango.rest.entities.Failures;
+import org.tango.web.server.tree.DeviceFilters;
 import org.tango.rest.entities.TangoHost;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.EventSystem;
-import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
+import org.tango.web.server.tree.DevicesTreeContext;
 
-import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -77,25 +65,16 @@ public class Rc5ApiImpl {
         return new Device();
     }
 
-    //    @Path("/hosts/{var:tango_host}/devices/tree")
-//    public DevicesTree getDevicesTree(@PathParam("var") PathSegment tango_host,
-//                                      @QueryParam("f") List<String> filters) {
-    @Path("/hosts/{host}/{port}/devices/tree")
-    public DevicesTree getDevicesTree(@PathParam("host") String host,
-                                      @PathParam("port") String port,
+    @Path("/hosts/{var:.+}/devices/tree")
+    public DevicesTree getDevicesTree(@Context DatabaseDs db,
                                       @QueryParam("f") List<String> filters) {
-        return getDevicesTree(Lists.newArrayList(host + ":" + port), filters);
+        return new DevicesTree(Lists.newArrayList(db.asDatabase()), new DeviceFilters(filters));
     }
 
     @Path("/hosts/tree")
-    public DevicesTree getDevicesTree(@QueryParam("v") List<String> tango_hosts,
-                                      @QueryParam("f") List<String> filters) {
-        DeviceFilters filter = new DeviceFilters(filters.toArray(new String[filters.size()]));
-
-        Iterable<String> it =
-                new LinkedList<>(tango_hosts);
-
-        return new DevicesTree(it, filter);
+    @RequiresDeviceTreeContext
+    public DevicesTree getDevicesTree(@Context DevicesTreeContext context) {
+        return new DevicesTree(context.dbs, context.filters);
     }
 
     @Path("/subscriptions")

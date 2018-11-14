@@ -1,11 +1,11 @@
-package org.tango.rest.entities;
+package org.tango.web.server.tree;
 
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.DevicesTree;
+import org.tango.rest.entities.TangoAlias;
 import org.tango.utils.DevFailedUtils;
 
 import java.util.Arrays;
@@ -22,12 +22,11 @@ public class DeviceFilters {
 
     private List<DeviceFilter> filters;
 
-    public DeviceFilters(String[] filters) {
-        if (filters == null || filters.length == 0)
+    public DeviceFilters(List<String> filters) {
+        if (filters == null || filters.isEmpty())
             this.filters = Lists.newArrayList(
                     DeviceFilter.valueOf("*/*/*"));
-        else this.filters = Arrays
-                .stream(filters)
+        else this.filters = filters.stream()
                 .map(DeviceFilter::valueOf)
                 .distinct()
                 .collect(Collectors.toList());
@@ -79,7 +78,7 @@ public class DeviceFilters {
                 }).flatMap(Arrays::stream).collect(Collectors.toList());
     }
 
-    public boolean checkDevice(DevicesTree.TangoAlias alias) {
+    public boolean checkDevice(TangoAlias alias) {
         DeviceFilter deviceFilter = DeviceFilter.valueOf(alias.device_name);
         return filters.contains(deviceFilter);
     }

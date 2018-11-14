@@ -3,6 +3,7 @@ package org.tango.web.server;
 import com.google.common.base.Objects;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevVarLongStringArray;
+import fr.esrf.TangoApi.Database;
 import fr.esrf.TangoApi.DeviceInfo;
 import fr.esrf.TangoApi.DeviceProxy;
 import org.tango.client.ez.proxy.NoSuchCommandException;
@@ -103,5 +104,13 @@ public class DatabaseDs {
 
     public String getHost() {
         return host;
+    }
+
+    public String getFullTangoHost() {
+        return tangoHost;
+    }
+
+    public Database asDatabase() {
+        return db;
     }
 }
