@@ -4,19 +4,20 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.entities.TangoAlias;
-import org.tango.rest.entities.TangoContainer;
-import org.tango.rest.entities.TangoMember;
-import org.tango.utils.DevFailedUtils;
+import org.tango.rest.tree.*;
+import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.tree.DeviceFilters;
+import org.tango.web.server.tree.DevicesTreeContext;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,18 +29,11 @@ import java.util.stream.Collectors;
 public class DevicesTree {
     private final Logger logger = LoggerFactory.getLogger(DevicesTree.class);
 
-    private final List<Database> hosts;
-    private final DeviceFilters filter;
-
-    public DevicesTree(List<Database> hosts, DeviceFilters filter) {
-        this.hosts = hosts;
-        this.filter = filter;
-    }
-
     @GET
-    public Response get(){
-        List<TangoContainer<TangoContainer<Object>>> result = hosts.stream()
-                .map(database -> processTangoHost(database, filter))
+    @RequiresDeviceTreeContext
+    public Response get(@Context DevicesTreeContext context){
+        List<TangoHost> result = context.dbs.stream()
+                .map(database -> processTangoHost(database, context.filters))
                 .collect(Collectors.toList());
 
         return Response.status(Response.Status.OK)
@@ -49,39 +43,44 @@ public class DevicesTree {
                 .build();
     }
 
-    private TangoContainer<TangoContainer<Object>> processTangoHost(String host, Database db, DeviceFilters filter) {
-        TangoContainer result = new TangoContainer();
-        result.$css = "tango_host";
-        List<TangoContainer<?>> data = new ArrayList<>();
+    private TangoHost processTangoHost(Database db, DeviceFilters filter) {
+        TangoHost result = new TangoHost();
         try {
+            List<TangoContainer<?>> data = new ArrayList<>();
+            result.id = db.getFullTangoHost();
             result.value = db.getFullTangoHost();
             data.add(processAliases(db, filter));
             data.addAll(processDomains(result.value, db, filter));
+            result.data.addAll(data);
+            return result;
         } catch (DevFailed devFailed) {
-            logger.warn("Failed to get aliases list for {} due to {}",host, DevFailedUtils.toString(devFailed));
+            result.isAlive = false;
+            result.devFailed = devFailed;
+            return result;
         }
-
-        result.data = data;
-        return result;
     }
 
-    private List<TangoContainer<TangoContainer<TangoMember>>> processDomains(String host, Database db, DeviceFilters filter) {
+    private List<TangoDomain> processDomains(String host, Database db, DeviceFilters filter) {
         final List<String> domains = filter.getDomains(host, db);
         return domains.stream().map((domain) -> {
-            TangoContainer<TangoContainer<TangoMember>> tangoDomain = new TangoContainer<>();
+            TangoDomain tangoDomain = new TangoDomain();
             tangoDomain.value = domain;
             List<String> device_family = filter.getFamilies(host,db, domain);
 
-            tangoDomain.data = device_family.stream().map((family) -> {
-                List<String> device_member = filter.getMembers(host, db, domain, family);
-                return new TangoDomain(family, device_member.stream()
-                        .map(member -> new TangoMember(member, domain + "/" + family + "/" + member, host + "/" + domain + "/" + family + "/" + member));
-            return domain;
-
-            return new TangoDomain(domain, .toArray());
-
-            }).toArray());
+            tangoDomain.data.addAll(device_family.stream().map(getStringToTangoFamilyFunction(host, db, filter, domain)).collect(Collectors.toList()));
+            return tangoDomain;
         }).collect(Collectors.toList());
+    }
+
+    private Function<String, TangoFamily> getStringToTangoFamilyFunction(String host, Database db, DeviceFilters filter, String domain) {
+        return (family) -> {
+            TangoFamily tangoFamily = new TangoFamily();
+            tangoFamily.value = family;
+            List<String> members = filter.getMembers(host, db, domain, family);
+            tangoFamily.data.addAll(members.stream()
+                    .map(member -> new TangoMember(host + "/" + domain + "/" + family + "/" + member, member, domain + "/" + family + "/" + member)).collect(Collectors.toList()));
+            return tangoFamily;
+        };
     }
 
 
@@ -91,7 +90,7 @@ public class DevicesTree {
         TangoContainer<TangoAlias> result = new TangoContainer<>();
         result.value = "aliases";
         result.$css = "aliases";
-        result.data = Arrays.stream(aliases).
+        result.data.addAll(Arrays.stream(aliases).
                 map((String alias) ->
                 {
                     try {
@@ -105,7 +104,7 @@ public class DevicesTree {
                 })
                 .filter(Objects::nonNull)
                 .filter(filter::checkDevice)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
 
         return result;
     }

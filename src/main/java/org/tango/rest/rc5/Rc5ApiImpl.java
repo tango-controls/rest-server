@@ -1,18 +1,14 @@
 package org.tango.rest.rc5;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.rest.*;
-import org.tango.web.server.tree.DeviceFilters;
 import org.tango.rest.entities.TangoHost;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.EventSystem;
-import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
-import org.tango.web.server.tree.DevicesTreeContext;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -66,15 +62,13 @@ public class Rc5ApiImpl {
     }
 
     @Path("/hosts/{var:.+}/devices/tree")
-    public DevicesTree getDevicesTree(@Context DatabaseDs db,
-                                      @QueryParam("f") List<String> filters) {
-        return new DevicesTree(Lists.newArrayList(db.asDatabase()), new DeviceFilters(filters));
+    public DevicesTree getDevicesTreeForHost() {
+        return new DevicesTree();
     }
 
     @Path("/hosts/tree")
-    @RequiresDeviceTreeContext
-    public DevicesTree getDevicesTree(@Context DevicesTreeContext context) {
-        return new DevicesTree(context.dbs, context.filters);
+    public DevicesTree getDevicesTree() {
+        return new DevicesTree();
     }
 
     @Path("/subscriptions")

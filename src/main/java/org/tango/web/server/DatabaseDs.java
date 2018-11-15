@@ -1,7 +1,6 @@
 package org.tango.web.server;
 
 import com.google.common.base.Objects;
-import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevVarLongStringArray;
 import fr.esrf.TangoApi.Database;
 import fr.esrf.TangoApi.DeviceInfo;
@@ -26,10 +25,12 @@ public class DatabaseDs {
     private final String port;
     private final String tangoHost;
     private final TangoProxy proxy;
+    private final Database db;
 
-    public DatabaseDs(String host, String port, TangoProxy dbProxy) throws TangoProxyException{
+    public DatabaseDs(String host, String port, TangoProxy dbProxy, Database db) throws TangoProxyException{
         this.host = host;
         this.port = port;
+        this.db = db;
         this.tangoHost = host + ":" + port;
         this.proxy = dbProxy;
     }

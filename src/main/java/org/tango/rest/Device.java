@@ -14,14 +14,12 @@ import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.DeviceState;
 import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
@@ -39,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -58,7 +55,7 @@ public class Device {
                          @Context UriInfo uriInfo){
         try {
             final String devname = domain + "/" + family + "/" + member;
-            return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
+            return DeviceHelper.deviceToResponse(devname, db.getFullTangoHost(), db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
         } catch (TangoProxyException e) {
             return Failures.createInstance(e);
         }

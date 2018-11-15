@@ -10,10 +10,7 @@ import org.tango.web.server.filters.DynamicValueCacheControlProvider;
 import org.tango.web.server.filters.JsonpMethodFilter;
 import org.tango.web.server.filters.StaticValueCacheControlProvider;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
-import org.tango.web.server.providers.EventSystemProvider;
-import org.tango.web.server.providers.TangoContextProvider;
-import org.tango.web.server.providers.TangoDatabaseProvider;
-import org.tango.web.server.providers.TangoProxyProvider;
+import org.tango.web.server.providers.*;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -59,6 +56,7 @@ public class TangoRestApi extends Application {
         singletons.add(new TangoDatabaseProvider(getTangoRestServer()));
         singletons.add(new TangoProxyProvider(getTangoRestServer()));
         singletons.add(new EventSystemProvider());
+        singletons.add(new DevicesTreeContextProvider());
 
         // = = = Cache = = =
         SimpleBinaryCache cache = new SimpleBinaryCache(getTangoRestServer().getTomcatCacheSize());

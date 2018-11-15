@@ -1,6 +1,7 @@
 package org.tango.web.server.tree;
 
 import fr.esrf.TangoApi.Database;
+import org.tango.web.server.DatabaseDs;
 
 import java.util.List;
 
