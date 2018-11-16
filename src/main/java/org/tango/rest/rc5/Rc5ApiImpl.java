@@ -71,6 +71,11 @@ public class Rc5ApiImpl {
         return new DevicesTree();
     }
 
+    @Path("/attributes")
+    public Attributes getAttributes() {
+        return new Attributes();
+    }
+
     @Path("/subscriptions")
     @EventSystem
     public Subscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {

@@ -57,6 +57,7 @@ public class TangoRestApi extends Application {
         singletons.add(new TangoProxyProvider(getTangoRestServer()));
         singletons.add(new EventSystemProvider());
         singletons.add(new DevicesTreeContextProvider());
+        singletons.add(new TangoSelectorProvider());
 
         // = = = Cache = = =
         SimpleBinaryCache cache = new SimpleBinaryCache(getTangoRestServer().getTomcatCacheSize());

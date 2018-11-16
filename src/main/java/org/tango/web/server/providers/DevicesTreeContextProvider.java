@@ -76,7 +76,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
             if(tango_hosts == null) return Collections.emptyList();
             return tango_hosts.stream()
                     .filter(this::checkURISyntax)
-                    .map(this::createDatabase)
+                    .map(TangoDatabaseUtils::getDatabase)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toList());
@@ -84,13 +84,6 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
             Optional<DatabaseDs> contextData = Optional.ofNullable(ResteasyProviderFactory.getContextData(DatabaseDs.class));
             return contextData.<List<Database>>map(databaseDs -> Lists.newArrayList(databaseDs.asDatabase())).orElse(Collections.emptyList());
         }
-    }
-
-    private Optional<Database> createDatabase(String s) {
-        String[] host_port = s.split(":");
-        String host = host_port[0];
-        String port = host_port.length == 1 ? DEFAULT_TANGO_PORT : host_port[1];
-        return TangoDatabaseUtils.getDatabase(host, port);
     }
 
     private boolean checkURISyntax(String next) {
