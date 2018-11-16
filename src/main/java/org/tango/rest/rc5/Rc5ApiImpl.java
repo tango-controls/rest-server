@@ -66,7 +66,7 @@ public class Rc5ApiImpl {
         return new DevicesTree();
     }
 
-    @Path("/hosts/tree")
+    @Path("/devices/tree")
     public DevicesTree getDevicesTree() {
         return new DevicesTree();
     }

@@ -31,6 +31,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.tango.web.server.providers.TangoDatabaseProvider.DEFAULT_TANGO_PORT;
+
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11/14/18
@@ -39,6 +41,10 @@ import java.util.stream.Collectors;
 @Priority(Priorities.USER + 200)
 @RequiresDeviceTreeContext
 public class DevicesTreeContextProvider implements ContainerRequestFilter {
+
+    public static final String WILDCARD = "wildcard";
+    public static final String HOST = "host";
+
     @Override
     public void filter(ContainerRequestContext requestContext) {
         UriInfo uriInfo = requestContext.getUriInfo();
@@ -52,7 +58,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
         }
 
 
-        List<String> filters = uriInfo.getQueryParameters(true).get("f");
+        List<String> filters = uriInfo.getQueryParameters(true).get(WILDCARD);
 
         DeviceFilters df = new DeviceFilters(filters);
 
@@ -66,7 +72,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
         List<PathSegment> segments = uriInfo.getPathSegments();
 
         if(segments.get(3).getPath().equalsIgnoreCase("tree")) {
-            List<String> tango_hosts = uriInfo.getQueryParameters(true).get("v");
+            List<String> tango_hosts = uriInfo.getQueryParameters(true).get(HOST);
             if(tango_hosts == null) return Collections.emptyList();
             return tango_hosts.stream()
                     .filter(this::checkURISyntax)
@@ -82,7 +88,9 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
 
     private Optional<Database> createDatabase(String s) {
         String[] host_port = s.split(":");
-        return TangoDatabaseUtils.getDatabase(host_port[0], host_port[1]);
+        String host = host_port[0];
+        String port = host_port.length == 1 ? DEFAULT_TANGO_PORT : host_port[1];
+        return TangoDatabaseUtils.getDatabase(host, port);
     }
 
     private boolean checkURISyntax(String next) {
