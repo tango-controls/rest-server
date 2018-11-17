@@ -2,17 +2,17 @@ package org.tango.rest;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.tango.client.ez.proxy.NoSuchCommandException;
-import org.tango.client.ez.proxy.TangoProxyException;
+import fr.esrf.Tango.DevFailed;
 import org.tango.rest.entities.NamedEntity;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.util.TangoDatabase;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,20 +27,16 @@ public class Devices {
     @Partitionable
     public Object get(@DefaultValue("*") @QueryParam("wildcard") String wildcard,
                       @Context final UriInfo uriInfo,
-                      @Context DatabaseDs db,
-                      @Context final ServletContext context) throws TangoProxyException {
-        try {
-            List<String> result = db.getDeviceList(wildcard);
-            List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
-                @Override
-                public NamedEntity apply(final String input) {
-                    return new NamedEntity(input, uriInfo.getAbsolutePath() + "/" + input);
-                }
-            });
-            return transform;
-        } catch (NoSuchCommandException e) {
-            throw new AssertionError(e.getMessage());
-        }
+                      @Context TangoDatabase db,
+                      @Context final ServletContext context) throws DevFailed {
+        List<String> result = Arrays.asList(db.asEsrfDb().get_device_list(wildcard));
+        List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
+            @Override
+            public NamedEntity apply(final String input) {
+                return new NamedEntity(input, uriInfo.getAbsolutePath() + "/" + input);
+            }
+        });
+        return transform;
     }
 
     @GET
@@ -50,13 +46,9 @@ public class Devices {
     public Object getFamilies(@PathParam("domain") String domain,
                               @DefaultValue("*") @QueryParam("wildcard") String wildcard,
                               @Context final UriInfo uriInfo,
-                              @Context DatabaseDs db,
-                              @Context final ServletContext context) throws TangoProxyException {
-        try {
-            return db.getFamiliesList(domain, wildcard);
-        } catch (NoSuchCommandException e) {
-            throw new AssertionError(e.getMessage());
-        }
+                              @Context TangoDatabase db,
+                              @Context final ServletContext context) throws DevFailed {
+        return db.asEsrfDb().get_device_family(domain + "/" + wildcard);
     }
 
     @GET
@@ -67,12 +59,8 @@ public class Devices {
                              @PathParam("family") String family,
                              @DefaultValue("*") @QueryParam("wildcard") String wildcard,
                              @Context final UriInfo uriInfo,
-                             @Context DatabaseDs db,
-                             @Context final ServletContext context) throws TangoProxyException {
-        try {
-            return db.getMembersList(domain, family, wildcard);
-        } catch (NoSuchCommandException e) {
-            throw new AssertionError(e.getMessage());
-        }
+                             @Context TangoDatabase db,
+                             @Context final ServletContext context) throws DevFailed {
+        return db.asEsrfDb().get_device_member(domain + "/" + family + "/" + wildcard);
     }
 }

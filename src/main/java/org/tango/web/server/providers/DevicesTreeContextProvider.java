@@ -10,6 +10,7 @@ import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
+import org.tango.web.server.util.TangoDatabase;
 import org.tango.web.server.util.TangoDatabaseUtils;
 
 import javax.annotation.Priority;
@@ -49,7 +50,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         UriInfo uriInfo = requestContext.getUriInfo();
 
-        List<Database> dbs = getDatabases(uriInfo);
+        List<TangoDatabase> dbs = getDatabases(uriInfo);
 
         if(dbs.isEmpty()){
             requestContext.abortWith(
@@ -68,7 +69,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
         ResteasyProviderFactory.pushContext(DevicesTreeContext.class, context);
     }
 
-    private List<Database> getDatabases(UriInfo uriInfo) {
+    private List<TangoDatabase> getDatabases(UriInfo uriInfo) {
         List<PathSegment> segments = uriInfo.getPathSegments();
 
         if(segments.get(3).getPath().equalsIgnoreCase("tree")) {
@@ -81,8 +82,8 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
                     .map(Optional::get)
                     .collect(Collectors.toList());
         } else {
-            Optional<DatabaseDs> contextData = Optional.ofNullable(ResteasyProviderFactory.getContextData(DatabaseDs.class));
-            return contextData.<List<Database>>map(databaseDs -> Lists.newArrayList(databaseDs.asDatabase())).orElse(Collections.emptyList());
+            Optional<TangoDatabase> contextData = Optional.ofNullable(ResteasyProviderFactory.getContextData(TangoDatabase.class));
+            return contextData.<List<TangoDatabase>>map(Lists::newArrayList).orElse(Collections.emptyList());
         }
     }
 

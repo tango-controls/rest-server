@@ -6,10 +6,8 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.entities.Failures;
-import org.tango.utils.DevFailedUtils;
-import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.util.TangoDatabase;
 import org.tango.web.server.util.TangoDatabaseUtils;
 
 import javax.annotation.Priority;
@@ -60,19 +58,11 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         String host = tango_host.getPath();
         String port = tango_host.getMatrixParameters().getFirst("port");
         if (port == null) port = DEFAULT_TANGO_PORT;
-        final String finalPort = port;
 
-        Optional<Database> tangoDb = TangoDatabaseUtils.getDatabase(host, finalPort);
+        Optional<TangoDatabase> tangoDb = TangoDatabaseUtils.getDatabase(host, port);
 
         tangoDb.ifPresent(database -> {
-            try {
-                DatabaseDs db = new DatabaseDs(host, finalPort, tangoRestServer.getHostProxy(host, finalPort, database.get_name()), database);
-
-                ResteasyProviderFactory.pushContext(DatabaseDs.class, db);
-            } catch (TangoProxyException e) {
-                logger.error("Failed to create a proxy for TangoDatabase {}:{} due to: {}", host, finalPort, e.getMessage());
-                requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
-            }
+                ResteasyProviderFactory.pushContext(TangoDatabase.class, database);
         });
     }
 }

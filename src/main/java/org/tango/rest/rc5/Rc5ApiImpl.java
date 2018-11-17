@@ -1,14 +1,15 @@
 package org.tango.rest.rc5;
 
+import fr.esrf.Tango.DevFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.rest.*;
 import org.tango.rest.entities.TangoHost;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
+import org.tango.web.server.util.TangoDatabase;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -45,10 +46,9 @@ public class Rc5ApiImpl {
     @GET
     @StaticValue
     @Path("/hosts/{host}")
-    public TangoHost getHost(@Context DatabaseDs db,
-                          @Context final UriInfo uriInfo,
-                          @Context final ServletContext context) throws Exception {
-        return new TangoHost(db.getHost(), db.getPort(), db.getName(),db.getInfo(),uriInfo.getAbsolutePath() + "/devices",uriInfo.getAbsolutePath() + "/tree");
+    public TangoHost getHost(@Context TangoDatabase db,
+                          @Context final UriInfo uriInfo) throws DevFailed {
+        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDb().get_name(),db.getInfo(),uriInfo.getAbsolutePath() + "/devices",uriInfo.getAbsolutePath() + "/tree");
     }
 
     @Path("/hosts/{var:.+}/devices")

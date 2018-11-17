@@ -1,7 +1,6 @@
 package org.tango.web.server.tree;
 
-import fr.esrf.TangoApi.Database;
-import org.tango.web.server.DatabaseDs;
+import org.tango.web.server.util.TangoDatabase;
 
 import java.util.List;
 
@@ -10,10 +9,10 @@ import java.util.List;
  * @since 11/14/18
  */
 public class DevicesTreeContext {
-    public List<Database> dbs;
+    public List<TangoDatabase> dbs;
     public DeviceFilters filters;
 
-    public DevicesTreeContext(List<Database> dbs, DeviceFilters filters) {
+    public DevicesTreeContext(List<TangoDatabase> dbs, DeviceFilters filters) {
         this.dbs = dbs;
         this.filters = filters;
     }

@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
+import org.tango.web.server.util.TangoDatabase;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -35,7 +35,7 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        DatabaseDs db = ResteasyProviderFactory.getContextData(DatabaseDs.class);
+        TangoDatabase db = ResteasyProviderFactory.getContextData(TangoDatabase.class);
         if (db == null) return;
 
         UriInfo uriInfo = requestContext.getUriInfo();
@@ -49,7 +49,7 @@ public class TangoProxyProvider implements ContainerRequestFilter {
 
         TangoProxy result = null;
         try {
-            result = tangoRestServer.proxyPool.getProxy(db.getDeviceAddress(domain + "/" + family + "/" + member));
+            result = tangoRestServer.proxyPool.getProxy("tango://" + db.getFullTangoHost() + "/" + domain + "/" + family + "/" + member);
 
             ResteasyProviderFactory.pushContext(TangoProxy.class, result);
         } catch (TangoProxyException e) {

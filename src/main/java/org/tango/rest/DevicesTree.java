@@ -33,7 +33,7 @@ public class DevicesTree {
     @RequiresDeviceTreeContext
     public Response get(@Context DevicesTreeContext context){
         List<TangoHost> result = context.dbs.stream()
-                .map(database -> processTangoHost(database, context.filters))
+                .map(database -> processTangoHost(database.asEsrfDb(), context.filters))
                 .collect(Collectors.toList());
 
         return Response.status(Response.Status.OK)

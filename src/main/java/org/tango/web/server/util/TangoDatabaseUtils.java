@@ -17,12 +17,14 @@ import static org.tango.web.server.providers.TangoDatabaseProvider.DEFAULT_TANGO
 public class TangoDatabaseUtils {
     private TangoDatabaseUtils(){}
 
-    public static Optional<Database> getDatabase(String host, String port){
+    public static Optional<TangoDatabase> getDatabase(String host, String port){
         try {
-            Object obj = DatabaseFactory.getDatabase(host, port);
+            DatabaseFactory.setUseDb(true);
+            org.tango.client.database.Database obj = (org.tango.client.database.Database) DatabaseFactory.getDatabase(host, port);
             Field fldDatabase = obj.getClass().getDeclaredField("database");
             fldDatabase.setAccessible(true);
-            return Optional.of((Database) fldDatabase.get(obj));
+
+            return Optional.of(new TangoDatabase(host, port, obj, (Database) fldDatabase.get(obj)));
         } catch (DevFailed|NoSuchFieldException|IllegalAccessException e) {
             return Optional.empty();
         }
@@ -33,7 +35,7 @@ public class TangoDatabaseUtils {
      * @param s localhost:10000
      * @return optional db
      */
-    public static Optional<Database> getDatabase(String s){
+    public static Optional<TangoDatabase> getDatabase(String s){
         String[] host_port = s.split(":");
         String host = host_port[0];
         String port = host_port.length == 1 ? DEFAULT_TANGO_PORT : host_port[1];
