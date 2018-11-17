@@ -103,7 +103,7 @@ public class DeviceAttribute {
 
                         TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                        return new AttributeValue<Object>(input.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
+                        return new AttributeValue<Object>(input.getName(), null, proxy.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
                     } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
                         return Failures.createInstance(e);
                     }
@@ -198,7 +198,7 @@ public class DeviceAttribute {
     public Object deviceAttributeValueGet() throws Exception {
         final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
 
-        return new AttributeValue<Object>(DeviceAttribute.this.name, result.value, result.quality.toString(), result.time);
+        return new AttributeValue<Object>(DeviceAttribute.this.name, null ,proxy.getName(), result.value, result.quality.toString(), result.time);
     }
 
     @PUT

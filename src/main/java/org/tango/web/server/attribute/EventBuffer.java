@@ -70,7 +70,7 @@ public class EventBuffer {
             this.listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
+                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, null, key.proxy, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
                     Event.this.future.complete(value);
                 }
 
@@ -136,7 +136,7 @@ public class EventBuffer {
             listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
+                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, null, key.proxy, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
                     EventBuffer.this.put(key, value);
                     removeFirst(data.getTime(), eventData.get(key));
                 }
@@ -182,7 +182,7 @@ public class EventBuffer {
     public NavigableSet<Object> getTail(EventKey eventKey, long timestamp) {
         return eventData.getOrDefault(
                 eventKey, new ConcurrentSkipListSet<>(new EventDataComparator()))
-                .tailSet(new AttributeValue(null, null, null, timestamp), true);
+                .tailSet(new AttributeValue(null, null, null, null, null, timestamp), true);
     }
 
     private static long getTimestamp(Object o1) {

@@ -1,6 +1,7 @@
-package org.tango.web.server.attribute;
+package org.tango.web.server.response;
 
 import fr.esrf.TangoApi.AttributeInfoEx;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.rest.entities.Attribute;
 
 /**
@@ -9,4 +10,6 @@ import org.tango.rest.entities.Attribute;
  */
 public class TangoAttribute extends Attribute{
     public AttributeInfoEx info;
+    @JsonIgnore
+    public fr.soleil.tango.clientapi.TangoAttribute attribute;
 }
