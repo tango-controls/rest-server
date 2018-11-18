@@ -23,10 +23,7 @@ import org.tango.rest.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.attribute.AttributeProperty;
 import org.tango.web.server.attribute.EventBuffer;
-import org.tango.web.server.binding.DynamicValue;
-import org.tango.web.server.binding.Partitionable;
-import org.tango.web.server.binding.RequiresTangoAttribute;
-import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.binding.*;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.response.TangoRestAttribute;
@@ -233,10 +230,8 @@ public class JaxRsDeviceAttribute {
     @DynamicValue
     @Produces("image/jpeg")
     @Path("/value")
-    public Object deviceAttributeGetValueImage() throws Exception {
-        if(TangoImage.class.isAssignableFrom(TangoDataTypes.forTangoDevDataType(tangoAttribute.getDataType()).getClass()))
-            return null;
-        //TODO may throw ClassCast in case non image attribute is requested
+    @EmbeddedImage
+    public ImageAttributeValue deviceAttributeGetValueImage() throws Exception {
         final TangoImage image =  deviceProxy.getProxy().readAttribute(name);
         return new ImageAttributeValue(image);
     }
