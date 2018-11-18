@@ -25,13 +25,7 @@ public class WebappConfiguration {
 
     public void configure(Tomcat tomcat){
         logger.debug("Add webapp[tango] tomcat for device");
-        org.apache.catalina.Context context =
-                null;
-        try {
-            context = tomcat.addWebapp("tango", webappPath);
-        } catch (ServletException e) {
-            throw new RuntimeException(e);
-        }
+        org.apache.catalina.Context context = tomcat.addWebapp("tango", webappPath);
 
         WebappLoader loader =
                 new WebappLoader(Thread.currentThread().getContextClassLoader());
