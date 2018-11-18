@@ -9,6 +9,7 @@ import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
+import fr.soleil.tango.clientapi.TangoAttribute;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
@@ -17,18 +18,23 @@ import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.entities.Device;
 import org.tango.rest.entities.DeviceState;
-import org.tango.rest.entities.Failures;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDeviceProxy;
+import org.tango.web.server.response.TangoRestAttribute;
+import org.tango.web.server.response.TangoRestDevice;
+import org.tango.web.server.util.AttributeUtils;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
@@ -36,6 +42,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 
@@ -45,36 +52,30 @@ import static org.mockito.Mockito.mock;
  */
 @Path("/{domain}/{family}/{member}")
 @Produces("application/json")
-public class Device {
+public class JaxRsDevice {
+    private TangoDeviceProxy tangoDevice;
+
+    public JaxRsDevice(TangoDeviceProxy proxy) {
+        this.tangoDevice = proxy;
+    }
+
+
     @GET
     @StaticValue
-    public Object get(@PathParam("domain") String domain,
-                         @PathParam("family") String family,
-                         @PathParam("member") String member,
-                         @Context TangoDatabase db,
-                         @Context UriInfo uriInfo){
-        try {
-            final String devname = domain + "/" + family + "/" + member;
-            return DeviceHelper.deviceToResponse(devname, db.getFullTangoHost(), db.asEsrfDb().get_device_info(devname), uriInfo.getAbsolutePath());
-        } catch (DevFailed devFailed) {
-            return Failures.createInstance(devFailed);
-        }
+    public Device get(@Context UriInfo uriInfo) throws DevFailed{
+        return new TangoRestDevice(tangoDevice.database.getFullTangoHost() + "/" + tangoDevice.name, tangoDevice.name, tangoDevice.database.getFullTangoHost(), tangoDevice.database.asEsrfDb().get_device_info(tangoDevice.name),uriInfo.getAbsolutePath());
     }
 
     @GET
     @Partitionable
     @StaticValue
     @Path("/attributes")
-    public Object deviceAttributes(@Context TangoProxy proxy, @Context ServletContext context, @Context UriInfo uriInfo) throws Exception {
-        final String href = uriInfo.getAbsolutePath().toString();
-
-        return Lists.transform(
-                Arrays.asList(proxy.toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
-                    @Override
-                    public Object apply(final AttributeInfoEx input) {
-                        return DeviceHelper.attributeInfoExToResponse(input.name, href);
-                    }
-                });
+    public List<TangoRestAttribute> deviceAttributes(@Context UriInfo uriInfo) throws DevFailed {
+        return Arrays.stream(tangoDevice.database.asEsrfDb().get_device_attribute_list(tangoDevice.name))
+                .map(s -> "tango://" + tangoDevice.database.getFullTangoHost() + "/" + tangoDevice.name + "/" + s)
+                .map(AttributeUtils::newTangoAttribute)
+                .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+                .collect(Collectors.toList());
     }
 
     @GET
@@ -82,10 +83,9 @@ public class Device {
     @DynamicValue
     @Path("/attributes/info")
     public fr.esrf.TangoApi.AttributeInfoEx[] deviceAttributeInfos(@QueryParam("attr") String[] attrs,
-                                                                    @Context TangoProxy proxy,
                                                                     @Context ServletContext context,
                                                                     @Context UriInfo uriInfo) throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_info_ex(attrs);
+        return tangoDevice.proxy.toDeviceProxy().get_attribute_info_ex(attrs);
     }
 
     @GET
@@ -93,18 +93,16 @@ public class Device {
     @DynamicValue
     @Path("/attributes/value")
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs,
-                                        @Context TangoProxy proxy,
                                         @Context ServletContext context,
                                         @Context UriInfo uriInfo) throws DevFailed {
-        return proxy.toDeviceProxy().read_attribute(attrs);
+        return tangoDevice.proxy.toDeviceProxy().read_attribute(attrs);
     }
 
     @PUT
     @Partitionable
     @DynamicValue
     @Path("/attributes/value")
-    public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValuesPut(@Context final TangoProxy proxy,
-                                                                        @Context ServletContext context,
+    public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValuesPut(@Context ServletContext context,
                                                                         @Context UriInfo uriInfo) throws Exception {
         boolean async = uriInfo.getQueryParameters().containsKey("async");
         //TODO split into good and bad attributes: write good ones; report bad ones (if present)
@@ -121,7 +119,7 @@ public class Device {
 
                                                 try {
                                                     result = new fr.esrf.TangoApi.DeviceAttribute(attrName);
-                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) proxy.getAttributeInfo(attrName).getType();
+                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) tangoDevice.proxy.getAttributeInfo(attrName).getType();
                                                     Class<?> type = dataType.getDataTypeClass();
                                                     Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
 
@@ -146,7 +144,7 @@ public class Device {
 
 
         if(async) {
-            proxy.toDeviceProxy().write_attribute_asynch(attrs);
+            tangoDevice.proxy.toDeviceProxy().write_attribute_asynch(attrs);
             return null;
         } else {
             String[] readNames = Lists.transform(Arrays.asList(attrs), new Function<fr.esrf.TangoApi.DeviceAttribute, String>() {
@@ -159,28 +157,31 @@ public class Device {
                     }
                 }
             }).toArray(new String[attrs.length]);
-            proxy.toDeviceProxy().write_attribute(attrs);
-            return proxy.toDeviceProxy().read_attribute(readNames);
+            tangoDevice.proxy.toDeviceProxy().write_attribute(attrs);
+            return tangoDevice.proxy.toDeviceProxy().read_attribute(readNames);
         }
     }
 
+    ;
+
     @Path("/attributes/{attr}")
-    public DeviceAttribute deviceAttribute(@PathParam("attr") String attrName, @Context TangoProxy proxy) throws Exception {
-        return new DeviceAttribute(attrName, proxy);
+    @RequiresTangoAttribute
+    public JaxRsDeviceAttribute deviceAttribute(@Context
+                                                            ResourceContext rc, @PathParam("attr") String attrName, @Context TangoAttribute tangoAttribute) throws Exception {
+        return rc.getResource(JaxRsDeviceAttribute.class);
     }
 
     @GET
     @DynamicValue
     @Path("/state")
-    public Object deviceState(@Context TangoProxy proxy, @Context ServletContext context, @Context UriInfo uriInfo) {
+    public Object deviceState(@Context ServletContext context, @Context UriInfo uriInfo) {
         try {
-            final String href = uriInfo.getAbsolutePath().resolve("..").toString();
-            final fr.esrf.TangoApi.DeviceAttribute[] ss = proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
+            final fr.esrf.TangoApi.DeviceAttribute[] ss = tangoDevice.proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
             DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString());
 
             return result;
         } catch (DevFailed devFailed) {
-            return new DeviceState(DevState.UNKNOWN.toString(), String.format("Failed to read state&status from %s", proxy.getName()));
+            return new DeviceState(DevState.UNKNOWN.toString(), String.format("Failed to read state&status from %s", tangoDevice.name));
         }
     }
 
@@ -188,10 +189,9 @@ public class Device {
     @Partitionable
     @StaticValue
     @Path("/commands")
-    public Object deviceCommands(@Context TangoProxy proxy,
-                                 @Context UriInfo uriInfo) throws DevFailed {
+    public Object deviceCommands(@Context UriInfo uriInfo) throws DevFailed {
         final String href = uriInfo.getAbsolutePath().toString();
-        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
+        return Lists.transform(Arrays.asList(tangoDevice.proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
             @Override
             public Object apply(final CommandInfo input) {
                 return DeviceHelper.commandInfoToResponse(input, href);
@@ -209,11 +209,11 @@ public class Device {
     @Partitionable
     @DynamicValue
     @Path("/properties")
-    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
-        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
+    public Object deviceProperties() throws DevFailed {
+        String[] propnames = tangoDevice.proxy.toDeviceProxy().get_property_list("*");
         if(propnames.length == 0) return propnames;
         return Iterables.transform(
-                Arrays.asList(proxy.toDeviceProxy().get_property(propnames)),
+                Arrays.asList(tangoDevice.proxy.toDeviceProxy().get_property(propnames)),
                 new Function<DbDatum, Object>() {
                     @Override
                     public Object apply(final DbDatum input) {
@@ -225,14 +225,14 @@ public class Device {
     @POST
     @DynamicValue
     @Path("/properties")
-    public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return devicePropertiesPut(request, proxy);
+    public Object devicePropertiesPost(@Context HttpServletRequest request) throws DevFailed {
+        return devicePropertiesPut(request);
     }
 
     @PUT
     @DynamicValue
     @Path("/properties")
-    public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
+    public Object devicePropertiesPut(@Context HttpServletRequest request) throws DevFailed {
         Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
         boolean async = parametersMap.remove("async") != null;
 
@@ -243,11 +243,11 @@ public class Device {
             }
         }), DbDatum.class);
 
-        proxy.toDeviceProxy().put_property(input);
+        tangoDevice.proxy.toDeviceProxy().put_property(input);
 
         if (async)
             return null;
-        else return deviceProperties(proxy);
+        else return deviceProperties();
     }
 
     @Path("/properties/{prop}")
@@ -259,9 +259,9 @@ public class Device {
     @Partitionable
     @StaticValue
     @Path("/pipes")
-    public Object devicePipes(@Context UriInfo uriInfo, @Context TangoProxy proxy) throws DevFailed {
+    public Object devicePipes(@Context UriInfo uriInfo) throws DevFailed {
         final URI href = uriInfo.getAbsolutePath();
-        return Lists.transform(proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
+        return Lists.transform(tangoDevice.proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
             @Override
             public Object apply(final String input) {
                 return new NamedEntity(input, href + "/" + input);
@@ -270,7 +270,7 @@ public class Device {
     }
 
     @Path("/pipes/{pipe}")
-    public DevicePipe getPipe(@PathParam("pipe") String name, @Context TangoProxy proxy){
-        return new DevicePipe(proxy, name);
+    public DevicePipe getPipe(@PathParam("pipe") String name){
+        return new DevicePipe(tangoDevice.proxy, name);
     }
 }

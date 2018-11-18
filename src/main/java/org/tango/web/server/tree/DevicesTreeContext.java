@@ -1,6 +1,6 @@
 package org.tango.web.server.tree;
 
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
 
 import java.util.List;
 

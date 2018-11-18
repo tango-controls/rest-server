@@ -1,13 +1,11 @@
 package org.tango.web.server.providers;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.Database;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.rest.entities.Failures;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
 import org.tango.web.server.util.TangoDatabaseUtils;
 
 import javax.annotation.Priority;

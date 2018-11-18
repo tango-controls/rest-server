@@ -1,16 +1,11 @@
 package org.tango.web.server.providers;
 
 import com.google.common.collect.Lists;
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.Database;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.tango.client.database.DatabaseFactory;
-import org.tango.rest.entities.Failures;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
 import org.tango.web.server.util.TangoDatabaseUtils;
 
 import javax.annotation.Priority;
@@ -22,17 +17,12 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.tango.web.server.providers.TangoDatabaseProvider.DEFAULT_TANGO_PORT;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

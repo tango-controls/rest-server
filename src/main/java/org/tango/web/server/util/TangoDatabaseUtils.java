@@ -3,8 +3,8 @@ package org.tango.web.server.util;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import org.tango.client.database.DatabaseFactory;
+import org.tango.web.server.proxy.TangoDatabase;
 
-import javax.swing.text.html.Option;
 import java.lang.reflect.Field;
 import java.util.Optional;
 

@@ -4,9 +4,11 @@ import fr.esrf.Tango.DevFailed;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
+import org.tango.web.server.response.TangoRestAttribute;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.StringJoiner;
 
 /**
@@ -16,43 +18,36 @@ import java.util.StringJoiner;
 public class AttributeUtils {
     private AttributeUtils(){}
 
-    public static org.tango.web.server.response.TangoAttribute fromTangoAttribute(TangoAttribute tangoAttribute, UriInfo uriInfo) {
+    public static TangoRestAttribute fromTangoAttribute(TangoAttribute tangoAttribute, UriInfo uriInfo) {
         try {
-            org.tango.web.server.response.TangoAttribute attribute = new org.tango.web.server.response.TangoAttribute();
+            String host = tangoAttribute.getAttributeProxy().getDeviceProxy().get_tango_host();
+            String device = tangoAttribute.getAttributeProxy().getDeviceProxy().get_name();
+            String name = tangoAttribute.getDeviceAttribute().getName();
 
-            attribute.name = tangoAttribute.getDeviceAttribute().getName();
-            attribute.host = tangoAttribute.getAttributeProxy().getDeviceProxy().get_tango_host();
-            attribute.device = tangoAttribute.getAttributeProxy().getDeviceProxy().get_name();
-            attribute.info = tangoAttribute.getAttributeProxy().get_info_ex();
             StringJoiner stringJoiner = new StringJoiner("/");
-            stringJoiner.add(attribute.host).add(attribute.device).add(attribute.name);
-            attribute.id = stringJoiner.toString();
+            String id = stringJoiner.add(host).add(device).add(name).toString();
 
-            String uri = UriBuilder.fromUri(uriInfo.getBaseUri())
+            URI href = UriBuilder.fromUri(uriInfo.getBaseUri())
                     .path("rest/rc5/hosts")
-                    .path(attribute.host.replace(":",";port="))
+                    .path(host.replace(":",";port="))
                     .path("devices")
-                    .path(attribute.device)
+                    .path(device)
                     .path("attributes")
-                    .path(attribute.name).build().toString();
+                    .path(name).build();
 
-            attribute.value = uri + "/value";
-            attribute.history = uri + "/history";
-            attribute.properties = uri + "/properties";
-
-            attribute.attribute = tangoAttribute;
-            
-            return attribute;
+            return new TangoRestAttribute(
+                    id, name, device, host, tangoAttribute.getAttributeProxy().get_info_ex(), href, tangoAttribute
+            );
         } catch (DevFailed devFailed) {
             throw new RuntimeException(devFailed);
         }
     }
 
-    public static Object getValueFromTangoAttribute(org.tango.web.server.response.TangoAttribute tangoAttribute) {
+    public static Object getValueFromTangoAttribute(TangoRestAttribute tangoRestAttribute) {
         try {
-            tangoAttribute.attribute.update();
+            tangoRestAttribute.attribute.update();
 
-            return new AttributeValue<>(tangoAttribute.name,tangoAttribute.host,tangoAttribute.device,tangoAttribute.attribute.extract(),tangoAttribute.attribute.getQuality().toString(),tangoAttribute.attribute.getTimestamp());
+            return new AttributeValue<>(tangoRestAttribute.name, tangoRestAttribute.host, tangoRestAttribute.device, tangoRestAttribute.attribute.extract(), tangoRestAttribute.attribute.getQuality().toString(), tangoRestAttribute.attribute.getTimestamp());
         } catch (DevFailed devFailed) {
             return Failures.createInstance(devFailed);
         }
@@ -71,5 +66,17 @@ public class AttributeUtils {
             attributeValue.errors = devFailed.errors;
         }
         return attributeValue;
+    }
+
+    public static TangoAttribute newTangoAttribute(String path) {
+        try {
+            return new TangoAttribute(path);
+        } catch (DevFailed devFailed) {
+            try {
+                return new TangoAttribute(path, null);
+            } catch (DevFailed devFailed1) {
+                throw new AssertionError(devFailed);
+            }
+        }
     }
 }

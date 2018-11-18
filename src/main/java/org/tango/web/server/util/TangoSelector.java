@@ -1,17 +1,12 @@
 package org.tango.web.server.util;
 
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.Database;
 import fr.soleil.tango.clientapi.TangoAttribute;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.Attribute;
-import org.tango.rest.entities.Device;
-import org.tango.rest.entities.TangoHost;
+import org.tango.web.server.proxy.TangoDatabase;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

@@ -6,7 +6,8 @@ import fr.esrf.Tango.DevFailed;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -62,5 +63,10 @@ public class Devices {
                              @Context TangoDatabase db,
                              @Context final ServletContext context) throws DevFailed {
         return db.asEsrfDb().get_device_member(domain + "/" + family + "/" + wildcard);
+    }
+
+    @Path("/{domain}/{family}/{member}")
+    public JaxRsDevice getDevice(@Context TangoDeviceProxy proxy) {
+        return new JaxRsDevice(proxy);
     }
 }

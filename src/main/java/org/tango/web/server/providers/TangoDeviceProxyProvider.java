@@ -6,30 +6,37 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.rest.entities.Failures;
 import org.tango.web.server.exception.mapper.TangoProxyExceptionMapper;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
 /**
+ * Provides {@link org.tango.web.server.proxy.TangoDeviceProxy} extracted from URL e.g.
+ *
+ * <pre>.../sys/tg_test/1/...</pre> becomes a Java object of type {@link org.tango.web.server.proxy.TangoDeviceProxy}
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 04.12.2015
  */
 @Provider
 @Priority(Priorities.USER + 200)
-public class TangoProxyProvider implements ContainerRequestFilter {
-    private final Logger logger = LoggerFactory.getLogger(TangoProxyProvider.class);
+public class TangoDeviceProxyProvider implements ContainerRequestFilter {
+    private final Logger logger = LoggerFactory.getLogger(TangoDeviceProxyProvider.class);
 
     private final TangoRestServer tangoRestServer;
 
-    public TangoProxyProvider(TangoRestServer tangoRestServer) {
+    public TangoDeviceProxyProvider(TangoRestServer tangoRestServer) {
         this.tangoRestServer = tangoRestServer;
     }
 
@@ -47,14 +54,16 @@ public class TangoProxyProvider implements ContainerRequestFilter {
         if(domain == null || family == null || member == null)
             return;
 
-        TangoProxy result = null;
         try {
-            result = tangoRestServer.proxyPool.getProxy("tango://" + db.getFullTangoHost() + "/" + domain + "/" + family + "/" + member);
+            String name = domain + "/" + family + "/" + member;
+            TangoProxy proxy = tangoRestServer.proxyPool.getProxy("tango://" + db.getFullTangoHost() + "/" + name);
 
-            ResteasyProviderFactory.pushContext(TangoProxy.class, result);
+            TangoDeviceProxy result = new TangoDeviceProxy(db, name, proxy);
+
+            ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);
         } catch (TangoProxyException e) {
             logger.error("Failed to get proxy for {}/{}/{}", domain, family, member);
-            requestContext.abortWith(new TangoProxyExceptionMapper().toResponse(e));
+            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
         }
     }
 }

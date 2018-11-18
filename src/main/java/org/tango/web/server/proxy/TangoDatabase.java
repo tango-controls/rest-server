@@ -1,4 +1,4 @@
-package org.tango.web.server.util;
+package org.tango.web.server.proxy;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Connection;

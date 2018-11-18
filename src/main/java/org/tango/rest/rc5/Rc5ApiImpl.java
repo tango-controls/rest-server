@@ -9,9 +9,9 @@ import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
-import org.tango.web.server.util.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.*;
@@ -56,10 +56,7 @@ public class Rc5ApiImpl {
         return new Devices();
     }
 
-    @Path("/hosts/{var:.+}/devices/{domain}/{family}/{member}")
-    public Device getDevice() {
-        return new Device();
-    }
+
 
     @Path("/hosts/{var:.+}/devices/tree")
     public DevicesTree getDevicesTreeForHost() {

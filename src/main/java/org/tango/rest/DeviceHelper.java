@@ -12,16 +12,6 @@ import java.net.URI;
  * @since 8/6/16
  */
 public class DeviceHelper {
-    public static Object deviceToResponse(String devname, String host, final DeviceInfo info, URI href){
-        return new org.tango.rest.entities.Device(devname,
-                host,
-                DeviceInfos.fromDeviceInfo(info),
-                href + "/attributes",
-                href + "/commands",
-                href + "/pipes",
-                href + "/properties", href);
-    }
-
     public static Object attributeInfoExToResponse(final String attrName, final String href) {
         return new Object() {
             public String name = attrName;
