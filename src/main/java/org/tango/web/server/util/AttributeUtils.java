@@ -4,6 +4,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
+import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.response.TangoRestAttribute;
 
 import javax.ws.rs.core.UriBuilder;
@@ -18,7 +19,7 @@ import java.util.StringJoiner;
 public class AttributeUtils {
     private AttributeUtils(){}
 
-    public static TangoRestAttribute fromTangoAttribute(TangoAttribute tangoAttribute, UriInfo uriInfo) {
+    public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) {
         try {
             String host = tangoAttribute.getAttributeProxy().getDeviceProxy().get_tango_host();
             String device = tangoAttribute.getAttributeProxy().getDeviceProxy().get_name();

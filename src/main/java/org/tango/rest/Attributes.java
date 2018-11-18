@@ -5,6 +5,8 @@ import fr.soleil.tango.clientapi.TangoAttribute;
 import org.tango.rest.entities.Attribute;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
+import org.tango.web.server.proxy.TangoAttributeProxy;
+import org.tango.web.server.proxy.TangoAttributeProxyImpl;
 import org.tango.web.server.util.AttributeUtils;
 import org.tango.web.server.binding.*;
 import org.tango.web.server.util.TangoSelector;
@@ -35,6 +37,7 @@ public class Attributes {
         return tangoSelector.selectAttributes().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .map(TangoAttributeProxyImpl::new)
                 .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo)).collect(Collectors.toList());
     }
 
@@ -47,6 +50,7 @@ public class Attributes {
         return tangoSelector.selectAttributes().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .map(TangoAttributeProxyImpl::new)
                 .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo))
                 .map(AttributeUtils::getValueFromTangoAttribute)
                 .collect(Collectors.toList());

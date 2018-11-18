@@ -7,10 +7,11 @@ import org.tango.rest.entities.NamedEntity;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.proxy.TangoDeviceProxy;
+import org.tango.web.server.proxy.TangoDeviceProxyImpl;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
@@ -66,7 +67,7 @@ public class Devices {
     }
 
     @Path("/{domain}/{family}/{member}")
-    public JaxRsDevice getDevice(@Context TangoDeviceProxy proxy) {
-        return new JaxRsDevice(proxy);
+    public JaxRsDevice getDevice(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsDevice.class);
     }
 }

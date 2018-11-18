@@ -6,7 +6,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
 import fr.soleil.tango.clientapi.TangoAttribute;
@@ -25,7 +24,9 @@ import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.proxy.TangoAttributeProxyImpl;
 import org.tango.web.server.proxy.TangoDeviceProxy;
+import org.tango.web.server.proxy.TangoDeviceProxyImpl;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestDevice;
 import org.tango.web.server.util.AttributeUtils;
@@ -53,17 +54,17 @@ import static org.mockito.Mockito.mock;
 @Path("/{domain}/{family}/{member}")
 @Produces("application/json")
 public class JaxRsDevice {
-    private TangoDeviceProxy tangoDevice;
-
-    public JaxRsDevice(TangoDeviceProxy proxy) {
-        this.tangoDevice = proxy;
-    }
-
+    @Context private TangoDeviceProxy tangoDevice;
 
     @GET
     @StaticValue
     public Device get(@Context UriInfo uriInfo) throws DevFailed{
-        return new TangoRestDevice(tangoDevice.database.getFullTangoHost() + "/" + tangoDevice.name, tangoDevice.name, tangoDevice.database.getFullTangoHost(), tangoDevice.database.asEsrfDb().get_device_info(tangoDevice.name),uriInfo.getAbsolutePath());
+        return new TangoRestDevice(
+                tangoDevice.getDatabase().getFullTangoHost() + "/" + tangoDevice.getName(),
+                tangoDevice.getName(),
+                tangoDevice.getDatabase().getFullTangoHost(),
+                tangoDevice.getDatabase().asEsrfDb().get_device_info(tangoDevice.getName()),
+                uriInfo.getAbsolutePath());
     }
 
     @GET
@@ -71,9 +72,10 @@ public class JaxRsDevice {
     @StaticValue
     @Path("/attributes")
     public List<TangoRestAttribute> deviceAttributes(@Context UriInfo uriInfo) throws DevFailed {
-        return Arrays.stream(tangoDevice.database.asEsrfDb().get_device_attribute_list(tangoDevice.name))
-                .map(s -> "tango://" + tangoDevice.database.getFullTangoHost() + "/" + tangoDevice.name + "/" + s)
+        return Arrays.stream(tangoDevice.getDatabase().asEsrfDb().get_device_attribute_list(tangoDevice.getName()))
+                .map(s -> "tango://" + tangoDevice.getDatabase().getFullTangoHost() + "/" + tangoDevice.getName() + "/" + s)
                 .map(AttributeUtils::newTangoAttribute)
+                .map(TangoAttributeProxyImpl::new)
                 .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo))
                 .collect(Collectors.toList());
     }
@@ -82,20 +84,16 @@ public class JaxRsDevice {
     @Partitionable
     @DynamicValue
     @Path("/attributes/info")
-    public fr.esrf.TangoApi.AttributeInfoEx[] deviceAttributeInfos(@QueryParam("attr") String[] attrs,
-                                                                    @Context ServletContext context,
-                                                                    @Context UriInfo uriInfo) throws DevFailed {
-        return tangoDevice.proxy.toDeviceProxy().get_attribute_info_ex(attrs);
+    public fr.esrf.TangoApi.AttributeInfoEx[] deviceAttributeInfos(@QueryParam("attr") String[] attrs) throws DevFailed {
+        return tangoDevice.getProxy().toDeviceProxy().get_attribute_info_ex(attrs);
     }
 
     @GET
     @Partitionable
     @DynamicValue
     @Path("/attributes/value")
-    public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs,
-                                        @Context ServletContext context,
-                                        @Context UriInfo uriInfo) throws DevFailed {
-        return tangoDevice.proxy.toDeviceProxy().read_attribute(attrs);
+    public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs) throws DevFailed {
+        return tangoDevice.getProxy().toDeviceProxy().read_attribute(attrs);
     }
 
     @PUT
@@ -119,7 +117,7 @@ public class JaxRsDevice {
 
                                                 try {
                                                     result = new fr.esrf.TangoApi.DeviceAttribute(attrName);
-                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) tangoDevice.proxy.getAttributeInfo(attrName).getType();
+                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) tangoDevice.getProxy().getAttributeInfo(attrName).getType();
                                                     Class<?> type = dataType.getDataTypeClass();
                                                     Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
 
@@ -144,7 +142,7 @@ public class JaxRsDevice {
 
 
         if(async) {
-            tangoDevice.proxy.toDeviceProxy().write_attribute_asynch(attrs);
+            tangoDevice.getProxy().toDeviceProxy().write_attribute_asynch(attrs);
             return null;
         } else {
             String[] readNames = Lists.transform(Arrays.asList(attrs), new Function<fr.esrf.TangoApi.DeviceAttribute, String>() {
@@ -157,8 +155,8 @@ public class JaxRsDevice {
                     }
                 }
             }).toArray(new String[attrs.length]);
-            tangoDevice.proxy.toDeviceProxy().write_attribute(attrs);
-            return tangoDevice.proxy.toDeviceProxy().read_attribute(readNames);
+            tangoDevice.getProxy().toDeviceProxy().write_attribute(attrs);
+            return tangoDevice.getProxy().toDeviceProxy().read_attribute(readNames);
         }
     }
 
@@ -176,12 +174,12 @@ public class JaxRsDevice {
     @Path("/state")
     public Object deviceState(@Context ServletContext context, @Context UriInfo uriInfo) {
         try {
-            final fr.esrf.TangoApi.DeviceAttribute[] ss = tangoDevice.proxy.toDeviceProxy().read_attribute(new String[]{"State", "Status"});
+            final fr.esrf.TangoApi.DeviceAttribute[] ss = tangoDevice.getProxy().toDeviceProxy().read_attribute(new String[]{"State", "Status"});
             DeviceState result = new DeviceState(ss[0].extractDevState().toString(), ss[1].extractString());
 
             return result;
         } catch (DevFailed devFailed) {
-            return new DeviceState(DevState.UNKNOWN.toString(), String.format("Failed to read state&status from %s", tangoDevice.name));
+            return new DeviceState(DevState.UNKNOWN.toString(), String.format("Failed to read state&status from %s", tangoDevice.getName()));
         }
     }
 
@@ -191,7 +189,7 @@ public class JaxRsDevice {
     @Path("/commands")
     public Object deviceCommands(@Context UriInfo uriInfo) throws DevFailed {
         final String href = uriInfo.getAbsolutePath().toString();
-        return Lists.transform(Arrays.asList(tangoDevice.proxy.toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
+        return Lists.transform(Arrays.asList(tangoDevice.getProxy().toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
             @Override
             public Object apply(final CommandInfo input) {
                 return DeviceHelper.commandInfoToResponse(input, href);
@@ -210,10 +208,10 @@ public class JaxRsDevice {
     @DynamicValue
     @Path("/properties")
     public Object deviceProperties() throws DevFailed {
-        String[] propnames = tangoDevice.proxy.toDeviceProxy().get_property_list("*");
+        String[] propnames = tangoDevice.getProxy().toDeviceProxy().get_property_list("*");
         if(propnames.length == 0) return propnames;
         return Iterables.transform(
-                Arrays.asList(tangoDevice.proxy.toDeviceProxy().get_property(propnames)),
+                Arrays.asList(tangoDevice.getProxy().toDeviceProxy().get_property(propnames)),
                 new Function<DbDatum, Object>() {
                     @Override
                     public Object apply(final DbDatum input) {
@@ -243,7 +241,7 @@ public class JaxRsDevice {
             }
         }), DbDatum.class);
 
-        tangoDevice.proxy.toDeviceProxy().put_property(input);
+        tangoDevice.getProxy().toDeviceProxy().put_property(input);
 
         if (async)
             return null;
@@ -261,7 +259,7 @@ public class JaxRsDevice {
     @Path("/pipes")
     public Object devicePipes(@Context UriInfo uriInfo) throws DevFailed {
         final URI href = uriInfo.getAbsolutePath();
-        return Lists.transform(tangoDevice.proxy.toDeviceProxy().getPipeNames(), new Function<String, Object>() {
+        return Lists.transform(tangoDevice.getProxy().toDeviceProxy().getPipeNames(), new Function<String, Object>() {
             @Override
             public Object apply(final String input) {
                 return new NamedEntity(input, href + "/" + input);
@@ -271,6 +269,6 @@ public class JaxRsDevice {
 
     @Path("/pipes/{pipe}")
     public DevicePipe getPipe(@PathParam("pipe") String name){
-        return new DevicePipe(tangoDevice.proxy, name);
+        return new DevicePipe(tangoDevice.getProxy(), name);
     }
 }
