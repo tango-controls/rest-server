@@ -49,8 +49,7 @@ public class TangoDatabase {
     }
 
     public String[] getInfo() throws DevFailed {
-        DeviceData argOut = ((IConnectionDAO)tangoDb).command_inout((Connection)tangoDb, "DbInfo");
-        return argOut.extractStringArray();
+        return tangoDb.command_inout("DbInfo").extractStringArray();
     }
 
     public List<String> getDevices(String wildcard) {

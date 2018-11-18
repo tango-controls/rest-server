@@ -1,5 +1,6 @@
 package org.tango.web.server.providers;
 
+import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +59,13 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         String port = tango_host.getMatrixParameters().getFirst("port");
         if (port == null) port = DEFAULT_TANGO_PORT;
 
-        Optional<TangoDatabase> tangoDb = TangoDatabaseUtils.getDatabase(host, port);
 
-        tangoDb.ifPresent(database -> {
-                ResteasyProviderFactory.pushContext(TangoDatabase.class, database);
-        });
+        try {
+            TangoDatabase tangoDb = TangoDatabaseUtils.getDatabase(host, port);
+
+            ResteasyProviderFactory.pushContext(TangoDatabase.class, tangoDb);
+        } catch (DevFailed devFailed) {
+            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
+        }
     }
 }

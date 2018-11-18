@@ -48,7 +48,7 @@ public class Rc5ApiImpl {
     @Path("/hosts/{host}")
     public TangoHost getHost(@Context TangoDatabase db,
                           @Context final UriInfo uriInfo) throws DevFailed {
-        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDb().get_name(),db.getInfo(),uriInfo.getAbsolutePath() + "/devices",uriInfo.getAbsolutePath() + "/tree");
+        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDb().get_name(),db.getInfo(),uriInfo.getAbsolutePath());
     }
 
     @Path("/hosts/{var:.+}/devices")
