@@ -266,7 +266,7 @@ public class JaxRsDevice {
     }
 
     @Path("/pipes/{pipe}")
-    public DevicePipe getPipe(@PathParam("pipe") String name){
-        return new DevicePipe(tangoDevice.getProxy(), name);
+    public JaxRsTangoPipe getPipe(@Context ResourceContext rc){
+        return rc.getResource(JaxRsTangoPipe.class);
     }
 }

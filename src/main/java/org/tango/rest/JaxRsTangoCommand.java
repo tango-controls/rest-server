@@ -40,7 +40,7 @@ public class JaxRsTangoCommand {
 
     @GET
     public Command get(@Context UriInfo uriInfo) {
-        return TangoRestEntityUtils.fromTangoCommand(command.asTangoCommand(), uriInfo);
+        return TangoRestEntityUtils.newTangoCommand(command.asTangoCommand(), uriInfo);
     }
 
     @PUT

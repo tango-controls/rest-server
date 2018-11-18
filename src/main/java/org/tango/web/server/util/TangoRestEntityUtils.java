@@ -4,11 +4,9 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
-import org.tango.rest.entities.AttributeValue;
-import org.tango.rest.entities.Command;
-import org.tango.rest.entities.CommandInOut;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.entities.*;
 import org.tango.web.server.proxy.TangoAttributeProxy;
+import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestCommand;
 
@@ -82,7 +80,7 @@ public class TangoRestEntityUtils {
         }
     }
 
-    public static TangoRestCommand fromTangoCommand(TangoCommand tangoCommand, UriInfo uriInfo) {
+    public static TangoRestCommand newTangoCommand(TangoCommand tangoCommand, UriInfo uriInfo) {
         try {
             String host = tangoCommand.getDeviceProxy().get_tango_host();
             String device = tangoCommand.getDeviceProxy().name();
@@ -110,5 +108,23 @@ public class TangoRestEntityUtils {
         }
         return input;
 
+    }
+
+    public static Pipe newPipe(TangoPipeProxy tangoPipeProxy, UriInfo uriInfo) {
+        Pipe result = new Pipe();
+        try{
+            result.device = tangoPipeProxy.getDeviceProxy().name();
+            result.name = tangoPipeProxy.getName();
+            result.host = tangoPipeProxy.getTangoHost();
+            result.info = tangoPipeProxy.getInfo();
+
+            result.id = result.host + "/" + result.device + "/" + result.name;
+
+            URI href = getDeviceURI(uriInfo, result.host, result.device).path("pipes").path(result.name).build();
+            result.value = href + "/value";
+        } catch (DevFailed devFailed) {
+            result.errors = devFailed.errors;
+        }
+        return result;
     }
 }

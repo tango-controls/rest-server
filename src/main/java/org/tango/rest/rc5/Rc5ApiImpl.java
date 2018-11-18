@@ -74,10 +74,14 @@ public class Rc5ApiImpl {
     }
 
     @Path("/commands")
-    public JaxRsCommands getAttributes(@Context ResourceContext rc) {
+    public JaxRsCommands getCommands(@Context ResourceContext rc) {
         return rc.getResource(JaxRsCommands.class);
     }
 
+    @Path("/pipes")
+    public JaxRsTangoPipes getPipes(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsTangoPipes.class);
+    }
 
     @Path("/subscriptions")
     @EventSystem

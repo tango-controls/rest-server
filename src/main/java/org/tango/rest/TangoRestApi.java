@@ -58,6 +58,7 @@ public class TangoRestApi extends Application {
         singletons.add(new TangoDeviceProxyProvider(getTangoRestServer()));
         singletons.add(new TangoAttributeProxyProvider());
         singletons.add(new TangoCommandProxyProvider());
+        singletons.add(new TangoPipeProxyProvider());
         singletons.add(new EventSystemProvider());
         singletons.add(new DevicesTreeContextProvider());
         singletons.add(new TangoSelectorProvider());

@@ -8,9 +8,7 @@ import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.util.TangoRestEntityUtils;
 import org.tango.web.server.util.TangoSelector;
-import sun.misc.Contended;
 
-import javax.swing.text.html.Option;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -35,7 +33,7 @@ public class JaxRsCommands {
         return selector.selectCommands().stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(tangoCommand -> TangoRestEntityUtils.fromTangoCommand(tangoCommand, uriInfo))
+                .map(tangoCommand -> TangoRestEntityUtils.newTangoCommand(tangoCommand, uriInfo))
                 .collect(Collectors.toList());
     }
 
