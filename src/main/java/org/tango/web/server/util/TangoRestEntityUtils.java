@@ -1,11 +1,16 @@
 package org.tango.web.server.util;
 
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.CommandInfo;
 import fr.soleil.tango.clientapi.TangoAttribute;
+import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.rest.entities.AttributeValue;
+import org.tango.rest.entities.Command;
+import org.tango.rest.entities.CommandInOut;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.response.TangoRestAttribute;
+import org.tango.web.server.response.TangoRestCommand;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -16,8 +21,8 @@ import java.util.StringJoiner;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11/17/18
  */
-public class AttributeUtils {
-    private AttributeUtils(){}
+public class TangoRestEntityUtils {
+    private TangoRestEntityUtils(){}
 
     public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) {
         try {
@@ -28,11 +33,7 @@ public class AttributeUtils {
             StringJoiner stringJoiner = new StringJoiner("/");
             String id = stringJoiner.add(host).add(device).add(name).toString();
 
-            URI href = UriBuilder.fromUri(uriInfo.getBaseUri())
-                    .path("rest/rc5/hosts")
-                    .path(host.replace(":",";port="))
-                    .path("devices")
-                    .path(device)
+            URI href = getDeviceURI(uriInfo, host, device)
                     .path("attributes")
                     .path(name).build();
 
@@ -40,7 +41,7 @@ public class AttributeUtils {
                     id, name, device, host, tangoAttribute.getAttributeProxy().get_info_ex(), href, tangoAttribute
             );
         } catch (DevFailed devFailed) {
-            throw new RuntimeException(devFailed);
+            return new TangoRestAttribute(devFailed.errors);
         }
     }
 
@@ -79,5 +80,35 @@ public class AttributeUtils {
                 throw new AssertionError(devFailed);
             }
         }
+    }
+
+    public static TangoRestCommand fromTangoCommand(TangoCommand tangoCommand, UriInfo uriInfo) {
+        try {
+            String host = tangoCommand.getDeviceProxy().get_tango_host();
+            String device = tangoCommand.getDeviceProxy().name();
+            String name = tangoCommand.getCommandName();
+            CommandInfo info = tangoCommand.getDeviceProxy().command_query(name);
+
+            URI href = getDeviceURI(uriInfo, host, device).path("commands").path(name).build();
+
+            return new TangoRestCommand(name, device, host, info, href, tangoCommand);
+        } catch (DevFailed devFailed) {
+            return new TangoRestCommand(devFailed.errors);
+        }
+    }
+
+    private static UriBuilder getDeviceURI(UriInfo uriInfo, String host, String device) {
+        return UriBuilder.fromUri(uriInfo.getBaseUri())
+                .path("rest/rc5/hosts").path(host.replace(":",";port=")).path("devices").path(device);
+    }
+
+    public static CommandInOut<Object, Object> executeCommand(CommandInOut<Object, Object> input) {
+        try {
+            input.output = new TangoCommand("tango://" + input.host + "/" + input.device, input.name).executeExtract(input.input);
+        } catch (DevFailed devFailed) {
+            input.errors = devFailed.errors;
+        }
+        return input;
+
     }
 }

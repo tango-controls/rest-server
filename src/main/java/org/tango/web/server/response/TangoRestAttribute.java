@@ -1,5 +1,6 @@
 package org.tango.web.server.response;
 
+import fr.esrf.Tango.DevError;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -21,5 +22,10 @@ public class TangoRestAttribute extends Attribute{
         super(id, name, device, host, null, href);
         this.info = info;
         this.attribute = attribute;
+    }
+
+    public TangoRestAttribute(DevError[] errors) {
+        super();
+        this.errors = errors;
     }
 }

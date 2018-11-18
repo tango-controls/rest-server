@@ -1,25 +1,18 @@
 package org.tango.rest;
 
-import fr.esrf.Tango.DevFailed;
-import fr.soleil.tango.clientapi.TangoAttribute;
 import org.tango.rest.entities.Attribute;
 import org.tango.rest.entities.AttributeValue;
-import org.tango.rest.entities.Failures;
-import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoAttributeProxyImpl;
-import org.tango.web.server.util.AttributeUtils;
+import org.tango.web.server.util.TangoRestEntityUtils;
 import org.tango.web.server.binding.*;
 import org.tango.web.server.util.TangoSelector;
 
-import javax.swing.text.html.Option;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +31,7 @@ public class Attributes {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(TangoAttributeProxyImpl::new)
-                .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo)).collect(Collectors.toList());
+                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo)).collect(Collectors.toList());
     }
 
     @GET
@@ -51,8 +44,8 @@ public class Attributes {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(TangoAttributeProxyImpl::new)
-                .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo))
-                .map(AttributeUtils::getValueFromTangoAttribute)
+                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+                .map(TangoRestEntityUtils::getValueFromTangoAttribute)
                 .collect(Collectors.toList());
     }
 
@@ -63,7 +56,7 @@ public class Attributes {
     @Path("/value")
     public List<AttributeValue<?>> write(List<AttributeValue<?>> values){
         return values.stream()
-                .map(AttributeUtils::setValueToTangoAttribute).collect(Collectors.toList());
+                .map(TangoRestEntityUtils::setValueToTangoAttribute).collect(Collectors.toList());
     }
 
 }

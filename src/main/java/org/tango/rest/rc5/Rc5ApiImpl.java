@@ -10,9 +10,9 @@ import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import java.util.*;
 
@@ -72,6 +72,12 @@ public class Rc5ApiImpl {
     public Attributes getAttributes() {
         return new Attributes();
     }
+
+    @Path("/commands")
+    public JaxRsCommands getAttributes(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsCommands.class);
+    }
+
 
     @Path("/subscriptions")
     @EventSystem

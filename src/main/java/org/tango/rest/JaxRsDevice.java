@@ -14,7 +14,6 @@ import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.entities.Device;
@@ -26,10 +25,9 @@ import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoAttributeProxyImpl;
 import org.tango.web.server.proxy.TangoDeviceProxy;
-import org.tango.web.server.proxy.TangoDeviceProxyImpl;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestDevice;
-import org.tango.web.server.util.AttributeUtils;
+import org.tango.web.server.util.TangoRestEntityUtils;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -74,9 +72,9 @@ public class JaxRsDevice {
     public List<TangoRestAttribute> deviceAttributes(@Context UriInfo uriInfo) throws DevFailed {
         return Arrays.stream(tangoDevice.getDatabase().asEsrfDb().get_device_attribute_list(tangoDevice.getName()))
                 .map(s -> "tango://" + tangoDevice.getDatabase().getFullTangoHost() + "/" + tangoDevice.getName() + "/" + s)
-                .map(AttributeUtils::newTangoAttribute)
+                .map(TangoRestEntityUtils::newTangoAttribute)
                 .map(TangoAttributeProxyImpl::new)
-                .map(tangoAttribute -> AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo))
                 .collect(Collectors.toList());
     }
 
@@ -199,8 +197,8 @@ public class JaxRsDevice {
 
 
     @Path("/commands/{cmd}")
-    public DeviceCommand deviceCommand(@PathParam("cmd") String cmdName, @Context TangoProxy proxy) {
-        return new DeviceCommand(proxy, cmdName);
+    public JaxRsTangoCommand deviceCommand(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsTangoCommand.class);
     }
 
     @GET

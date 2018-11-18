@@ -10,14 +10,11 @@ import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.DbAttribute;
 import fr.esrf.TangoApi.DbDatum;
 import fr.esrf.TangoApi.DeviceDataHistory;
-import fr.soleil.tango.clientapi.TangoAttribute;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
-import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.AttributeValue;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
@@ -27,7 +24,7 @@ import org.tango.web.server.binding.*;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.response.TangoRestAttribute;
-import org.tango.web.server.util.AttributeUtils;
+import org.tango.web.server.util.TangoRestEntityUtils;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -55,7 +52,7 @@ public class JaxRsDeviceAttribute {
     @RequiresTangoAttribute
     @StaticValue
     public TangoRestAttribute get(@Context UriInfo uriInfo) {
-        return AttributeUtils.fromTangoAttribute(tangoAttribute, uriInfo);
+        return TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo);
     }
 
     @GET

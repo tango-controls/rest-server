@@ -2,6 +2,7 @@ package org.tango.web.server.util;
 
 import fr.esrf.Tango.DevFailed;
 import fr.soleil.tango.clientapi.TangoAttribute;
+import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
@@ -52,10 +53,7 @@ public class TangoSelector {
     }
 
     public List<Optional<TangoAttribute>> selectAttributes(){
-        return wildcards.stream()
-                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, TangoDatabaseUtils.getDatabase(wildcard.host).orElse(null)))
-                .filter(entry -> Objects.nonNull(entry.getValue()))
-                .flatMap(this::getDeviceAtrtibutesURL)
+        return getDeviceMemberURLStream()
                 .map(s -> {
                     try {
                         return Optional.of(new TangoAttribute(s));
@@ -66,7 +64,26 @@ public class TangoSelector {
                 .collect(Collectors.toList());
     }
 
-    private Stream<String> getDeviceAtrtibutesURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabase> wildcardTangoDatabaseSimpleEntry) {
+    public List<Optional<TangoCommand>> selectCommands(){
+        return getDeviceMemberURLStream()
+                .map(s -> {
+                    try {
+                        return Optional.of(new TangoCommand(s.substring(0, s.lastIndexOf('/')), s.substring(s.lastIndexOf('/') + 1)));
+                    } catch (DevFailed devFailed) {
+                        return Optional.<TangoCommand>empty();
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Stream<String> getDeviceMemberURLStream() {
+        return wildcards.stream()
+                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, TangoDatabaseUtils.getDatabase(wildcard.host).orElse(null)))
+                .filter(entry -> Objects.nonNull(entry.getValue()))
+                .flatMap(this::getDeviceMemberURL);
+    }
+
+    private Stream<String> getDeviceMemberURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabase> wildcardTangoDatabaseSimpleEntry) {
         return getDevicesURL(wildcardTangoDatabaseSimpleEntry).map(s -> s + "/" + wildcardTangoDatabaseSimpleEntry.getKey().attribute);
     }
 }
