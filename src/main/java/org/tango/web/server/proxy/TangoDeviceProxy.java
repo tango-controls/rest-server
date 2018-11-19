@@ -13,6 +13,8 @@ import java.util.List;
 public interface TangoDeviceProxy {
     String getName();
 
+    String getAlias();
+
     String getFullName();
 
     TangoProxy getProxy();

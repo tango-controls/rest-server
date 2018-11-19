@@ -12,8 +12,8 @@ import java.net.URI;
 public class TangoRestDevice extends Device {
     public DeviceInfo info;
 
-    public TangoRestDevice(String id, String name, String host, DeviceInfo info, URI href) {
-        super(id, name, host, null, href);
+    public TangoRestDevice(String id, String name, String host, String alias, DeviceInfo info, URI href) {
+        super(id, name, host, alias, null, href);
         this.info = info;
     }
 }

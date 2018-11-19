@@ -13,6 +13,8 @@ import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
+import org.tango.client.ez.proxy.NoSuchAttributeException;
+import org.tango.client.ez.proxy.ReadAttributeException;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
 import org.tango.rest.entities.AttributeValue;
@@ -36,6 +38,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author ingvord
@@ -191,13 +194,16 @@ public class JaxRsDeviceAttribute {
     @GET
     @DynamicValue
     @Path("/value")
-    public Object deviceAttributeValueGet() throws DevFailed {
-        tangoAttribute.update();
-
+    public AttributeValue<Object> deviceAttributeValueGet() throws DevFailed, NoSuchAttributeException, ReadAttributeException {
+        Object result;
+        if(tangoAttribute.isImage())
+            result = deviceProxy.getProxy().readAttribute(name);
+        else
+            result = tangoAttribute.read();
         return new AttributeValue<Object>(
                 JaxRsDeviceAttribute.this.name,
                 databaseProxy.getTangoHost() ,
-                deviceProxy.getName(), tangoAttribute.extract(),
+                deviceProxy.getName(), result,
                 tangoAttribute.getQuality().toString(),
                 tangoAttribute.getTimestamp());
     }
@@ -211,9 +217,17 @@ public class JaxRsDeviceAttribute {
 
         tangoAttribute.write(converted);
         if (async) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    tangoAttribute.write(converted);
+                } catch (DevFailed ignored) {
+                }
+            });
             return null;
+        } else {
+            tangoAttribute.write(converted);
+            return deviceAttributeValueGet();
         }
-        return deviceAttributeValueGet();
     }
 
     @GET

@@ -3,7 +3,6 @@ package org.tango.web.server.proxy;
 import fr.esrf.Tango.DevFailed;
 import org.tango.client.ez.proxy.TangoProxy;
 
-import javax.ws.rs.core.UriBuilder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +26,15 @@ public class TangoDeviceProxyImpl implements TangoDeviceProxy {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getAlias() {
+        try {
+            return proxy.toDeviceProxy().get_alias();
+        } catch (DevFailed devFailed) {
+            return null;
+        }
     }
 
     @Override

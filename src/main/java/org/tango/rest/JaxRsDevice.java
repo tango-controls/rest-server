@@ -6,7 +6,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -21,14 +20,11 @@ import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.proxy.Proxies;
-import org.tango.web.server.proxy.TangoAttributeProxyImpl;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestCommand;
 import org.tango.web.server.response.TangoRestDevice;
-import org.tango.web.server.util.TangoRestEntityUtils;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -38,7 +34,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,8 +56,8 @@ public class JaxRsDevice {
                 tangoDatabase.getTangoHost() + "/" + tangoDevice.getName(),
                 tangoDevice.getName(),
                 tangoDatabase.getTangoHost(),
-                tangoDatabase.asEsrfDatabase().get_device_info(tangoDevice.getName()),
-                uriInfo.getAbsolutePath());
+                tangoDevice.getAlias(),
+                tangoDatabase.asEsrfDatabase().get_device_info(tangoDevice.getName()), uriInfo.getAbsolutePath());
     }
 
     @GET
