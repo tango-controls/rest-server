@@ -261,11 +261,11 @@ public class JaxRsDevice {
     @StaticValue
     @Path("/pipes")
     public Object devicePipes(@Context UriInfo uriInfo) throws DevFailed {
-        final URI href = uriInfo.getAbsolutePath();
+        final UriBuilder href = uriInfo.getAbsolutePathBuilder();
         return Lists.transform(tangoDevice.getProxy().toDeviceProxy().getPipeNames(), new Function<String, Object>() {
             @Override
             public Object apply(final String input) {
-                return new NamedEntity(input, href + "/" + input);
+                return new NamedEntity(input, null, href.path(input).build());
             }
         });
     }

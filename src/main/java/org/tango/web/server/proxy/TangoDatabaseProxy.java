@@ -31,4 +31,8 @@ public interface TangoDatabaseProxy {
     List<String> getDeviceCommandNames(String device, String wildcard);
 
     List<String> getDevicePipeNames(String device, String wildcard);
+
+    String getName();
+
+    String getDeviceAlias(String device);
 }

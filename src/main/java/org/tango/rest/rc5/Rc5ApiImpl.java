@@ -43,25 +43,13 @@ public class Rc5ApiImpl {
         throw new AssertionError("May not happen due to TangoDatabaseProvider");
     }
 
-    @GET
     @StaticValue
     @Path("/hosts/{host}")
-    public TangoHost getHost(@Context TangoDatabaseProxy db,
-                          @Context final UriInfo uriInfo) throws DevFailed {
-        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDatabase().get_name(),db.getInfo(),uriInfo.getAbsolutePath());
-    }
-
-    @Path("/hosts/{var:.+}/devices")
-    public Object get() {
-        return new Devices();
+    public JaxRsTangoHost getHost(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsTangoHost.class);
     }
 
 
-
-    @Path("/hosts/{var:.+}/devices/tree")
-    public DevicesTree getDevicesTreeForHost() {
-        return new DevicesTree();
-    }
 
     @Path("/devices/tree")
     public DevicesTree getDevicesTree() {

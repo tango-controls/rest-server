@@ -108,4 +108,18 @@ public class TangoDatabaseProxyImpl implements TangoDatabaseProxy {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public String getName() {
+        return tangoDb.get_name();
+    }
+
+    @Override
+    public String getDeviceAlias(String device) {
+        try {
+            return tangoDb.get_alias_from_device(device);
+        } catch (DevFailed devFailed) {
+            return null;
+        }
+    }
 }
