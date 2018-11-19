@@ -49,7 +49,10 @@ public class TangoAttributeProxyProvider implements ContainerRequestFilter {
             TangoAttributeProxy proxy = Proxies.newTangoAttributeProxy(deviceProxy.getFullName() + "/" + name);
             ResteasyProviderFactory.pushContext(TangoAttributeProxy.class, proxy);
         } catch (DevFailed devFailed) {
-            containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
+            Response.Status status = Response.Status.BAD_REQUEST;
+            if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_AttrNotFound"))
+                status = Response.Status.NOT_FOUND;
+            containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
         }
     }
 }

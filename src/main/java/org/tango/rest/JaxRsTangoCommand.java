@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author ingvord
@@ -51,7 +52,12 @@ public class JaxRsTangoCommand {
                       @Context UriInfo uriInfo,
                       CommandInOut<Object, Object> value) throws Exception {
         if (async) {
-            command.execute(value.input);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    command.execute(value.input);
+                } catch (DevFailed ignored) {
+                }
+            });
             return null;
         } else {
             value.output = command.executeExtract(value.input);

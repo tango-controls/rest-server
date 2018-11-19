@@ -1,6 +1,6 @@
 package org.tango.rest;
 
-import org.tango.rest.entities.Pipe;
+import org.tango.rest.entities.pipe.Pipe;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.util.TangoRestEntityUtils;
@@ -13,7 +13,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

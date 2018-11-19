@@ -56,14 +56,16 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
         try {
             String name = domain + "/" + family + "/" + member;
-            TangoProxy proxy = tangoRestServer.proxyPool.getProxy("tango://" + db.getTangoHost() + "/" + name);
+            TangoProxy proxy = tangoRestServer.proxyPool.getProxy(db.getFullTangoHost() + "/" + name);
 
             TangoDeviceProxy result = new TangoDeviceProxyImpl(db.getTangoHost(), name, proxy);
 
             ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);
         } catch (TangoProxyException e) {
-            logger.error("Failed to get proxy for {}/{}/{}", domain, family, member);
-            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(e)).build());
+            Response.Status status = Response.Status.BAD_REQUEST;
+            if(e.reason.contains("DB_DeviceNotDefined"))
+                status = Response.Status.NOT_FOUND;
+            requestContext.abortWith(Response.status(status).entity(Failures.createInstance(e)).build());
         }
     }
 }

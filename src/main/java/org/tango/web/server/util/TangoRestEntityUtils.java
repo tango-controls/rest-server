@@ -5,6 +5,7 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.rest.entities.*;
+import org.tango.rest.entities.pipe.Pipe;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.response.TangoRestAttribute;

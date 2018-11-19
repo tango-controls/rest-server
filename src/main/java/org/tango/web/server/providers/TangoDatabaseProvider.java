@@ -63,7 +63,10 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
             ResteasyProviderFactory.pushContext(TangoDatabaseProxy.class, tangoDb);
         } catch (DevFailed devFailed) {
-            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
+            Response.Status status = Response.Status.BAD_REQUEST;
+            if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))
+                status = Response.Status.NOT_FOUND;
+            requestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
         }
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevError;
 import fr.esrf.Tango.DevFailed;
+import org.tango.client.ez.proxy.TangoProxyException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +23,14 @@ public class Failures {
                 new Failure.Error[]{
                         new Failure.Error(
                                 msg, "", "", Thread.currentThread().getStackTrace()[2].toString())},
+                System.currentTimeMillis());
+    }
+
+    public static Failure createInstance(TangoProxyException cause) {
+        return new Failure(
+                new Failure.Error[]{
+                    new Failure.Error(
+                        cause.device, cause.reason, cause.severity, cause.origin)},
                 System.currentTimeMillis());
     }
 

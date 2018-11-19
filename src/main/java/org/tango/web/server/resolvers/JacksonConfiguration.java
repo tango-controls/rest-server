@@ -14,9 +14,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.BeanPropertyFilter;
-import org.codehaus.jackson.map.ser.BeanPropertyWriter;
-import org.codehaus.jackson.map.ser.FilterProvider;
+import org.codehaus.jackson.map.ser.*;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -40,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -63,7 +62,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
         tangoModule.addSerializer(new TangoImageSerializer(JaxRsDeviceAttribute.ImageAttributeValue.class));
         tangoModule.addSerializer(new DevStateSerializer(DevState.class));
-        tangoModule.addSerializer(new AttrInfoSerializer(AttributeInfo.class));
+        tangoModule.addSerializer(new PipeWriteTypeSerializer(PipeWriteType.class));
         tangoModule.addSerializer(new AttrInfoExSerializer(AttributeInfoEx.class));
         tangoModule.addSerializer(new CommandInfoSerializer(CommandInfo.class));
         tangoModule.addDeserializer(AttrWriteType.class, new AttrWriteTypeDeserializer());
@@ -87,7 +86,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         if (filter != null) {
             FilterProvider fp = new SimpleFilterProvider().addFilter("json-response-fields-filter",
                     filter.inverse ?
-                            SimpleBeanPropertyFilter.serializeAllExcept(filter.fieldNames) :
+                            new CustomSerializeAllExcept(filter.fieldNames) :
                             new CustomFilterOutAllExceptFilter(filter.fieldNames)
             );
             mapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -101,12 +100,32 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         return mapper;
     }
 
-    public static class CustomFilterOutAllExceptFilter implements BeanPropertyFilter {
+    public static interface PropertySerializeChecker{
+        boolean serializeField(String name);
+    }
+
+    public static class CustomSerializeAllExcept extends SimpleBeanPropertyFilter.SerializeExceptFilter implements PropertySerializeChecker{
+        public CustomSerializeAllExcept(Set<String> properties) {
+            super(properties);
+        }
+
+        @Override
+        public boolean serializeField(String name) {
+            return !_propertiesToExclude.contains(name);
+        }
+    }
+
+    public static class CustomFilterOutAllExceptFilter implements BeanPropertyFilter, PropertySerializeChecker {
 
         private Set<String> fieldNames;
 
         public CustomFilterOutAllExceptFilter(Set<String> fieldNames) {
             this.fieldNames = fieldNames;
+        }
+
+        @Override
+        public boolean serializeField(String name) {
+            return fieldNames.contains(name);
         }
 
         @Override
@@ -247,30 +266,14 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
     }
 
-    private static class AttrInfoSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttributeInfo> {
-        protected AttrInfoSerializer(Class<AttributeInfo> t) {
+    private static class PipeWriteTypeSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<PipeWriteType> {
+        protected PipeWriteTypeSerializer(Class<PipeWriteType> t) {
             super(t);
         }
 
         @Override
-        public void serialize(AttributeInfo value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
-            try {
-                jgen.writeStartObject();
-
-                for(Field fld : value.getClass().getDeclaredFields()){
-                    String fldName = fld.getName();
-                    jgen.writeFieldName(fldName);
-                    if(fldName.equals("data_type"))
-                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
-                    else
-                        provider.defaultSerializeValue(fld.get(value), jgen);
-                }
-
-
-                jgen.writeEndObject();
-            } catch (IllegalAccessException e) {
-                throw new JsonGenerationException(e);
-            }
+        public void serialize(PipeWriteType value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+             jgen.writeString(value.toString());
         }
     }
 
@@ -281,31 +284,42 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         @Override
         public void serialize(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
+            Optional<PropertySerializeChecker> optionalFilter = Optional.ofNullable(getFilter(provider));
             try {
                 jgen.writeStartObject();
 
                 for(Field fld : AttributeInfo.class.getDeclaredFields()){
                     String fldName = fld.getName();
-                    jgen.writeFieldName(fldName);
-                    if(fldName.equals("data_type"))
-                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
-                    else
-                        provider.defaultSerializeValue(fld.get(value), jgen);
+                    if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
+                    writeField(value, jgen, provider, fld, fldName);
                 }
 
                 for(Field fld : AttributeInfoEx.class.getDeclaredFields()){
                     String fldName = fld.getName();
-                    jgen.writeFieldName(fldName);
-                    if(fldName.equals("data_type"))
-                        jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
-                    else
-                        provider.defaultSerializeValue(fld.get(value), jgen);
+                    if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
+                    writeField(value, jgen, provider, fld, fldName);
                 }
 
                 jgen.writeEndObject();
             } catch (IllegalAccessException e) {
                 throw new JsonGenerationException(e);
             }
+        }
+
+        private PropertySerializeChecker getFilter(SerializerProvider provider) {
+            try {
+                return (PropertySerializeChecker) provider.getFilterProvider().findFilter("json-response-fields-filter");
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+
+        private void writeField(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider, Field fld, String fldName) throws IOException, IllegalAccessException {
+            jgen.writeFieldName(fldName);
+            if (fldName.equals("data_type"))
+                jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+            else
+                provider.defaultSerializeValue(fld.get(value), jgen);
         }
     }
 

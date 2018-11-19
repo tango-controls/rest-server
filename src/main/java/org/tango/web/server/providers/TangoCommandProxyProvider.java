@@ -48,7 +48,10 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
             TangoCommandProxy proxy = Proxies.newTangoCommandProxy(deviceProxy.getFullName(), name);
             ResteasyProviderFactory.pushContext(TangoCommandProxy.class, proxy);
         } catch (DevFailed devFailed) {
-            containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
+            Response.Status status = Response.Status.BAD_REQUEST;
+            if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_CommandNotFound"))
+                status = Response.Status.NOT_FOUND;
+            containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
         }
     }
 }
