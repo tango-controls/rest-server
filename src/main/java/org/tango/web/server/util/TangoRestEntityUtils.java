@@ -55,7 +55,7 @@ public class TangoRestEntityUtils {
         StringJoiner stringJoiner = new StringJoiner("/");
         stringJoiner.add("tango:/").add(attributeValue.host).add(attributeValue.device).add(attributeValue.name);
         try {
-            TangoAttribute tangoAttribute = new TangoAttribute(stringJoiner.toString());
+            TangoAttribute tangoAttribute = new TangoAttribute(stringJoiner.toString());//TODO cache
             tangoAttribute.write(attributeValue.value);
             attributeValue.quality = tangoAttribute.getQuality().toString();
             attributeValue.timestamp = tangoAttribute.getTimestamp();

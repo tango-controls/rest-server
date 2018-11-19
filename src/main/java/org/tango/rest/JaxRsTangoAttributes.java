@@ -11,6 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * @since 11/16/18
  */
 @Produces(MediaType.APPLICATION_JSON)
-public class Attributes {
+public class JaxRsTangoAttributes {
 
     @GET
     @Partitionable
@@ -47,9 +48,15 @@ public class Attributes {
     @Partitionable
     @DynamicValue
     @Path("/value")
-    public List<AttributeValue<?>> write(List<AttributeValue<?>> values){
-        return values.stream()
-                .map(TangoRestEntityUtils::setValueToTangoAttribute).collect(Collectors.toList());
+    public List<AttributeValue<?>> write(@DefaultValue("false") @QueryParam("async") boolean async, List<AttributeValue<?>> values){
+        if(async) {
+            //TODO servlet async
+            CompletableFuture.runAsync(() -> values.forEach(TangoRestEntityUtils::setValueToTangoAttribute));
+            return null;
+        } else {
+            return values.stream()
+                    .map(TangoRestEntityUtils::setValueToTangoAttribute).collect(Collectors.toList());
+        }
     }
 
 }

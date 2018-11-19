@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  */
 @Path("/commands")
 @Produces(MediaType.APPLICATION_JSON)
-public class JaxRsCommands {
+public class JaxRsTangoCommands {
 
     @GET
     @StaticValue
