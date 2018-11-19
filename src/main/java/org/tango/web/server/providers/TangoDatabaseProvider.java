@@ -6,21 +6,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.rest.entities.Failures;
-import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.util.TangoDatabaseUtils;
+import org.tango.web.server.proxy.Proxies;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -61,9 +59,9 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
 
         try {
-            TangoDatabase tangoDb = TangoDatabaseUtils.getDatabase(host, port);
+            TangoDatabaseProxy tangoDb = Proxies.getDatabase(host, port);
 
-            ResteasyProviderFactory.pushContext(TangoDatabase.class, tangoDb);
+            ResteasyProviderFactory.pushContext(TangoDatabaseProxy.class, tangoDb);
         } catch (DevFailed devFailed) {
             requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
         }

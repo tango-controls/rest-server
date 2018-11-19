@@ -7,7 +7,7 @@ import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.entities.Failures;
-import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.proxy.TangoDeviceProxyImpl;
 
@@ -42,7 +42,7 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        TangoDatabase db = ResteasyProviderFactory.getContextData(TangoDatabase.class);
+        TangoDatabaseProxy db = ResteasyProviderFactory.getContextData(TangoDatabaseProxy.class);
         if (db == null) return;
 
         UriInfo uriInfo = requestContext.getUriInfo();
@@ -56,9 +56,9 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
         try {
             String name = domain + "/" + family + "/" + member;
-            TangoProxy proxy = tangoRestServer.proxyPool.getProxy("tango://" + db.getFullTangoHost() + "/" + name);
+            TangoProxy proxy = tangoRestServer.proxyPool.getProxy("tango://" + db.getTangoHost() + "/" + name);
 
-            TangoDeviceProxy result = new TangoDeviceProxyImpl(db, name, proxy);
+            TangoDeviceProxy result = new TangoDeviceProxyImpl(db.getTangoHost(), name, proxy);
 
             ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);
         } catch (TangoProxyException e) {

@@ -16,16 +16,17 @@ import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.entities.Device;
-import org.tango.rest.entities.DeviceState;
-import org.tango.rest.entities.NamedEntity;
+import org.tango.rest.entities.*;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoAttributeProxyImpl;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.response.TangoRestAttribute;
+import org.tango.web.server.response.TangoRestCommand;
 import org.tango.web.server.response.TangoRestDevice;
 import org.tango.web.server.util.TangoRestEntityUtils;
 
@@ -35,12 +36,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
@@ -52,16 +51,17 @@ import static org.mockito.Mockito.mock;
 @Path("/{domain}/{family}/{member}")
 @Produces("application/json")
 public class JaxRsDevice {
+    @Context private TangoDatabaseProxy tangoDatabase;
     @Context private TangoDeviceProxy tangoDevice;
 
     @GET
     @StaticValue
     public Device get(@Context UriInfo uriInfo) throws DevFailed{
         return new TangoRestDevice(
-                tangoDevice.getDatabase().getFullTangoHost() + "/" + tangoDevice.getName(),
+                tangoDatabase.getTangoHost() + "/" + tangoDevice.getName(),
                 tangoDevice.getName(),
-                tangoDevice.getDatabase().getFullTangoHost(),
-                tangoDevice.getDatabase().asEsrfDb().get_device_info(tangoDevice.getName()),
+                tangoDatabase.getTangoHost(),
+                tangoDatabase.asEsrfDatabase().get_device_info(tangoDevice.getName()),
                 uriInfo.getAbsolutePath());
     }
 
@@ -69,12 +69,15 @@ public class JaxRsDevice {
     @Partitionable
     @StaticValue
     @Path("/attributes")
-    public List<TangoRestAttribute> deviceAttributes(@Context UriInfo uriInfo) throws DevFailed {
-        return Arrays.stream(tangoDevice.getDatabase().asEsrfDb().get_device_attribute_list(tangoDevice.getName()))
-                .map(s -> "tango://" + tangoDevice.getDatabase().getFullTangoHost() + "/" + tangoDevice.getName() + "/" + s)
-                .map(TangoRestEntityUtils::newTangoAttribute)
-                .map(TangoAttributeProxyImpl::new)
-                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+    public List<Attribute> deviceAttributes(@Context UriInfo uriInfo) throws DevFailed {
+        return Arrays.stream(tangoDevice.getProxy().toDeviceProxy().get_attribute_info_ex(tangoDevice.getProxy().toDeviceProxy().get_attribute_list()))
+                .map(infoEx -> new TangoRestAttribute(
+                        tangoDatabase.getTangoHost(),
+                        tangoDevice.getName(),
+                        infoEx.name,
+                        infoEx,
+                        uriInfo.getAbsolutePathBuilder().path(infoEx.name).build() ,
+                        null))
                 .collect(Collectors.toList());
     }
 
@@ -185,14 +188,16 @@ public class JaxRsDevice {
     @Partitionable
     @StaticValue
     @Path("/commands")
-    public Object deviceCommands(@Context UriInfo uriInfo) throws DevFailed {
-        final String href = uriInfo.getAbsolutePath().toString();
-        return Lists.transform(Arrays.asList(tangoDevice.getProxy().toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
-            @Override
-            public Object apply(final CommandInfo input) {
-                return DeviceHelper.commandInfoToResponse(input, href);
-            }
-        });
+    public List<Command> deviceCommands(@Context UriInfo uriInfo) throws DevFailed {
+        return Arrays.stream(tangoDevice.getProxy().toDeviceProxy().command_list_query())
+                .map(commandInfo -> new TangoRestCommand(
+                        commandInfo.cmd_name,
+                        tangoDatabase.getTangoHost(),
+                        tangoDevice.getName(),
+                        commandInfo,
+                        uriInfo.getAbsolutePathBuilder().path(commandInfo.cmd_name).build(),
+                        null))
+                .collect(Collectors.toList());
     }
 
 

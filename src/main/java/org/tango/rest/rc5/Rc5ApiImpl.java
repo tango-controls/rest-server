@@ -9,7 +9,7 @@ import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
-import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -46,9 +46,9 @@ public class Rc5ApiImpl {
     @GET
     @StaticValue
     @Path("/hosts/{host}")
-    public TangoHost getHost(@Context TangoDatabase db,
+    public TangoHost getHost(@Context TangoDatabaseProxy db,
                           @Context final UriInfo uriInfo) throws DevFailed {
-        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDb().get_name(),db.getInfo(),uriInfo.getAbsolutePath());
+        return new TangoHost(db.getHost(), db.getPort(), db.asEsrfDatabase().get_name(),db.getInfo(),uriInfo.getAbsolutePath());
     }
 
     @Path("/hosts/{var:.+}/devices")

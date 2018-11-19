@@ -2,6 +2,7 @@ package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxyPool;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.util.TangoSelector;
 import org.tango.web.server.util.Wildcard;
@@ -22,10 +23,12 @@ import java.util.List;
 @Provider
 @RequiresTangoSelector
 public class TangoSelectorProvider implements ContainerRequestFilter {
-
-
-
     public static final String WILDCARD = "wildcard";
+    private TangoProxyPool proxyPool;
+
+    public TangoSelectorProvider(TangoProxyPool proxyPool) {
+        this.proxyPool = proxyPool;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -41,7 +44,7 @@ public class TangoSelectorProvider implements ContainerRequestFilter {
             return;
         }
 
-        ResteasyProviderFactory.pushContext(TangoSelector.class, new TangoSelector(wildcards));
+        ResteasyProviderFactory.pushContext(TangoSelector.class, new TangoSelector(wildcards, proxyPool));
 
     }
 

@@ -3,15 +3,10 @@ package org.tango.web.server.util;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.DeviceProxyFactory;
-import fr.esrf.TangoApi.PipeInfo;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
-import org.tango.client.ez.proxy.TangoProxies;
-import org.tango.client.ez.proxy.TangoProxy;
-import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.proxy.TangoPipeProxy;
-import org.tango.web.server.proxy.TangoPipeProxyImpl;
+import org.tango.web.server.TangoProxyPool;
+import org.tango.web.server.proxy.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,84 +19,160 @@ import java.util.stream.Stream;
 //TODO handle exceptions
 public class TangoSelector {
 
+    private final TangoProxyPool proxyPool;
     private final List<Wildcard> wildcards;
 
-    public TangoSelector(List<Wildcard> wildcards) {
+    public TangoSelector(List<Wildcard> wildcards, TangoProxyPool proxyPool) {
         this.wildcards = wildcards;
+        this.proxyPool = proxyPool;
     }
 
-    public List<TangoDatabase> selectTangoHosts(){
+    private Stream<WildcardDatabase> getWildcardDatabaseStream(){
         return wildcards.stream()
-                .map(wildcard -> TangoDatabaseUtils.getDatabase(wildcard.host))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .map(wildcard ->
+                    Proxies.getDatabase(wildcard.host).map(tangoDatabaseProxy ->
+                        new WildcardDatabase(wildcard, tangoDatabaseProxy)
+                    ).orElse(null))
+                .filter(Objects::nonNull);
+    }
+
+    public List<TangoDatabaseProxy> selectTangoHosts(){
+        return getWildcardDatabaseStream()
+                .map(WildcardDatabase::getDatabase)
                 .collect(Collectors.toList());
     }
 
-    public List<Optional<TangoProxy>> selectDevices(){
-        return wildcards.stream()
-                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard,TangoDatabaseUtils.getDatabase(wildcard.host).orElse(null)  ))
-                .filter(entry -> Objects.nonNull(entry.getValue()))
-                .flatMap(this::getDevicesURL)
-                .map(s -> {
-                    try {
-                        return Optional.of(TangoProxies.newDeviceProxyWrapper(s));
-                    } catch (TangoProxyException e) {
-                        return Optional.<TangoProxy>empty();
-                    }
-                })
+    private Stream<WildcardDevice> getWildcardDeviceStream(){
+        return getWildcardDatabaseStream()
+                .flatMap(wildcardDatabase ->
+                    wildcardDatabase.database.getDeviceNames(wildcardDatabase.wildcard.asDeviceWildcard()).stream()
+                            .map(s ->
+                                    Proxies.optionalTangoDeviceProxyFromPool(wildcardDatabase.database.getTangoHost(),s, proxyPool)
+                                    .map(tangoDeviceProxy -> new WildcardDevice(wildcardDatabase,tangoDeviceProxy))
+                                    .orElse(null)
+                            )
+                            .filter(Objects::nonNull)
+                );
+    }
+
+    public List<TangoDeviceProxy> selectDevices(){
+        return getWildcardDeviceStream()
+                .map(WildcardDevice::getDevice)
                 .collect(Collectors.toList());
     }
 
-    public Stream<String> getDevicesURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabase> entry) {
-        return entry.getValue().getDevices(entry.getKey().asDeviceWildcard()).stream().map(s -> "tango://" + entry.getValue().getFullTangoHost() + "/" + s);
+    public Stream<String> getDevicesURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabaseProxy> entry) {
+        return entry.getValue().getDeviceNames(entry.getKey().asDeviceWildcard()).stream().map(s -> "tango://" + entry.getValue().getTangoHost() + "/" + s);
     }
 
-    public List<Optional<TangoAttribute>> selectAttributes(){
-        return getDeviceMemberURLStream()
-                .map(s -> {
-                    try {
-                        return Optional.of(new TangoAttribute(s));
-                    } catch (DevFailed devFailed) {
-                        return Optional.<TangoAttribute>empty();
-                    }
-                })
-                .collect(Collectors.toList());
+    private Stream<WildcardMember<TangoAttributeProxy>> getWildcardAttributeStream(){
+        return getWildcardDeviceStream()
+                .flatMap(wildcardDevice ->
+                    wildcardDevice.device.getAttributeNames(wildcardDevice.wildcard.attribute).stream()
+                            .map(s ->
+                                Proxies.optionalTangoAttributeProxy(wildcardDevice.device.getFullName() + "/" + s)
+                                        .map(tangoAttributeProxy -> new WildcardMember<>(wildcardDevice, tangoAttributeProxy))
+                                        .orElse(null)
+                            )
+                        .filter(Objects::nonNull)
+                );
     }
 
-    public List<Optional<TangoCommand>> selectCommands(){
-        return getDeviceMemberURLStream()
-                .map(s -> {
-                    try {
-                        return Optional.of(new TangoCommand(s.substring(0, s.lastIndexOf('/')), s.substring(s.lastIndexOf('/') + 1)));
-                    } catch (DevFailed devFailed) {
-                        return Optional.<TangoCommand>empty();
-                    }
-                })
-                .collect(Collectors.toList());
+    public Stream<TangoAttributeProxy> selectAttributesStream(){
+        return getWildcardAttributeStream()
+                .map(WildcardMember::getMember);
     }
 
-    public Stream<Optional<TangoPipeProxy>> selectPipes(){
-        return getDeviceMemberURLStream()
-                .map(s -> {
-                    try {
-                        DeviceProxy proxy = DeviceProxyFactory.get(s.substring(0,s.lastIndexOf('/')));
-                        return Optional.<TangoPipeProxy>of(new TangoPipeProxyImpl(s.substring(s.lastIndexOf('/') + 1), proxy));
-                    } catch (DevFailed devFailed) {
-                        return Optional.<TangoPipeProxy>empty();
-                    }
-                });
+    private Stream<WildcardMember<TangoCommandProxy>> getWildcardCommandStream(){
+        return getWildcardDeviceStream()
+                .flatMap(wildcardDevice ->
+                                wildcardDevice.device.getCommandNames(wildcardDevice.wildcard.attribute).stream()
+                                .map(s ->
+                                        Proxies.optionalTangoCommandProxy(wildcardDevice.device.getFullName(), s)
+                                                .map(tangoCommandProxy -> new WildcardMember<>(wildcardDevice, tangoCommandProxy))
+                                                .orElse(null)
+                                )
+                                .filter(Objects::nonNull)
+                );
+    }
+
+
+    public Stream<TangoCommandProxy> selectCommandsStream(){
+        return getWildcardCommandStream()
+                .map(WildcardMember::getMember);
+    }
+
+    private Stream<WildcardMember<TangoPipeProxy>> getWildcardPipeStream(){
+        return getWildcardDeviceStream()
+                .flatMap(wildcardDevice ->
+                                wildcardDevice.device.getPipeNames(wildcardDevice.wildcard.attribute).stream()
+                                .map(s ->
+                                        Proxies.optionalTangoPipeProxy(wildcardDevice.device.getFullName(), s)
+                                                .map(tangoCommandProxy -> new WildcardMember<>(wildcardDevice, tangoCommandProxy))
+                                                .orElse(null)
+                                )
+                                .filter(Objects::nonNull)
+                );
+    }
+
+    public Stream<TangoPipeProxy> selectPipesStream(){
+        return getWildcardPipeStream()
+                .map(WildcardMember::getMember);
     }
 
 
     private Stream<String> getDeviceMemberURLStream() {
         return wildcards.stream()
-                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, TangoDatabaseUtils.getDatabase(wildcard.host).orElse(null)))
+                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, Proxies.getDatabase(wildcard.host).orElse(null)))
                 .filter(entry -> Objects.nonNull(entry.getValue()))
                 .flatMap(this::getDeviceMemberURL);
     }
 
-    private Stream<String> getDeviceMemberURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabase> wildcardTangoDatabaseSimpleEntry) {
+    private Stream<String> getDeviceMemberURL(AbstractMap.SimpleEntry<Wildcard, TangoDatabaseProxy> wildcardTangoDatabaseSimpleEntry) {
         return getDevicesURL(wildcardTangoDatabaseSimpleEntry).map(s -> s + "/" + wildcardTangoDatabaseSimpleEntry.getKey().attribute);
+    }
+
+    private static class WildcardDatabase {
+        Wildcard wildcard;
+        TangoDatabaseProxy database;
+
+        public WildcardDatabase(Wildcard wildcard, TangoDatabaseProxy database) {
+            this.wildcard = wildcard;
+            this.database = database;
+        }
+
+        public Wildcard getWildcard() {
+            return wildcard;
+        }
+
+        public TangoDatabaseProxy getDatabase() {
+            return database;
+        }
+    }
+
+    private static class WildcardDevice extends WildcardDatabase {
+        TangoDeviceProxy device;
+
+        public WildcardDevice(WildcardDatabase wildcard, TangoDeviceProxy device) {
+            super(wildcard.wildcard, wildcard.database);
+            this.device = device;
+        }
+
+        public TangoDeviceProxy getDevice() {
+            return device;
+        }
+    }
+
+    private static class WildcardMember<T> extends WildcardDevice {
+        T member;
+
+        public WildcardMember(WildcardDevice wildcard, T member) {
+            super(wildcard, wildcard.device);
+            this.member = member;
+        }
+
+        public T getMember() {
+            return member;
+        }
     }
 }

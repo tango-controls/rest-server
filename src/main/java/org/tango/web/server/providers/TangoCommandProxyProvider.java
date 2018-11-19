@@ -8,6 +8,7 @@ import org.tango.rest.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoCommand;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.proxy.*;
+import org.tango.web.server.util.TangoDeviceProxyUtils;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -44,8 +45,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
         }
 
         try {
-            TangoCommand tangoCommand = new TangoCommand(deviceProxy.toUriBuilder().build().toString(), name);
-            TangoCommandProxy proxy = new TangoCommandProxyImpl(tangoCommand);
+            TangoCommandProxy proxy = Proxies.newTangoCommandProxy(deviceProxy.getFullName(), name);
             ResteasyProviderFactory.pushContext(TangoCommandProxy.class, proxy);
         } catch (DevFailed devFailed) {
             containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());

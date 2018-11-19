@@ -22,6 +22,7 @@ import org.tango.web.server.attribute.AttributeProperty;
 import org.tango.web.server.attribute.EventBuffer;
 import org.tango.web.server.binding.*;
 import org.tango.web.server.proxy.TangoAttributeProxy;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.util.TangoRestEntityUtils;
@@ -45,6 +46,7 @@ import java.util.NavigableSet;
 @RequiresTangoAttribute
 public class JaxRsDeviceAttribute {
     @PathParam("attr") public  String name;
+    @Context public TangoDatabaseProxy databaseProxy;
     @Context public TangoDeviceProxy deviceProxy;
     @Context public TangoAttributeProxy tangoAttribute;
 
@@ -99,7 +101,7 @@ public class JaxRsDeviceAttribute {
 
                         TangoDataType<?> type = TangoDataTypes.forTangoDevDataType(input.getType());
 
-                        return new AttributeValue<Object>(input.getName(), deviceProxy.getDatabase().getFullTangoHost(), deviceProxy.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
+                        return new AttributeValue<Object>(input.getName(), databaseProxy.getTangoHost(), deviceProxy.getName(), type.extract(wrapper), AttrQuality.ATTR_VALID.toString(), input.getTime());
                     } catch (UnknownTangoDataType | DevFailed | ValueExtractionException e) {
                         return Failures.createInstance(e);
                     }
@@ -149,7 +151,7 @@ public class JaxRsDeviceAttribute {
             }
         });
         if (!datumCollection.iterator().hasNext()) throw new NotFoundException(
-                String.format("Device attribute [%s/%s/%s] has no property[%s]", deviceProxy.getDatabase().getFullTangoHost(),deviceProxy.getName(), name, property));
+                String.format("Device attribute [%s/%s/%s] has no property[%s]", databaseProxy.getTangoHost(),deviceProxy.getName(), name, property));
         return new AttributeProperty(datumCollection.iterator().next());
     }
 
@@ -194,7 +196,7 @@ public class JaxRsDeviceAttribute {
 
         return new AttributeValue<Object>(
                 JaxRsDeviceAttribute.this.name,
-                deviceProxy.getDatabase().getFullTangoHost() ,
+                databaseProxy.getTangoHost() ,
                 deviceProxy.getName(), tangoAttribute.extract(),
                 tangoAttribute.getQuality().toString(),
                 tangoAttribute.getTimestamp());

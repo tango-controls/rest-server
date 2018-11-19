@@ -28,9 +28,7 @@ public class JaxRsTangoPipes {
     @RequiresTangoSelector
     @StaticValue
     public List<Pipe> get(@Context TangoSelector selector, @Context UriInfo uriInfo){
-        return selector.selectPipes()
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        return selector.selectPipesStream()
                 .map(tangoPipeProxy -> TangoRestEntityUtils.newPipe(tangoPipeProxy, uriInfo))
                 .collect(Collectors.toList());
     }

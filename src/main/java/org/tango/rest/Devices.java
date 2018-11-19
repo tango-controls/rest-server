@@ -6,8 +6,7 @@ import fr.esrf.Tango.DevFailed;
 import org.tango.rest.entities.NamedEntity;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.proxy.TangoDeviceProxyImpl;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -29,9 +28,9 @@ public class Devices {
     @Partitionable
     public Object get(@DefaultValue("*") @QueryParam("wildcard") String wildcard,
                       @Context final UriInfo uriInfo,
-                      @Context TangoDatabase db,
+                      @Context TangoDatabaseProxy db,
                       @Context final ServletContext context) throws DevFailed {
-        List<String> result = Arrays.asList(db.asEsrfDb().get_device_list(wildcard));
+        List<String> result = Arrays.asList(db.asEsrfDatabase().get_device_list(wildcard));
         List<NamedEntity> transform = Lists.transform(result, new Function<String, NamedEntity>() {
             @Override
             public NamedEntity apply(final String input) {
@@ -48,9 +47,9 @@ public class Devices {
     public Object getFamilies(@PathParam("domain") String domain,
                               @DefaultValue("*") @QueryParam("wildcard") String wildcard,
                               @Context final UriInfo uriInfo,
-                              @Context TangoDatabase db,
+                              @Context TangoDatabaseProxy db,
                               @Context final ServletContext context) throws DevFailed {
-        return db.asEsrfDb().get_device_family(domain + "/" + wildcard);
+        return db.asEsrfDatabase().get_device_family(domain + "/" + wildcard);
     }
 
     @GET
@@ -61,9 +60,9 @@ public class Devices {
                              @PathParam("family") String family,
                              @DefaultValue("*") @QueryParam("wildcard") String wildcard,
                              @Context final UriInfo uriInfo,
-                             @Context TangoDatabase db,
+                             @Context TangoDatabaseProxy db,
                              @Context final ServletContext context) throws DevFailed {
-        return db.asEsrfDb().get_device_member(domain + "/" + family + "/" + wildcard);
+        return db.asEsrfDatabase().get_device_member(domain + "/" + family + "/" + wildcard);
     }
 
     @Path("/{domain}/{family}/{member}")

@@ -1,6 +1,6 @@
 package org.tango.web.server.tree;
 
-import org.tango.web.server.proxy.TangoDatabase;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import java.util.List;
 
@@ -9,10 +9,10 @@ import java.util.List;
  * @since 11/14/18
  */
 public class DevicesTreeContext {
-    public List<TangoDatabase> dbs;
+    public List<TangoDatabaseProxy> dbs;
     public DeviceFilters filters;
 
-    public DevicesTreeContext(List<TangoDatabase> dbs, DeviceFilters filters) {
+    public DevicesTreeContext(List<TangoDatabaseProxy> dbs, DeviceFilters filters) {
         this.dbs = dbs;
         this.filters = filters;
     }

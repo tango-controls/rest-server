@@ -3,10 +3,10 @@ package org.tango.web.server.providers;
 import com.google.common.collect.Lists;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
+import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
-import org.tango.web.server.proxy.TangoDatabase;
-import org.tango.web.server.util.TangoDatabaseUtils;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -40,7 +40,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         UriInfo uriInfo = requestContext.getUriInfo();
 
-        List<TangoDatabase> dbs = getDatabases(uriInfo);
+        List<TangoDatabaseProxy> dbs = getDatabases(uriInfo);
 
         if(dbs.isEmpty()){
             requestContext.abortWith(
@@ -59,7 +59,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
         ResteasyProviderFactory.pushContext(DevicesTreeContext.class, context);
     }
 
-    private List<TangoDatabase> getDatabases(UriInfo uriInfo) {
+    private List<TangoDatabaseProxy> getDatabases(UriInfo uriInfo) {
         List<PathSegment> segments = uriInfo.getPathSegments();
 
         if(segments.get(3).getPath().equalsIgnoreCase("tree")) {
@@ -67,13 +67,13 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
             if(tango_hosts == null) return Collections.emptyList();
             return tango_hosts.stream()
                     .filter(this::checkURISyntax)
-                    .map(TangoDatabaseUtils::getDatabase)
+                    .map(Proxies::getDatabase)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toList());
         } else {
-            Optional<TangoDatabase> contextData = Optional.ofNullable(ResteasyProviderFactory.getContextData(TangoDatabase.class));
-            return contextData.<List<TangoDatabase>>map(Lists::newArrayList).orElse(Collections.emptyList());
+            Optional<TangoDatabaseProxy> contextData = Optional.ofNullable(ResteasyProviderFactory.getContextData(TangoDatabaseProxy.class));
+            return contextData.<List<TangoDatabaseProxy>>map(Lists::newArrayList).orElse(Collections.emptyList());
         }
     }
 

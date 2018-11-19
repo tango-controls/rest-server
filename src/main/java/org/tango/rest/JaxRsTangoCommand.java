@@ -16,6 +16,7 @@ import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoCommand;
 import org.tango.web.server.proxy.TangoCommandProxy;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.util.TangoRestEntityUtils;
 
@@ -35,6 +36,7 @@ import java.util.List;
 @RequiresTangoCommand
 public class JaxRsTangoCommand {
     @PathParam("cmd") public String name;
+    @Context public TangoDatabaseProxy database;
     @Context public TangoDeviceProxy proxy;
     @Context public TangoCommandProxy command;
 
@@ -75,7 +77,7 @@ public class JaxRsTangoCommand {
                     public CommandInOut<Object, Object> apply(DeviceDataHistory input) {
                         CommandInOut<Object, Object> result = new CommandInOut<>();
                         result.name = name;
-                        result.host = proxy.getDatabase().getFullTangoHost();
+                        result.host = database.getTangoHost();
                         result.device = proxy.getName();
                         if (!input.hasFailed()) {
                             try {

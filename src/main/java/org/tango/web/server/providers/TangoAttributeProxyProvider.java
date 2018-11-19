@@ -5,10 +5,8 @@ import fr.soleil.tango.clientapi.TangoAttribute;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoAttribute;
-import org.tango.web.server.proxy.TangoAttributeProxy;
-import org.tango.web.server.proxy.TangoAttributeProxyImpl;
-import org.tango.web.server.proxy.TangoDeviceProxy;
-import org.tango.web.server.proxy.TangoDeviceProxyImpl;
+import org.tango.web.server.proxy.*;
+import org.tango.web.server.util.TangoDeviceProxyUtils;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -44,9 +42,11 @@ public class TangoAttributeProxyProvider implements ContainerRequestFilter {
             throw new AssertionError();
         }
 
+
+
+
         try {
-            TangoAttribute tangoAttribute = new TangoAttribute(deviceProxy.toUriBuilder().path(name).build().toString());
-            TangoAttributeProxy proxy = new TangoAttributeProxyImpl(tangoAttribute);
+            TangoAttributeProxy proxy = Proxies.newTangoAttributeProxy(deviceProxy.getFullName() + "/" + name);
             ResteasyProviderFactory.pushContext(TangoAttributeProxy.class, proxy);
         } catch (DevFailed devFailed) {
             containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());

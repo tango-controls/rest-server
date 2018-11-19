@@ -28,15 +28,12 @@ public class TangoRestEntityUtils {
             String device = tangoAttribute.getAttributeProxy().getDeviceProxy().get_name();
             String name = tangoAttribute.getDeviceAttribute().getName();
 
-            StringJoiner stringJoiner = new StringJoiner("/");
-            String id = stringJoiner.add(host).add(device).add(name).toString();
-
             URI href = getDeviceURI(uriInfo, host, device)
                     .path("attributes")
                     .path(name).build();
 
             return new TangoRestAttribute(
-                    id, name, device, host, tangoAttribute.getAttributeProxy().get_info_ex(), href, tangoAttribute
+                    host, device, name, tangoAttribute.getAttributeProxy().get_info_ex(), href, tangoAttribute
             );
         } catch (DevFailed devFailed) {
             return new TangoRestAttribute(devFailed.errors);
