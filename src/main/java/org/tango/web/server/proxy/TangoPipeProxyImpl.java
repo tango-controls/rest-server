@@ -15,20 +15,29 @@ import org.tango.rest.entities.pipe.PipeWriteType;
 public class TangoPipeProxyImpl implements TangoPipeProxy {
     private final String name;
     private final DeviceProxy deviceProxy;
+    private final String host;
+    private final String deviceName;
 
-    public TangoPipeProxyImpl(String name, DeviceProxy deviceProxy) {
+    public TangoPipeProxyImpl(String host, String deviceName, String name, DeviceProxy deviceProxy) {
+        this.host = host;
+        this.deviceName = deviceName;
         this.name = name;
         this.deviceProxy = deviceProxy;
     }
 
     @Override
-    public String getTangoHost() throws DevFailed{
-        return deviceProxy.getFullTangoHost();
+    public String getTangoHost() {
+        return host;
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getDeviceName() {
+        return deviceName;
     }
 
     @Override

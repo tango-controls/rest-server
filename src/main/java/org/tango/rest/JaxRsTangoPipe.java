@@ -5,6 +5,7 @@ import fr.esrf.TangoApi.PipeBlob;
 import org.tango.rest.entities.pipe.Pipe;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.RequiresTangoPipe;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.util.TangoRestEntityUtils;
 

@@ -111,7 +111,7 @@ public class TangoRestEntityUtils {
     public static Pipe newPipe(TangoPipeProxy tangoPipeProxy, UriInfo uriInfo) {
         Pipe result = new Pipe();
         try{
-            result.device = tangoPipeProxy.getDeviceProxy().name();
+            result.device = tangoPipeProxy.getDeviceName();
             result.name = tangoPipeProxy.getName();
             result.host = tangoPipeProxy.getTangoHost();
             result.info = tangoPipeProxy.getInfo();

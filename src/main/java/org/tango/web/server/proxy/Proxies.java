@@ -101,10 +101,10 @@ public class Proxies {
         }
     }
 
-    public static Optional<TangoPipeProxy> optionalTangoPipeProxy(String deviceFullName, String name) {
+    public static Optional<TangoPipeProxy> optionalTangoPipeProxy(String host, String deviceName, String name) {
         try {
-            DeviceProxy deviceProxy = DeviceProxyFactory.get(deviceFullName);
-            return Optional.of(new TangoPipeProxyImpl(name, deviceProxy));
+            DeviceProxy deviceProxy = DeviceProxyFactory.get("tango://" + host + "/" + deviceName);
+            return Optional.of(new TangoPipeProxyImpl(host, deviceName, name, deviceProxy));
         } catch (DevFailed devFailed) {
             return Optional.empty();
         }

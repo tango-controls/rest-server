@@ -15,6 +15,8 @@ public interface TangoPipeProxy {
 
     String getName();
 
+    String getDeviceName();
+
     DeviceProxy getDeviceProxy();
 
     PipeInfo getInfo() throws DevFailed;

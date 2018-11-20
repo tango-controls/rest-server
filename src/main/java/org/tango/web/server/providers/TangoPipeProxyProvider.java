@@ -1,7 +1,5 @@
 package org.tango.web.server.providers;
 
-import fr.esrf.Tango.DevFailed;
-import fr.soleil.tango.clientapi.TangoCommand;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.rest.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoPipe;
@@ -35,13 +33,19 @@ public class TangoPipeProxyProvider implements ContainerRequestFilter {
             throw new AssertionError();
         }
 
+        TangoDatabaseProxy databaseProxy = ResteasyProviderFactory.getContextData(TangoDatabaseProxy.class);
+        if(Objects.isNull(databaseProxy)) {
+            containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance("deviceProxy is null")).build());
+            throw new AssertionError();
+        }
+
         TangoDeviceProxy deviceProxy = ResteasyProviderFactory.getContextData(TangoDeviceProxy.class);
         if(Objects.isNull(deviceProxy)) {
             containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance("deviceProxy is null")).build());
             throw new AssertionError();
         }
 
-        TangoPipeProxy proxy = new TangoPipeProxyImpl(name, deviceProxy.getProxy().toDeviceProxy());
+        TangoPipeProxy proxy = new TangoPipeProxyImpl(databaseProxy.getTangoHost(), deviceProxy.getName(), name, deviceProxy.getProxy().toDeviceProxy());
         ResteasyProviderFactory.pushContext(TangoPipeProxy.class, proxy);
     }
 }
