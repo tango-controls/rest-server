@@ -2,12 +2,14 @@ package org.tango.web.server.util;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CommandInfo;
+import fr.esrf.TangoApi.DevicePipe;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.rest.entities.*;
 import org.tango.rest.entities.pipe.Pipe;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
+import org.tango.web.server.response.TangoPipeValue;
 import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestCommand;
 
@@ -120,6 +122,22 @@ public class TangoRestEntityUtils {
 
             URI href = getDeviceURI(uriInfo, result.host, result.device).path("pipes").path(result.name).build();
             result.value = href + "/value";
+        } catch (DevFailed devFailed) {
+            result.errors = devFailed.errors;
+        }
+        return result;
+    }
+
+    public static TangoPipeValue newPipeValue(TangoPipeProxy proxy) {
+        TangoPipeValue result = new TangoPipeValue();
+        result.host = proxy.getTangoHost();
+        result.device = proxy.getDeviceName();
+        result.name = proxy.getName();
+
+        try {
+            DevicePipe devicePipe = proxy.read();
+            result.timestamp = devicePipe.getTimeValMillisSec();
+            result.data = devicePipe.getPipeBlob();
         } catch (DevFailed devFailed) {
             result.errors = devFailed.errors;
         }

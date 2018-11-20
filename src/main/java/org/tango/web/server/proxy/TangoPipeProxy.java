@@ -11,7 +11,7 @@ import org.tango.rest.entities.pipe.PipeInfo;
  * @since 11/19/18
  */
 public interface TangoPipeProxy {
-    String getTangoHost() throws DevFailed;
+    String getTangoHost();
 
     String getName();
 
