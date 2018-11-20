@@ -19,6 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -53,8 +55,18 @@ public class JaxRsTangoPipes {
     @DynamicValue
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/value")
-    public List<PipeValue> putValues(List<TangoPipeValue> blobs){
-        return blobs.stream().map(pipeValue ->
+    public List<PipeValue> putValues(@QueryParam("async") boolean async, List<TangoPipeValue> blobs){
+        if(async) {
+            CompletableFuture.runAsync(() ->  {
+                blobs.forEach(tangoPipeValue -> getWritePipeFunction().apply(tangoPipeValue));
+            });
+            return null;
+        } else
+            return blobs.stream().map(getWritePipeFunction()).collect(Collectors.toList());
+    }
+
+    private Function<TangoPipeValue, TangoPipeValue> getWritePipeFunction() {
+        return pipeValue ->
                 Proxies.optionalTangoPipeProxy(pipeValue.host, pipeValue.device, pipeValue.name)
                     .map(tangoPipeProxy -> {
                         try {
@@ -70,7 +82,6 @@ public class JaxRsTangoPipes {
                                 ,""
                                 ,0);
                         return failure;
-                })
-            ).collect(Collectors.toList());
+                });
     }
 }
