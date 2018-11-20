@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
@@ -464,11 +465,13 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     private class PipeBlobDeserializer extends JsonDeserializer<PipeBlob> {
         @Override
         public PipeBlob deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-            JsonNode root = jp.readValueAsTree();
+            Iterator<JsonNode> dataElements = jp.readValuesAs(JsonNode.class);
 
-            PipeBlobBuilder bld = new PipeBlobBuilder(root.get("name").asText());
+            PipeBlobBuilder bld = new PipeBlobBuilder("");
 
-            for (JsonNode dataItem : root.get("data")) {
+            while(dataElements.hasNext()){
+                JsonNode dataItem = dataElements.next();
+
                 String dataItemName = dataItem.get("name").asText();
                 JsonNode dataItemValue = dataItem.get("value");
                 String dataItemDataType = dataItem.get("type").asText();
