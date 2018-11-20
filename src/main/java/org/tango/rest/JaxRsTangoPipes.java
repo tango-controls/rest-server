@@ -7,6 +7,7 @@ import org.tango.rest.entities.pipe.Pipe;
 import org.tango.rest.entities.pipe.PipeValue;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.binding.DynamicValue;
+import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.Proxies;
@@ -41,6 +42,7 @@ public class JaxRsTangoPipes {
     }
 
     @GET
+    @Partitionable
     @RequiresTangoSelector
     @DynamicValue
     @Path("/value")
@@ -52,6 +54,7 @@ public class JaxRsTangoPipes {
 
 
     @PUT
+    @Partitionable
     @DynamicValue
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/value")
