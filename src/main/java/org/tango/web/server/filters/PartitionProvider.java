@@ -1,5 +1,7 @@
 package org.tango.web.server.filters;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -22,7 +24,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import static javax.ws.rs.core.Response.Status.NOT_MODIFIED;
 import static javax.ws.rs.core.Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE;
 
 /**
@@ -37,10 +41,19 @@ public class PartitionProvider implements
     public static final String RANGE = "range";
     private final Logger logger = LoggerFactory.getLogger(PartitionProvider.class);
 
+    private final Cache<String, Object> cache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(30L, TimeUnit.SECONDS)
+            .build();
+
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        //TODO cache
-//        containerRequestContext.abortWith(Response.status(416).build());
+        String path = containerRequestContext.getUriInfo().getPath();
+        Object entity = cache.getIfPresent(path);
+        if(entity != null){
+            logger.debug("PartitionProvider.cache hit");
+            containerRequestContext.abortWith(Response.status(NOT_MODIFIED).entity(entity).build());
+        }
     }
 
     @Override
@@ -52,14 +65,11 @@ public class PartitionProvider implements
         responseContext.getHeaders().add("Accept-Ranges","items");
 
 
-        String queryParam = requestContext.getHeaderString(RANGE);
+        String queryParam = requestContext.getUriInfo().getQueryParameters().getFirst(RANGE);
         if (queryParam == null) {
             responseContext.getHeaders().add("X-size",size);
             return;
         }
-
-
-        logger.debug("Start partitioning...");
 
 
         PartitionRange range = null;
@@ -80,6 +90,8 @@ public class PartitionProvider implements
 
         responseContext.setEntity(partition);
 
+
+        cache.put(requestContext.getUriInfo().getPath(), entity);
         logger.debug("Done partitioning.");
     }
 

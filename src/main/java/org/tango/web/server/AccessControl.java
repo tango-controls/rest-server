@@ -1,11 +1,11 @@
 package org.tango.web.server;
 
-import com.google.common.base.Objects;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 
+import java.util.Objects;
 import java.util.concurrent.*;
 
 /**
@@ -68,11 +68,11 @@ public class AccessControl {
 //        }
     }
 
-    @Override
-    public String toString() {
-        return Objects.toStringHelper(this)
-                .add("accessMap", accessMap)
-                .add("proxy", proxy)
-                .toString();
-    }
+//    @Override
+//    public String toString() {
+//        return Objects.toString(this)
+//                .add("accessMap", accessMap)
+//                .add("proxy", proxy)
+//                .toString();
+//    }
 }
