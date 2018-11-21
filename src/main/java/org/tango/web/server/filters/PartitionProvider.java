@@ -13,16 +13,12 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Link;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,26 +37,33 @@ public class PartitionProvider implements
     public static final String RANGE = "range";
     private final Logger logger = LoggerFactory.getLogger(PartitionProvider.class);
 
-    private final Cache<String, Object> cache = CacheBuilder.newBuilder()
+    private final Cache<URI, Object> cache = CacheBuilder.newBuilder()
             .maximumSize(100)
             .expireAfterWrite(30L, TimeUnit.SECONDS)
             .build();
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        String path = containerRequestContext.getUriInfo().getPath();
+        URI path = getRequestURI(containerRequestContext);
         Object entity = cache.getIfPresent(path);
         if(entity != null){
             logger.debug("PartitionProvider.cache hit");
-            containerRequestContext.abortWith(Response.status(NOT_MODIFIED).entity(entity).build());
+            containerRequestContext.abortWith(Response.ok().entity(entity).build());
         }
+    }
+
+    private URI getRequestURI(ContainerRequestContext containerRequestContext) {
+        return containerRequestContext.getUriInfo().getRequestUriBuilder().replaceQueryParam(RANGE,null).build();
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-        List<?> entity = (List<?>) responseContext.getEntity();
+        Object entity = responseContext.getEntity();
+        if(!List.class.isAssignableFrom(entity.getClass())) return;
 
-        final int size = entity.size();
+
+        List<?> entityAsList = (List<?>) entity;
+        final int size = entityAsList.size();
 
         responseContext.getHeaders().add("Accept-Ranges","items");
 
@@ -82,7 +85,7 @@ public class PartitionProvider implements
         }
 
 
-        List<Object> partition = new ArrayList<>(entity.subList(range.start, range.limit));
+        List<Object> partition = new ArrayList<>(entityAsList.subList(range.start, range.limit));
 
         responseContext.setStatus(206);
         responseContext.getHeaders().add("Content-Range",
@@ -91,7 +94,7 @@ public class PartitionProvider implements
         responseContext.setEntity(partition);
 
 
-        cache.put(requestContext.getUriInfo().getPath(), entity);
+        cache.put(getRequestURI(requestContext), entity);
         logger.debug("Done partitioning.");
     }
 
