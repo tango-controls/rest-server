@@ -3,6 +3,8 @@ package org.tango.web.server.cache;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.jboss.resteasy.plugins.cache.server.ServerCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
@@ -13,6 +15,8 @@ import java.util.Map;
  * C&Ped from {@link org.jboss.resteasy.plugins.cache.server.SimpleServerCache} to override some behaviour
  */
 public class SimpleBinaryCache implements ServerCache {
+    private final Logger logger = LoggerFactory.getLogger(SimpleBinaryCache.class);
+
     private Map<String, CacheEntry> cache;
 
 
@@ -24,13 +28,16 @@ public class SimpleBinaryCache implements ServerCache {
 
     @Override
     public Entry get(String uri, MediaType accept) {
-        return cache.get(uri);
+        CacheEntry cacheEntry = cache.get(uri);
+        logger.debug("got CacheEntry for {}: {}", uri, cacheEntry!=null);
+        return cacheEntry;
     }
 
     @Override
     public Entry add(String uri, MediaType mediaType, CacheControl cc, MultivaluedMap<String, Object> headers, byte[] entity, String etag) {
         CacheEntry cacheEntry = new CacheEntry(headers, entity, cc.getMaxAge(), Long.parseLong(cc.getCacheExtension().get("max-age-millis")), etag);
         cache.put(uri, cacheEntry);
+        logger.debug("put CacheEntry for {}", uri);
         return cacheEntry;
     }
 
