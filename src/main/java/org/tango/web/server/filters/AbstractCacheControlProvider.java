@@ -30,8 +30,7 @@ public abstract class AbstractCacheControlProvider implements ContainerResponseF
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-        //do not cache control if response is not ok
-        if(responseContext.getStatus() != 200) return;
+        if(responseContext.getStatus() >= 400) return;
 
         if (!tangoRestServer.isCacheEnabled()) return;
 
@@ -46,7 +45,7 @@ public abstract class AbstractCacheControlProvider implements ContainerResponseF
         cc.setMaxAge((int) TimeUnit.SECONDS.convert(getDelay(), TimeUnit.MILLISECONDS));
         cc.getCacheExtension().put("max-age-millis", String.valueOf(getDelay()));
 
-        headers.put("Cache-Control", Arrays.<Object>asList(cc));
+        headers.put("Cache-Control", Collections.singletonList(cc));
     }
 
     protected abstract long getDelay();
