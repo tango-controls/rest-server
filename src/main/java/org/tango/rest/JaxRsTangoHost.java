@@ -1,22 +1,17 @@
 package org.tango.rest;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
-import org.tango.rest.entities.NamedEntity;
-import org.tango.rest.entities.TangoHost;
+import org.tango.rest.rc5.entities.NamedEntity;
+import org.tango.rest.rc5.entities.TangoHost;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
-import org.tango.web.server.proxy.TangoDeviceProxy;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -16,10 +16,11 @@
     </developers>
 
     <properties>
+        <jax-rs-api.version>2.1.1</jax-rs-api.version>
         <servlet-api.version>4.0.1</servlet-api.version>
+        <resteasy.version>3.6.1.Final</resteasy.version>
         <tomcat.version>[8.5.34,)</tomcat.version>
         <slf4j-api.version>1.7.6</slf4j-api.version>
-        <resteasy.version>3.6.1.Final</resteasy.version>
         <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
     </properties>
 
@@ -28,8 +29,20 @@
         <connection>scm:git:git@github.com:ingvord/mtangorest.server</connection>
         <developerConnection>scm:git:git@github.com:ingvord/mtangorest.server</developerConnection>
         <url>https://github.com/ingvord/mtangorest.server</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.tango-controls</groupId>
+                <artifactId>rest-api-bom</artifactId>
+                <version>1.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -44,9 +57,16 @@
             <version>1.9.0</version>
         </dependency>
         <dependency>
+            <groupId>org.tango-controls</groupId>
+            <artifactId>rest-test-suite</artifactId>
+            <version>0.2</version>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-client</artifactId>
-            <version>${resteasy.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -58,7 +78,7 @@
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.1.1</version>
+            <version>${jax-rs-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -113,7 +133,6 @@
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jackson-provider</artifactId>
-            <version>${resteasy.version}</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
@@ -122,8 +141,8 @@
         </dependency>
         <dependency>
             <groupId>org.tango-controls</groupId>
-            <artifactId>rest-api-rc5</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <artifactId>rest-api</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
@@ -133,7 +152,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>22.0</version>
         </dependency>
         <dependency>
             <groupId>org.tango-controls</groupId>
@@ -328,7 +346,7 @@
         <!-- tango-controls bintray maven repo to resolve dependencies-->
         <repository>
             <id>bintray-tango-controls-maven</id>
-            <url>http://dl.bintray.com/tango-controls/maven</url>
+            <url>http://dl.bintray.com/tango-controls/rest</url>
         </repository>
         <repository>
             <snapshots>

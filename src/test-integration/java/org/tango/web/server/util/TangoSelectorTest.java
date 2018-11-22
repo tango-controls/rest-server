@@ -2,7 +2,9 @@ package org.tango.web.server.util;
 
 import com.google.common.collect.Lists;
 import fr.soleil.tango.clientapi.TangoAttribute;
+import org.junit.Before;
 import org.junit.Test;
+import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.web.server.TangoProxyPool;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 
@@ -11,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -19,6 +22,11 @@ import static org.mockito.Mockito.mock;
  */
 public class TangoSelectorTest {
     private TangoProxyPool proxyPool = mock(TangoProxyPool.class);
+
+    @Before
+    public void before() throws Exception {
+        doReturn(TangoProxies.newDeviceProxyWrapper("tango://localhost:10000/sys/tg_test/1")).when(proxyPool).getProxy("tango://localhost:10000/sys/tg_test/1");
+    }
 
 
     @Test

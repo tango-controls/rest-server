@@ -4,8 +4,7 @@ import fr.esrf.Tango.DevError;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.soleil.tango.clientapi.TangoCommand;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.tango.rest.entities.Command;
-import org.tango.web.server.proxy.TangoAttributeProxy;
+import org.tango.rest.rc5.entities.Command;
 
 import java.net.URI;
 

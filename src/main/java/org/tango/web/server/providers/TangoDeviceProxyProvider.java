@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.proxy.TangoDeviceProxyImpl;

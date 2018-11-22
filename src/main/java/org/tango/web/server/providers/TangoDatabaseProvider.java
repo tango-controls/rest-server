@@ -5,7 +5,7 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 

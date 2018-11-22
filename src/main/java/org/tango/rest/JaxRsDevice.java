@@ -15,7 +15,7 @@ import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.entities.*;
+import org.tango.rest.rc5.entities.*;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;

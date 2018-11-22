@@ -4,7 +4,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DevicePipe;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.PipeBlob;
-import org.tango.rest.entities.pipe.PipeInfo;
+import org.tango.rest.rc5.entities.pipe.PipeInfo;
 
 /**
  * @author ingvord

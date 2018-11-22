@@ -1,4 +1,4 @@
-package org.tango.rest.entities;
+package org.tango.rest.rc4.entities;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.client.ez.proxy.NoSuchAttributeException;

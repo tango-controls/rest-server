@@ -2,11 +2,9 @@ package org.tango.web.server.filters;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.Partitionable;
 
 import javax.ws.rs.container.ContainerRequestContext;
@@ -18,11 +16,9 @@ import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static javax.ws.rs.core.Response.Status.NOT_MODIFIED;
 import static javax.ws.rs.core.Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE;
 
 /**

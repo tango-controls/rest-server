@@ -1,7 +1,7 @@
 package org.tango.rest;
 
-import org.tango.rest.entities.Command;
-import org.tango.rest.entities.CommandInOut;
+import org.tango.rest.rc5.entities.Command;
+import org.tango.rest.rc5.entities.CommandInOut;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoSelector;

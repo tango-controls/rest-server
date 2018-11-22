@@ -2,11 +2,10 @@ package org.tango.rest;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
-import org.tango.rest.entities.pipe.Pipe;
-import org.tango.rest.entities.pipe.PipeValue;
+import org.tango.rest.rc5.entities.pipe.Pipe;
+import org.tango.rest.rc5.entities.pipe.PipeValue;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.RequiresTangoPipe;
-import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.util.TangoRestEntityUtils;
 

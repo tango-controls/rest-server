@@ -1,13 +1,13 @@
 package org.tango.web.server.util;
 
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.Tango.DevPipeDataElt;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DevicePipe;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
-import org.tango.rest.entities.*;
-import org.tango.rest.entities.pipe.Pipe;
+import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.rc5.entities.*;
+import org.tango.rest.rc5.entities.pipe.Pipe;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.response.TangoPipeValue;
@@ -17,7 +17,6 @@ import org.tango.web.server.response.TangoRestCommand;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**

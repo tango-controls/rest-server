@@ -5,7 +5,6 @@ import org.jboss.resteasy.util.Base64;
 import org.tango.client.ez.data.type.TangoImage;
 import org.tango.client.ez.util.TangoImageUtils;
 import org.tango.rest.JaxRsDeviceAttribute;
-import org.tango.rest.entities.Failures;
 import org.tango.web.server.binding.EmbeddedImage;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 

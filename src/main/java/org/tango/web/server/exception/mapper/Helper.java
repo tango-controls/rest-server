@@ -1,7 +1,7 @@
 package org.tango.web.server.exception.mapper;
 
 import fr.esrf.Tango.DevFailed;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

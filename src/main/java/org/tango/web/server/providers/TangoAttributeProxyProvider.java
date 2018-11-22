@@ -1,12 +1,10 @@
 package org.tango.web.server.providers;
 
 import fr.esrf.Tango.DevFailed;
-import fr.soleil.tango.clientapi.TangoAttribute;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.proxy.*;
-import org.tango.web.server.util.TangoDeviceProxyUtils;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;

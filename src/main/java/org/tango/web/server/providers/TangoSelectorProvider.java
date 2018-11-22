@@ -1,7 +1,7 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.TangoProxyPool;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.util.TangoSelector;
