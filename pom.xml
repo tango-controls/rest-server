@@ -197,6 +197,7 @@
                         <exclude>**/IT*</exclude>
                         <exclude>**/*$*</exclude>
                     </excludes>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>
