@@ -19,6 +19,8 @@ import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.format.TangoDataFormat;
 import org.tango.client.ez.data.type.*;
@@ -49,6 +51,7 @@ import java.util.Set;
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
+
 
     private ObjectMapper newObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -279,6 +282,8 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     }
 
     private static class AttrInfoExSerializer extends org.codehaus.jackson.map.ser.std.SerializerBase<AttributeInfoEx> {
+        Logger logger = LoggerFactory.getLogger(AttrInfoExSerializer.class);
+
         protected AttrInfoExSerializer(Class<AttributeInfoEx> t) {
             super(t);
         }
@@ -286,25 +291,21 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         @Override
         public void serialize(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
             Optional<PropertySerializeChecker> optionalFilter = Optional.ofNullable(getFilter(provider));
-            try {
-                jgen.writeStartObject();
+            jgen.writeStartObject();
 
-                for(Field fld : AttributeInfo.class.getDeclaredFields()){
-                    String fldName = fld.getName();
-                    if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
-                    writeField(value, jgen, provider, fld, fldName);
-                }
-
-                for(Field fld : AttributeInfoEx.class.getDeclaredFields()){
-                    String fldName = fld.getName();
-                    if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
-                    writeField(value, jgen, provider, fld, fldName);
-                }
-
-                jgen.writeEndObject();
-            } catch (IllegalAccessException e) {
-                throw new JsonGenerationException(e);
+            for(Field fld : AttributeInfo.class.getDeclaredFields()){
+                String fldName = fld.getName();
+                if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
+                writeField(value, jgen, provider, fld, fldName);
             }
+
+            for(Field fld : AttributeInfoEx.class.getDeclaredFields()){
+                String fldName = fld.getName();
+                if(optionalFilter.isPresent() && !optionalFilter.get().serializeField(fldName)) continue;
+                writeField(value, jgen, provider, fld, fldName);
+            }
+
+            jgen.writeEndObject();
         }
 
         private PropertySerializeChecker getFilter(SerializerProvider provider) {
@@ -315,12 +316,18 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
             }
         }
 
-        private void writeField(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider, Field fld, String fldName) throws IOException, IllegalAccessException {
+        private void writeField(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider, Field fld, String fldName) throws IOException {
+            if("$jacocoData".equalsIgnoreCase(fldName)) return;//TODO remove non server classes from coverage analysis
             jgen.writeFieldName(fldName);
-            if (fldName.equals("data_type"))
-                jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
-            else
-                provider.defaultSerializeValue(fld.get(value), jgen);
+            try {
+                if (fldName.equals("data_type"))
+                    jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
+                else
+                    provider.defaultSerializeValue(fld.get(value), jgen);
+            } catch (IllegalAccessException e) {
+                logger.error("Failed to deserialize field {}",fldName);
+                logger.error(e.getClass().getSimpleName(), e.getMessage());
+            }
         }
     }
 
@@ -390,6 +397,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
                 for(Field fld : CommandInfo.class.getDeclaredFields()){
                     if("TangoTypesArray".equals(fld.getName())) continue;
+                    if("$jacocoData".equalsIgnoreCase(fld.getName())) return;//TODO remove non server classes from coverage analysis
                     jgen.writeFieldName(fld.getName());
                     if("in_type".equals(fld.getName()) || "out_type".equals(fld.getName()))
                         jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.tango-controls</groupId>
@@ -200,32 +201,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.1</version>
-                <executions>
-                    <execution>
-                        <id>intergration-test</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <argLine>-Xmx2G -XX:MaxPermSize=512M</argLine>
-                    <dependenciesToScan>
-                        <dependency>org.tango-controls:rest-test-suite</dependency>
-                    </dependenciesToScan>
-                    <includes>
-                        <include>**/Rc5*</include>
-                    </includes>
-                    <!-- Sets the VM argument line used when integration tests are run. -->
-                    <argLine>${failsafeArgLine}</argLine>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -387,18 +363,34 @@
 
     <profiles>
         <profile>
-            <id>travis</id>
-            <properties>
-                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-                <sonar.organization>ingvord-github</sonar.organization>
-                <sonar.login>${env.SONAR_TOKEN}</sonar.login>
-            </properties>
+            <id>test-suite</id>
             <build>
                 <plugins>
+                    
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>sonar-maven-plugin</artifactId>
-                        <version>3.2</version>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.22.1</version>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <argLine>-Xmx2G -XX:MaxPermSize=512M</argLine>
+                            <dependenciesToScan>
+                                <dependency>org.tango-controls:rest-test-suite</dependency>
+                            </dependenciesToScan>
+                            <includes>
+                                <include>**/Rc5*</include>
+                            </includes>
+                            <argLine>-Dtango.rest.url=http://localhost:10001/tango/rest  -Dtango.host=localhost -Dtango.port=10000 -Dtango.rest.auth.method=basic -Dtango.rest.user=tango-cs -Dtango.rest.password=tango</argLine>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.jacoco</groupId>
@@ -423,7 +415,7 @@
                                         Sets the name of the property containing the settings
                                         for JaCoCo runtime agent.
                                     -->
-                                    <propertyName>failsafeArgLine</propertyName>
+                                    <propertyName>jacoco-agent</propertyName>
                                 </configuration>
                             </execution>
                             <!--
@@ -445,6 +437,74 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>run-rest-server</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>java</executable>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
+                            <arguments>
+                                <!-- Sets the VM argument line used when integration tests are run. -->
+                                <argument>${jacoco-agent}</argument>
+                                <argument>-DTANGO_HOST=localhost:10000</argument>
+                                <argument>-DLOG_LEVEL=ERROR</argument>
+                                <argument>-jar</argument>
+                                <argument>${custom.build.name}.jar</argument>
+                                <argument>-nodb</argument>
+                                <argument>-dlist</argument>
+                                <argument>test/rest/0</argument>
+                            </arguments>
+                            <async>true</async>
+                            <asyncDestroyOnShutdown>true</asyncDestroyOnShutdown>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>wait</id>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <target>
+                                        <sleep seconds="5" />
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>travis</id>
+            <properties>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.organization>ingvord-github</sonar.organization>
+                <sonar.login>${env.SONAR_TOKEN}</sonar.login>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>3.2</version>
+                    </plugin>
+
                 </plugins>
             </build>
         </profile>
