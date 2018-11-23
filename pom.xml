@@ -379,6 +379,13 @@
                                     <goal>integration-test</goal>
                                 </goals>
                             </execution>
+                            <execution>
+                                <id>verify</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
                         </executions>
                         <configuration>
                             <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -396,6 +403,12 @@
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <version>0.8.2</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>fr.esrf.*</exclude>
+                                <exclude>fr.soleil.*</exclude>
+                            </excludes>
+                        </configuration>
                         <executions>
                             <!-- The Executions required by unit tests are omitted. -->
                             <!--
@@ -457,7 +470,9 @@
                                 <!-- Sets the VM argument line used when integration tests are run. -->
                                 <argument>${jacoco-agent}</argument>
                                 <argument>-DTANGO_HOST=localhost:10000</argument>
+                                <argument>-DLOG_HOME=${project.build.directory}/log</argument>
                                 <argument>-DLOG_LEVEL=ERROR</argument>
+                                <argument>-Dlogback.configurationFile=${project.basedir}/src/test-integration/resources/logback.xml</argument>
                                 <argument>-jar</argument>
                                 <argument>${custom.build.name}.jar</argument>
                                 <argument>-nodb</argument>

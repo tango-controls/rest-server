@@ -317,7 +317,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         }
 
         private void writeField(AttributeInfoEx value, JsonGenerator jgen, SerializerProvider provider, Field fld, String fldName) throws IOException {
-            if("$jacocoData".equalsIgnoreCase(fldName)) return;//TODO remove non server classes from coverage analysis
             jgen.writeFieldName(fldName);
             try {
                 if (fldName.equals("data_type"))
@@ -397,7 +396,6 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
                 for(Field fld : CommandInfo.class.getDeclaredFields()){
                     if("TangoTypesArray".equals(fld.getName())) continue;
-                    if("$jacocoData".equalsIgnoreCase(fld.getName())) return;//TODO remove non server classes from coverage analysis
                     jgen.writeFieldName(fld.getName());
                     if("in_type".equals(fld.getName()) || "out_type".equals(fld.getName()))
                         jgen.writeString(TangoConst.Tango_CmdArgTypeName[fld.getInt(value)]);
