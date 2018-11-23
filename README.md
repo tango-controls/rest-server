@@ -8,18 +8,18 @@ This server implements [Tango REST API](https://github.com/tango-controls/rest-a
 
 ## SonarCloud
 
-[![Quality gate](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=alert_status)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
+[![Quality gate](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
 
-[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
-[![Reliability](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
-[![Security](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=security_rating)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Reliability](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Security](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=security_rating)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
 
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=bugs)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
-[![Smells](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=code_smells)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
-[![Tech debt](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=sqale_index)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=bugs)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Smells](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=code_smells)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Tech debt](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=sqale_index)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
 
-[![Lines Of Code](https://sonarcloud.io/api/project_badges/measure?project=ru.ingvord.tango%3Amtangorest.server-rc4&metric=ncloc)](https://sonarcloud.io/dashboard?id=ru.ingvord.tango%3Amtangorest.server-rc4)
+[![Lines Of Code](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=ncloc)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
 
 # How to build
 
