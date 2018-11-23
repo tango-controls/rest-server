@@ -61,6 +61,8 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
             TangoDeviceProxy result = new TangoDeviceProxyImpl(db.getTangoHost(), name, proxy);
 
             ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);
+            //TODO rc4 migrate to TangoDeviceProxy
+            ResteasyProviderFactory.pushContext(TangoProxy.class, proxy);
         } catch (TangoProxyException e) {
             Response.Status status = Response.Status.BAD_REQUEST;
             if(e.reason.contains("DB_DeviceNotDefined"))

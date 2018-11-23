@@ -8,14 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.*;
 import org.tango.rest.rc4.entities.DeviceFilters;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -31,7 +30,7 @@ import java.util.*;
 @Path("/rc4")
 @Produces("application/json")
 public class Rc4ApiImpl {
-    public static final String DEFAULT_TANGO_PORT = "10000";
+    public static final String RC_4 = "rc4";
     private final Logger logger = LoggerFactory.getLogger(Rc4ApiImpl.class);
 
     @GET
@@ -39,7 +38,7 @@ public class Rc4ApiImpl {
         Map<String, String> result = new HashMap<>();
 
         result.put("hosts", uriInfo.getAbsolutePath() + "/hosts");
-        result.put("x-auth-method", SupportedAuthentication.VALUE);
+        result.put("x-auth-method", "basic");
 
         return result;
     }
@@ -69,14 +68,13 @@ public class Rc4ApiImpl {
     @StaticValue
     @Path("/hosts/{host}/{port}")
     public Object getHost(@Context final UriInfo uriInfo,
-                          @Context final DatabaseDs db,
+                          @Context final TangoDatabaseProxy db,
                           @Context final ServletContext context) throws Exception {
-        final String[] tangoHost = db.toDeviceProxy().get_tango_host().split(":");
         return new Object() {
-            public String name = db.toDeviceProxy().get_name();
-            public String host = tangoHost[0];
-            public int port = Integer.parseInt(tangoHost[1]);
-            public List<String> info = db.getInfo();
+            public String name = db.getName();
+            public String host = db.getHost();
+            public String port = db.getPort();
+            public String[] info = db.getInfo();
             public String devices = uriInfo.getAbsolutePath() + "/devices";
         };
     }

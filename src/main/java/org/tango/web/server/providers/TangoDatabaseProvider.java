@@ -5,6 +5,7 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
+import org.tango.rest.rc4.Rc4ApiImpl;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -51,15 +53,21 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
             return;
         }
 
+        TangoHostExtractor tangoHostExtractor =
+                pathSegments.get(1).getPath().equalsIgnoreCase(Rc4ApiImpl.RC_4) ?
+                        uriInfo1 -> new TangoHost(uriInfo1.getPathSegments().get(3).getPath(), uriInfo1.getPathSegments().get(4).getPath()) : //assume rc5
+                        uriInfo12 -> {
+                            PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
+                            return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
+                                    pathSegment.getMatrixParameters().getFirst("port"))
+                                    .orElse(DEFAULT_TANGO_PORT));
+                        };
 
-        PathSegment tango_host = pathSegments.get(3);
-        String host = tango_host.getPath();
-        String port = tango_host.getMatrixParameters().getFirst("port");
-        if (port == null) port = DEFAULT_TANGO_PORT;
 
+        TangoHost tangoHost = tangoHostExtractor.apply(uriInfo);
 
         try {
-            TangoDatabaseProxy tangoDb = Proxies.getDatabase(host, port);
+            TangoDatabaseProxy tangoDb = Proxies.getDatabase(tangoHost.host, tangoHost.port);
 
             ResteasyProviderFactory.pushContext(TangoDatabaseProxy.class, tangoDb);
         } catch (DevFailed devFailed) {
@@ -67,6 +75,21 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
             if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))
                 status = Response.Status.NOT_FOUND;
             requestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
+        }
+    }
+
+    @FunctionalInterface
+    private static interface TangoHostExtractor {
+        TangoHost apply(UriInfo uriInfo) throws IllegalArgumentException;
+    }
+
+    private static class TangoHost {
+        String host;
+        String port;
+
+        public TangoHost(String host, String port) {
+            this.host = host;
+            this.port = port;
         }
     }
 }

@@ -20,10 +20,11 @@ import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.rc4.entities.DeviceState;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.rest.rc4.entities.NamedEntity;
-import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
@@ -51,14 +52,10 @@ public class Device {
     public Object get(@PathParam("domain") String domain,
                          @PathParam("family") String family,
                          @PathParam("member") String member,
-                         @Context DatabaseDs db,
-                         @Context UriInfo uriInfo){
-        try {
-            final String devname = domain + "/" + family + "/" + member;
-            return DeviceHelper.deviceToResponse(devname, db.getDeviceInfo(devname), uriInfo.getAbsolutePath());
-        } catch (TangoProxyException e) {
-            return Failures.createInstance(e);
-        }
+                         @Context TangoDatabaseProxy db,
+                         @Context UriInfo uriInfo) throws DevFailed {
+        final String devname = domain + "/" + family + "/" + member;
+        return DeviceHelper.deviceToResponse(devname, db.asEsrfDatabase().get_device_info(devname), uriInfo.getAbsolutePath());
     }
 
     @GET

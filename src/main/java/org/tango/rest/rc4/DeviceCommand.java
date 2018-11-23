@@ -14,10 +14,10 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.rest.rc4.entities.CommandResult;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.Partitionable;
-import org.tango.web.server.command.CommandInput;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 
@@ -44,6 +44,7 @@ public class DeviceCommand {
     }
 
     @PUT
+    @Consumes(MediaType.TEXT_PLAIN)
     public Object deviceCommandPut(@QueryParam("async") boolean async,
                                    @Context UriInfo uriInfo,
                                    CommandInput value) throws Exception {
@@ -89,4 +90,19 @@ public class DeviceCommand {
     }
 
 
+    /**
+     * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
+     * @since 8/8/16
+     */
+    public static class CommandInput {
+        public String cmdName;
+        public Class<?> type;
+        public Object input;
+
+        public CommandInput(String cmdName, Class<?> type, Object converted) {
+            this.cmdName = cmdName;
+            this.type = type;
+            this.input = converted;
+        }
+    }
 }

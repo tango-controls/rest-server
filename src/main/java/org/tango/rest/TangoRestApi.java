@@ -3,7 +3,6 @@ package org.tango.rest;
 import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.tango.TangoRestServer;
-import org.tango.rest.rc5.EntryPoint;
 import org.tango.web.server.AccessControl;
 import org.tango.web.server.cache.SimpleBinaryCache;
 import org.tango.web.server.filters.*;

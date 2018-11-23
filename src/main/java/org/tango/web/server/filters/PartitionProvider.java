@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.rest.rc4.Rc4ApiImpl;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.Partitionable;
 
@@ -12,6 +13,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.URI;
@@ -82,6 +84,26 @@ public class PartitionProvider implements
 
 
         List<Object> partition = new ArrayList<>(entityAsList.subList(range.start, range.limit));
+
+
+        UriInfo uriInfo = requestContext.getUriInfo();
+
+        if(uriInfo.getPathSegments().get(1).getPath().equalsIgnoreCase(Rc4ApiImpl.RC_4)) {
+            PartitionRange finalRange = range;
+            partition.add(new Object(){
+                public String name = "partial_content";
+                public int total = size;
+                public int offset = finalRange.start;
+                public int limit = finalRange.limit;
+                public Object _links = new Object(){
+                    public String _prev =  (finalRange.start > 0) ? uriInfo.getAbsolutePath() + "?range=" + Math.max(0, finalRange.start - finalRange.range)+ "-" + finalRange.start : null;
+                    public String _next = (finalRange.end < size) ? uriInfo.getAbsolutePath() + "?range=" + finalRange.end + "-" + Math.min(finalRange.end + finalRange.range, size) : null;
+                    public String _first = uriInfo.getAbsolutePath() + "?range=0-" + finalRange.range;
+                    public String _last = uriInfo.getAbsolutePath() + "?range=" + finalRange.range*(int)Math.ceil(size/ finalRange.range) + "-" + (finalRange.range*(int)Math.ceil(size/ finalRange.range) + finalRange.range);
+                };
+            });
+        }
+
 
         responseContext.setStatus(206);
         responseContext.getHeaders().add("Content-Range",
