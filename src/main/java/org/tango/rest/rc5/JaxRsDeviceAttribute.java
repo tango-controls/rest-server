@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc5;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;

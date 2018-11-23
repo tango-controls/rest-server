@@ -2,7 +2,6 @@ package org.tango.rest.rc5;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.*;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;

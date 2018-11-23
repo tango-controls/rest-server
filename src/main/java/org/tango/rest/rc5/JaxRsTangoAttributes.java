@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc5;
 
 import org.tango.rest.rc5.entities.Attribute;
 import org.tango.rest.rc5.entities.AttributeValue;

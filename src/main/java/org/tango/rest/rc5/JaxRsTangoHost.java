@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc5;
 
 import fr.esrf.Tango.DevFailed;
 import org.tango.rest.rc5.entities.NamedEntity;
