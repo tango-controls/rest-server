@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
@@ -13,7 +13,7 @@ import java.net.URI;
  */
 public class DeviceHelper {
     public static Object deviceToResponse(String devname, final DeviceInfo info,URI href){
-        return new org.tango.rest.entities.Device(devname,
+        return new org.tango.rest.rc4.entities.Device(devname,
                 DeviceInfos.fromDeviceInfo(info),
                 href + "/attributes",
                 href + "/commands",

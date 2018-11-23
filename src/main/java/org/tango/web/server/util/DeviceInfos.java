@@ -1,6 +1,6 @@
 package org.tango.web.server.util;
 
-import org.tango.rest.entities.DeviceInfo;
+import org.tango.rest.rc4.entities.DeviceInfo;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

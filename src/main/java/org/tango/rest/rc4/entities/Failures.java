@@ -1,4 +1,4 @@
-package org.tango.rest.entities;
+package org.tango.rest.rc4.entities;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;

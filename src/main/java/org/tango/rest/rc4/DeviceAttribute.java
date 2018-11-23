@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -17,8 +17,8 @@ import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.ValueTimeQuality;
-import org.tango.rest.entities.AttributeValue;
-import org.tango.rest.entities.Failures;
+import org.tango.rest.rc4.entities.AttributeValue;
+import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.attribute.AttributeProperty;
 import org.tango.web.server.attribute.EventBuffer;
@@ -26,7 +26,6 @@ import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 
-import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;

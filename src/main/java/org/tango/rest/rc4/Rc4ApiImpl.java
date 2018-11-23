@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.*;
-import org.tango.rest.entities.DeviceFilters;
+import org.tango.rest.rc4.entities.DeviceFilters;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;

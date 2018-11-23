@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.database.DatabaseFactory;
 import org.tango.utils.DevFailedUtils;
-import org.tango.rest.entities.DeviceFilters;
+import org.tango.rest.rc4.entities.DeviceFilters;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

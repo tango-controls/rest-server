@@ -1,10 +1,10 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.entities.NamedEntity;
+import org.tango.rest.rc4.entities.NamedEntity;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;

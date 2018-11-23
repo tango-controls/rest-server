@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -14,14 +14,12 @@ import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.entities.DeviceState;
-import org.tango.rest.entities.Failures;
-import org.tango.rest.entities.NamedEntity;
-import org.tango.utils.DevFailedUtils;
+import org.tango.rest.rc4.entities.DeviceState;
+import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.rc4.entities.NamedEntity;
 import org.tango.web.server.DatabaseDs;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
@@ -39,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 /**

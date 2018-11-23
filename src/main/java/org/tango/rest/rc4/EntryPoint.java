@@ -1,4 +1,4 @@
-package org.tango.rest;
+package org.tango.rest.rc4;
 
 import org.tango.rest.rc4.Rc4ApiImpl;
 

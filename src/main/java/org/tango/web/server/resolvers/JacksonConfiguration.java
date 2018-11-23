@@ -60,7 +60,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
         tangoModule.addSerializer(new AttrQualitySerializer(AttrQuality.class));
         tangoModule.addSerializer(new DispLevelSerializer(DispLevel.class));
         tangoModule.addSerializer(new PipeBlobSerializer(PipeBlob.class));
-        tangoModule.addSerializer(new TangoImageSerializer(org.tango.rest.DeviceAttribute.ImageAttributeValue.class));
+        tangoModule.addSerializer(new TangoImageSerializer(org.tango.rest.rc4.DeviceAttribute.ImageAttributeValue.class));
         tangoModule.addSerializer(new DevStateSerializer(DevState.class));
         tangoModule.addSerializer(new AttrInfoSerializer(AttributeInfo.class));
         tangoModule.addSerializer(new AttrInfoExSerializer(AttributeInfoEx.class));
@@ -394,15 +394,15 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
     }
 
     private class TangoImageSerializer extends
-            org.codehaus.jackson.map.ser.std.SerializerBase<org.tango.rest.DeviceAttribute.ImageAttributeValue> {
+            org.codehaus.jackson.map.ser.std.SerializerBase<org.tango.rest.rc4.DeviceAttribute.ImageAttributeValue> {
 
-        public TangoImageSerializer(Class<org.tango.rest.DeviceAttribute.ImageAttributeValue> t) {
+        public TangoImageSerializer(Class<org.tango.rest.rc4.DeviceAttribute.ImageAttributeValue> t) {
             super(t);
         }
 
         @Override
         public void serialize(
-                org.tango.rest.DeviceAttribute.ImageAttributeValue image,
+                org.tango.rest.rc4.DeviceAttribute.ImageAttributeValue image,
                 JsonGenerator jgen, SerializerProvider provider) throws IOException {
             TangoImage value = image.value;
             RenderedImage img = TangoImageUtils.toRenderedImage_sRGB(

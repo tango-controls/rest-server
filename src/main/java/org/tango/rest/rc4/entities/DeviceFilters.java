@@ -1,11 +1,11 @@
-package org.tango.rest.entities;
+package org.tango.rest.rc4.entities;
 
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.DevicesTree;
+import org.tango.rest.rc4.DevicesTree;
 import org.tango.utils.DevFailedUtils;
 
 import java.util.Arrays;
