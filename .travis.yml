@@ -2,12 +2,20 @@ language: java
 
 sudo: false
 
+services:
+- docker
+
+#skip mvn install
+install: /bin/true
+
+before_script:
+  - docker-compose up -d
+  #TODO wait-for-it
+  - sleep 30
+  - docker ps
+
 script:
-  - mvn -B clean package -Ptravis -Dcustom.build.name=$TRAVIS_BRANCH
-  - java -DTANGO_HOST=localhost:10000 -jar target/$TRAVIS_BRANCH.jar -nodb -dlist test/rest/0 &
-  - sleep 10
-  - curl -u "tango-cs:tango" http://localhost:10001/tango/rest/rc4 | grep "\"hosts\":\"http://localhost:10001/tango/rest/rc4/hosts\""
-  - killall java
+  - mvn -B verify -Ptravis,test-suite -Dcustom.build.name=$TRAVIS_BRANCH
 
 after_success:  
   - mvn sonar:sonar -Ptravis

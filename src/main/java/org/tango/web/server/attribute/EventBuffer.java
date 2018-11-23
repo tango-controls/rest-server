@@ -70,7 +70,8 @@ public class EventBuffer {
             this.listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
+                    AttributeValue<Object> value =
+                            new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
                     Event.this.future.complete(value);
                 }
 
@@ -136,7 +137,8 @@ public class EventBuffer {
             listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    AttributeValue<Object> value = new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
+                    AttributeValue<Object> value =
+                            new AttributeValue<>(key.attribute, data.getValue(), AttrQuality.ATTR_VALID.toString(), data.getTime());
                     EventBuffer.this.put(key, value);
                     removeFirst(data.getTime(), eventData.get(key));
                 }

@@ -17,7 +17,6 @@
     <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
-            org.tango.web.server.interceptors.CommandInputMessageBodyReader,
             org.tango.web.server.exception.mapper.DevFailedMapper,
             org.tango.web.server.exception.mapper.TangoProxyExceptionMapper,
             org.tango.web.server.exception.mapper.NoSuchAttribute,
@@ -25,7 +24,6 @@
             org.tango.web.server.exception.mapper.NotFoundExceptionMapper,
             org.tango.web.server.resolvers.JacksonConfiguration,
             org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
-            org.tango.web.server.filters.PartitionProvider,
             org.tango.web.server.filters.TangoRestFilterProvider
         </param-value>
     </context-param>

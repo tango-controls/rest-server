@@ -3,6 +3,7 @@ package org.tango.web.server.attribute;
 import fr.esrf.Tango.AttributeAlarm;
 import fr.esrf.Tango.AttributeConfig_5;
 import fr.esrf.Tango.EventProperties;
+import fr.esrf.TangoApi.AttributeInfoEx;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.util.TangoUtils;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

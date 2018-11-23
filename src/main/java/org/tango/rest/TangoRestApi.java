@@ -3,18 +3,13 @@ package org.tango.rest;
 import org.jboss.resteasy.plugins.cache.server.ServerCacheFeature;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.tango.TangoRestServer;
-import org.tango.rest.rc4.EntryPoint;
+import org.tango.rest.rc5.EntryPoint;
 import org.tango.web.server.AccessControl;
 import org.tango.web.server.cache.SimpleBinaryCache;
-import org.tango.web.server.filters.AccessControlFilter;
-import org.tango.web.server.filters.DynamicValueCacheControlProvider;
-import org.tango.web.server.filters.JsonpMethodFilter;
-import org.tango.web.server.filters.StaticValueCacheControlProvider;
+import org.tango.web.server.filters.*;
+import org.tango.web.server.interceptors.ImageAttributeValueProvider;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
-import org.tango.web.server.providers.EventSystemProvider;
-import org.tango.web.server.providers.TangoContextProvider;
-import org.tango.web.server.providers.TangoDatabaseProvider;
-import org.tango.web.server.providers.TangoProxyProvider;
+import org.tango.web.server.providers.*;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -58,8 +53,17 @@ public class TangoRestApi extends Application {
         // = = = Providers = = =
         singletons.add(new TangoContextProvider(getTangoRestServer()));
         singletons.add(new TangoDatabaseProvider(getTangoRestServer()));
-        singletons.add(new TangoProxyProvider(getTangoRestServer()));
+        singletons.add(new TangoDeviceProxyProvider(getTangoRestServer()));
+        singletons.add(new TangoAttributeProxyProvider());
+        singletons.add(new TangoCommandProxyProvider());
+        singletons.add(new TangoPipeProxyProvider());
         singletons.add(new EventSystemProvider());
+        singletons.add(new DevicesTreeContextProvider());
+        singletons.add(new TangoSelectorProvider(getTangoRestServer().proxyPool));
+        singletons.add(new PartitionProvider());
+
+        // = = = Interceptors = = =
+        singletons.add(new ImageAttributeValueProvider());
 
         // = = = Cache = = =
         SimpleBinaryCache cache = new SimpleBinaryCache(getTangoRestServer().getTomcatCacheSize());

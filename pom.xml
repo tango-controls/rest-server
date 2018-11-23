@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ru.ingvord.tango</groupId>
-    <artifactId>mtangorest.server-rc4</artifactId>
-    <version>2.13-SNAPSHOT</version>
+    <groupId>org.tango-controls</groupId>
+    <artifactId>rest-server</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
@@ -19,23 +20,33 @@
         <servlet-api.version>4.0.1</servlet-api.version>
         <tomcat.version>[8.5.34,)</tomcat.version>
         <slf4j-api.version>1.7.6</slf4j-api.version>
-        <resteasy.version>3.6.1.Final</resteasy.version>
         <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
     </properties>
 
 
     <scm>
-        <connection>scm:git:git@github.com:ingvord/mtangorest.server</connection>
-        <developerConnection>scm:git:git@github.com:ingvord/mtangorest.server</developerConnection>
-        <url>https://github.com/ingvord/mtangorest.server</url>
-      <tag>HEAD</tag>
-  </scm>
+        <connection>scm:git:git@github.com:tango-controls/rest-server</connection>
+        <developerConnection>scm:git:git@github.com:tango-controls/rest-server</developerConnection>
+        <url>https://github.com/tango-controls/rest-server</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.tango-controls</groupId>
+                <artifactId>rest-api-bom</artifactId>
+                <version>1.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -44,9 +55,16 @@
             <version>1.9.0</version>
         </dependency>
         <dependency>
+            <groupId>org.tango-controls</groupId>
+            <artifactId>rest-test-suite</artifactId>
+            <version>0.3</version>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-client</artifactId>
-            <version>${resteasy.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -58,7 +76,6 @@
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -98,22 +115,18 @@
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-servlet-initializer</artifactId>
-            <version>${resteasy.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jaxrs</artifactId>
-            <version>${resteasy.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-cache-core</artifactId>
-            <version>${resteasy.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jackson-provider</artifactId>
-            <version>${resteasy.version}</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
@@ -122,13 +135,16 @@
         </dependency>
         <dependency>
             <groupId>org.tango-controls</groupId>
-            <artifactId>rest-api-rc4</artifactId>
-            <version>RELEASE</version>
+            <artifactId>rest-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
             <version>2.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
         <dependency>
             <groupId>org.tango-controls</groupId>
@@ -166,7 +182,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.10</version>
+                <version>2.17</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <argLine>-Xmx2G -XX:MaxPermSize=512M</argLine>
@@ -174,8 +190,10 @@
                         <exclude>**/IT*</exclude>
                         <exclude>**/*$*</exclude>
                     </excludes>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -323,7 +341,7 @@
         <!-- tango-controls bintray maven repo to resolve dependencies-->
         <repository>
             <id>bintray-tango-controls-maven</id>
-            <url>http://dl.bintray.com/tango-controls/maven</url>
+            <url>http://dl.bintray.com/tango-controls/rest</url>
         </repository>
         <repository>
             <snapshots>
@@ -336,6 +354,149 @@
     </repositories>
 
     <profiles>
+        <profile>
+            <id>test-suite</id>
+            <build>
+                <plugins>
+                    
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.22.1</version>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>verify</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <argLine>-Xmx2G -XX:MaxPermSize=512M</argLine>
+                            <dependenciesToScan>
+                                <dependency>org.tango-controls:rest-test-suite</dependency>
+                            </dependenciesToScan>
+                            <includes>
+                                <include>**/Rc5*</include>
+                            </includes>
+                            <argLine>-Dtango.rest.url=http://localhost:10001/tango/rest  -Dtango.host=localhost -Dtango.port=10000 -Dtango.rest.auth.method=basic -Dtango.rest.user=tango-cs -Dtango.rest.password=tango</argLine>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.2</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>fr.esrf.*</exclude>
+                                <exclude>fr.soleil.*</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <!-- The Executions required by unit tests are omitted. -->
+                            <!--
+                                Prepares the property pointing to the JaCoCo runtime agent which
+                                is passed as VM argument when Maven the Failsafe plugin is executed.
+                            -->
+                            <execution>
+                                <id>pre-integration-test</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Sets the path to the file which contains the execution data. -->
+                                    <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                                    <!--
+                                        Sets the name of the property containing the settings
+                                        for JaCoCo runtime agent.
+                                    -->
+                                    <propertyName>jacoco-agent</propertyName>
+                                </configuration>
+                            </execution>
+                            <!--
+                                Ensures that the code coverage report for integration tests after
+                                integration tests have been run.
+                            -->
+                            <execution>
+                                <id>post-integration-test</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Sets the path to the file which contains the execution data. -->
+                                    <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
+                                    <!-- Sets the output directory for the code coverage report. -->
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>run-rest-server</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>java</executable>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
+                            <arguments>
+                                <!-- Sets the VM argument line used when integration tests are run. -->
+                                <argument>${jacoco-agent}</argument>
+                                <argument>-DTANGO_HOST=localhost:10000</argument>
+                                <argument>-DLOG_HOME=${project.build.directory}/log</argument>
+                                <argument>-DLOG_LEVEL=ERROR</argument>
+                                <argument>-Dlogback.configurationFile=${project.basedir}/src/test-integration/resources/logback.xml</argument>
+                                <argument>-jar</argument>
+                                <argument>${custom.build.name}.jar</argument>
+                                <argument>-nodb</argument>
+                                <argument>-dlist</argument>
+                                <argument>test/rest/0</argument>
+                            </arguments>
+                            <async>true</async>
+                            <asyncDestroyOnShutdown>true</asyncDestroyOnShutdown>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>wait</id>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <target>
+                                        <sleep seconds="5" />
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>travis</id>
             <properties>
@@ -350,25 +511,7 @@
                         <artifactId>sonar-maven-plugin</artifactId>
                         <version>3.2</version>
                     </plugin>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.7.7.201606060606</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>report</id>
-                                <phase>test</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
+
                 </plugins>
             </build>
         </profile>

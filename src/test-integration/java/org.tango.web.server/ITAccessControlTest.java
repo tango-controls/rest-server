@@ -1,9 +1,11 @@
 package org.tango.web.server;
 
 
+import org.junit.Before;
 import org.junit.Test;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.rest.test.Rc4Test;
 
 import static org.junit.Assert.assertTrue;
 

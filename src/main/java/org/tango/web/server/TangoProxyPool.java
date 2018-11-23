@@ -70,7 +70,6 @@ public class TangoProxyPool {
             return ft.get();
         } catch (ExecutionException e) {
             cache.remove(devname);
-            logger.error("Failed to get proxy for " + devname, e);
             throw new TangoProxyException("Failed to get proxy for " + devname, e.getCause()); //TODO re-throw ExecutionException
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
