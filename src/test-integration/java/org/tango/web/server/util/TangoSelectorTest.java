@@ -1,12 +1,7 @@
 package org.tango.web.server.util;
 
 import com.google.common.collect.Lists;
-import fr.soleil.tango.clientapi.TangoAttribute;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.tango.client.ez.proxy.TangoProxies;
-import org.tango.rest.test.Rc5Test;
 import org.tango.web.server.TangoProxyPool;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 
@@ -24,19 +19,7 @@ import static org.mockito.Mockito.mock;
  */
 public class TangoSelectorTest {
     private TangoProxyPool proxyPool = mock(TangoProxyPool.class);
-    private Rc5Test rc5Test;
 
-    @BeforeClass
-    public static void beforeClass(){
-        Rc5Test.beforeClass();
-    }
-
-    @Before
-    public void before() throws Exception {
-        doReturn(TangoProxies.newDeviceProxyWrapper("tango://localhost:10000/sys/tg_test/1")).when(proxyPool).getProxy("tango://localhost:10000/sys/tg_test/1");
-        rc5Test = new Rc5Test();
-        rc5Test.before();
-    }
 
 
     @Test
@@ -45,7 +28,7 @@ public class TangoSelectorTest {
 
     @Test
     public void selectDevices() {
-        rc5Test.testAttribute();
+
     }
 
     @Test
