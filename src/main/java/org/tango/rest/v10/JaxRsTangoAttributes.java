@@ -1,7 +1,7 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
-import org.tango.rest.rc5.entities.Attribute;
-import org.tango.rest.rc5.entities.AttributeValue;
+import org.tango.rest.v10.entities.Attribute;
+import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.web.server.util.TangoRestEntityUtils;
 import org.tango.web.server.binding.*;
 import org.tango.web.server.util.TangoSelector;

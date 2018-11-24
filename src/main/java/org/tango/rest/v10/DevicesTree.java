@@ -1,10 +1,10 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.rc5.tree.*;
+import org.tango.rest.v10.tree.*;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;

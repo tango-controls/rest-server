@@ -2,14 +2,12 @@ package org.tango.rest;
 
 import com.google.common.collect.Maps;
 import org.tango.rest.rc4.Rc4ApiImpl;
-import org.tango.rest.rc5.Rc5ApiImpl;
+import org.tango.rest.v10.Rc5ApiImpl;
 
-import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Map;

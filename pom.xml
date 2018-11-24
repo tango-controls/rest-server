@@ -36,7 +36,7 @@
             <dependency>
                 <groupId>org.tango-controls</groupId>
                 <artifactId>rest-api-bom</artifactId>
-                <version>1.1</version>
+                <version>2.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.tango-controls</groupId>
             <artifactId>rest-test-suite</artifactId>
-            <version>0.4</version>
+            <version>2.0</version>
             <classifier>tests</classifier>
             <type>test-jar</type>
             <scope>test</scope>
@@ -387,6 +387,7 @@
                             </dependenciesToScan>
                             <includes>
                                 <include>**/Rc*</include>
+                                <include>**/V*</include>
                             </includes>
                             <argLine>-Dtango.rest.url=http://localhost:10001/tango/rest  -Dtango.host=localhost -Dtango.port=10000 -Dtango.rest.auth.method=basic -Dtango.rest.user=tango-cs -Dtango.rest.password=tango</argLine>
                         </configuration>

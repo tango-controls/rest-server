@@ -1,4 +1,4 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;

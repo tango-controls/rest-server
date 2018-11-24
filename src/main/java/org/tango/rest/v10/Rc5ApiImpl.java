@@ -1,4 +1,4 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

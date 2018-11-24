@@ -1,4 +1,4 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -9,8 +9,8 @@ import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
-import org.tango.rest.rc5.entities.Command;
-import org.tango.rest.rc5.entities.CommandInOut;
+import org.tango.rest.v10.entities.Command;
+import org.tango.rest.v10.entities.CommandInOut;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;

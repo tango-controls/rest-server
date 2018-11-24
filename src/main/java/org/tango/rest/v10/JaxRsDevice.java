@@ -1,4 +1,4 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -15,7 +15,7 @@ import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.rest.rc5.entities.*;
+import org.tango.rest.v10.entities.*;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;

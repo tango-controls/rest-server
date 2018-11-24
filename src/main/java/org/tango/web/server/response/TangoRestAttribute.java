@@ -3,7 +3,7 @@ package org.tango.web.server.response;
 import fr.esrf.Tango.DevError;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.tango.rest.rc5.entities.Attribute;
+import org.tango.rest.v10.entities.Attribute;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 
 import java.net.URI;

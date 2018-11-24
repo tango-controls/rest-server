@@ -1,8 +1,8 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
-import org.tango.rest.rc5.entities.NamedEntity;
-import org.tango.rest.rc5.entities.TangoHost;
+import org.tango.rest.v10.entities.NamedEntity;
+import org.tango.rest.v10.entities.TangoHost;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabaseProxy;

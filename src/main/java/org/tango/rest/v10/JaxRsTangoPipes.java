@@ -1,8 +1,8 @@
-package org.tango.rest.rc5;
+package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
-import org.tango.rest.rc5.entities.pipe.Pipe;
-import org.tango.rest.rc5.entities.pipe.PipeValue;
+import org.tango.rest.v10.entities.pipe.Pipe;
+import org.tango.rest.v10.entities.pipe.PipeValue;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;

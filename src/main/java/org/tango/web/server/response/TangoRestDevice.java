@@ -1,7 +1,7 @@
 package org.tango.web.server.response;
 
 import fr.esrf.TangoApi.DeviceInfo;
-import org.tango.rest.rc5.entities.Device;
+import org.tango.rest.v10.entities.Device;
 
 import java.net.URI;
 

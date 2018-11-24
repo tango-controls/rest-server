@@ -4,9 +4,9 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DevicePipe;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.PipeBlob;
-import org.tango.rest.rc5.entities.pipe.DispLevel;
-import org.tango.rest.rc5.entities.pipe.PipeInfo;
-import org.tango.rest.rc5.entities.pipe.PipeWriteType;
+import org.tango.rest.v10.entities.pipe.DispLevel;
+import org.tango.rest.v10.entities.pipe.PipeInfo;
+import org.tango.rest.v10.entities.pipe.PipeWriteType;
 
 /**
  * @author ingvord
@@ -48,7 +48,7 @@ public class TangoPipeProxyImpl implements TangoPipeProxy {
     @Override
     public PipeInfo getInfo() throws DevFailed {
         fr.esrf.TangoApi.PipeInfo pipeConfig = deviceProxy.getPipeConfig(name);
-        return new org.tango.rest.rc5.entities.pipe.PipeInfo(pipeConfig.getName(), pipeConfig.getDescription(), pipeConfig.getLabel(), new DispLevel(pipeConfig.getLevel()), new PipeWriteType(pipeConfig.getWriteType()));
+        return new org.tango.rest.v10.entities.pipe.PipeInfo(pipeConfig.getName(), pipeConfig.getDescription(), pipeConfig.getLabel(), new DispLevel(pipeConfig.getLevel()), new PipeWriteType(pipeConfig.getWriteType()));
     }
 
     @Override
