@@ -2,7 +2,7 @@ package org.tango.rest;
 
 import com.google.common.collect.Maps;
 import org.tango.rest.rc4.Rc4ApiImpl;
-import org.tango.rest.v10.Rc5ApiImpl;
+import org.tango.rest.v10.V10ApiImpl;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -27,7 +27,7 @@ public class EntryPoint {
         Map<String, Class<?>> supportedVersions = Maps.newHashMap();
 
         supportedVersions.put("rc4", Rc4ApiImpl.class);
-        supportedVersions.put("rc5", Rc5ApiImpl.class);
+        supportedVersions.put("v10", V10ApiImpl.class);
 
         this.supportedVersions = supportedVersions;
     }

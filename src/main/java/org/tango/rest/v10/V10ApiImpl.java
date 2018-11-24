@@ -18,8 +18,8 @@ import java.util.*;
  */
 @Path("/rc5")
 @Produces("application/json")
-public class Rc5ApiImpl {
-    private final Logger logger = LoggerFactory.getLogger(Rc5ApiImpl.class);
+public class V10ApiImpl {
+    private final Logger logger = LoggerFactory.getLogger(V10ApiImpl.class);
 
     @GET
     public Response authentication(@Context UriInfo uriInfo) {
