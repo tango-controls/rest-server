@@ -20,6 +20,8 @@ This server implements [Tango REST API](https://github.com/tango-controls/rest-a
 [![Tech debt](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=sqale_index)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
 
 [![Lines Of Code](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=ncloc)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.tango-controls%3Arest-server&metric=coverage)](https://sonarcloud.io/dashboard?id=org.tango-controls%3Arest-server)
+
 
 # How to build
 
