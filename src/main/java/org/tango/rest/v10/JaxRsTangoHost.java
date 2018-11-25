@@ -8,7 +8,7 @@ import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.tree.DeviceFilters;
-import org.tango.web.server.tree.DevicesTreeContext;
+import org.tango.web.server.tree.DevicesTreeContextImpl;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -53,7 +53,7 @@ public class JaxRsTangoHost {
 
         DeviceFilters df = new DeviceFilters(filters);
 
-        DevicesTreeContext context = new DevicesTreeContext(Lists.newArrayList(database), df);
+        DevicesTreeContextImpl context = new DevicesTreeContextImpl(Lists.newArrayList(database), df);
         return new DevicesTree(context);
     }
 
@@ -81,12 +81,5 @@ public class JaxRsTangoHost {
     @Path("/devices/{domain}/{family}/{member}")
     public JaxRsDevice getDevice(@Context ResourceContext rc) {
         return rc.getResource(JaxRsDevice.class);
-    }
-
-
-
-    @Path("/devices/tree")
-    public DevicesTree getDevicesTreeForHost() {
-        return new DevicesTree();
     }
 }

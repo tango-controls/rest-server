@@ -8,6 +8,7 @@ import org.tango.rest.v10.tree.*;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
+import org.tango.web.server.tree.DevicesTreeContextImpl;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,15 +38,15 @@ public class DevicesTree {
     public DevicesTree() {
     }
 
-    public DevicesTree(DevicesTreeContext context) {
+    public DevicesTree(DevicesTreeContextImpl context) {
         this.context = context;
     }
 
     @GET
     @RequiresDeviceTreeContext
     public Response get(){
-        List<TangoHost> result = context.dbs.stream()
-                .map(database -> processTangoHost(database.asEsrfDatabase(), context.filters))
+        List<TangoHost> result = context.getHosts().stream()
+                .map(database -> processTangoHost(database.asEsrfDatabase(), context.getWildcards()))
                 .collect(Collectors.toList());
 
         return Response.status(Response.Status.OK)

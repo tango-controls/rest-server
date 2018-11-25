@@ -15,7 +15,7 @@ import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.tree.DeviceFilters;
-import org.tango.web.server.tree.DevicesTreeContext;
+import org.tango.web.server.tree.DevicesTreeContextImpl;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -91,7 +91,7 @@ public class Rc4ApiImpl {
 
         DeviceFilters df = new DeviceFilters(filters);
 
-        DevicesTreeContext context = new DevicesTreeContext(Lists.newArrayList(db), df);
+        DevicesTreeContextImpl context = new DevicesTreeContextImpl(Lists.newArrayList(db), df);
         return new DevicesTree(context);
     }
 

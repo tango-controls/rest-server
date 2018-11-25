@@ -4,9 +4,10 @@ import com.google.common.collect.Lists;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.proxy.Proxies;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
-import org.tango.web.server.proxy.TangoDatabaseProxy;
+import org.tango.web.server.tree.DevicesTreeContextImpl;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -53,7 +54,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
 
         DeviceFilters df = new DeviceFilters(filters);
 
-        DevicesTreeContext context = new DevicesTreeContext(dbs, df);
+        DevicesTreeContext context = new DevicesTreeContextImpl(dbs, df);
 
 
         ResteasyProviderFactory.pushContext(DevicesTreeContext.class, context);

@@ -3,6 +3,7 @@ package org.tango.rest.v10;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.web.server.binding.EventSystem;
+import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
@@ -52,6 +53,7 @@ public class V10ApiImpl {
 
 
     @Path("/devices/tree")
+    @RequiresDeviceTreeContext
     public DevicesTree getDevicesTree(@Context ResourceContext rc) {
         return rc.getResource(DevicesTree.class);
     }
