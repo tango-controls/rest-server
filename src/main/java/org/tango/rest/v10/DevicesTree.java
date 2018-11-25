@@ -16,7 +16,10 @@ import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,9 +32,18 @@ import java.util.stream.Collectors;
 public class DevicesTree {
     private final Logger logger = LoggerFactory.getLogger(DevicesTree.class);
 
+    @Context DevicesTreeContext context;
+
+    public DevicesTree() {
+    }
+
+    public DevicesTree(DevicesTreeContext context) {
+        this.context = context;
+    }
+
     @GET
     @RequiresDeviceTreeContext
-    public Response get(@Context DevicesTreeContext context){
+    public Response get(){
         List<TangoHost> result = context.dbs.stream()
                 .map(database -> processTangoHost(database.asEsrfDatabase(), context.filters))
                 .collect(Collectors.toList());

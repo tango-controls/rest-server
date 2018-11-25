@@ -7,10 +7,15 @@ import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
-import java.util.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -46,10 +51,9 @@ public class V10ApiImpl {
     }
 
 
-
     @Path("/devices/tree")
-    public DevicesTree getDevicesTree() {
-        return new DevicesTree();
+    public DevicesTree getDevicesTree(@Context ResourceContext rc) {
+        return rc.getResource(DevicesTree.class);
     }
 
     @Path("/attributes")

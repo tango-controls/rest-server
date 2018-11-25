@@ -1,11 +1,14 @@
 package org.tango.rest.v10;
 
+import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import org.tango.rest.v10.entities.NamedEntity;
 import org.tango.rest.v10.entities.TangoHost;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
+import org.tango.web.server.tree.DeviceFilters;
+import org.tango.web.server.tree.DevicesTreeContext;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -14,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.tango.web.server.providers.DevicesTreeContextProvider.WILDCARD;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -38,6 +43,18 @@ public class JaxRsTangoHost {
         return database.getDeviceNames(wildcard).stream()
                 .map(s -> new NamedEntity(s, database.getDeviceAlias(s), uriInfo.getAbsolutePathBuilder().path(s).build()))
                 .collect(Collectors.toList());
+    }
+
+    @Path("/devices/tree")
+    @StaticValue
+    @Partitionable
+    public DevicesTree getDevicesTree(@Context final UriInfo uriInfo) {
+        List<String> filters = uriInfo.getQueryParameters(true).get(WILDCARD);
+
+        DeviceFilters df = new DeviceFilters(filters);
+
+        DevicesTreeContext context = new DevicesTreeContext(Lists.newArrayList(database), df);
+        return new DevicesTree(context);
     }
 
     @GET

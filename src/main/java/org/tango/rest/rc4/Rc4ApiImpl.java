@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.rc4.entities.DeviceFilters;
+import org.tango.rest.v10.DevicesTree;
 import org.tango.rest.v10.JaxRsSubscriptions;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;
@@ -14,12 +14,22 @@ import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
+import org.tango.web.server.tree.DeviceFilters;
+import org.tango.web.server.tree.DevicesTreeContext;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.tango.web.server.providers.DevicesTreeContextProvider.WILDCARD;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -75,25 +85,19 @@ public class Rc4ApiImpl {
         return new Device();
     }
 
-    //    @Path("/hosts/{var:tango_host}/devices/tree")
-//    public DevicesTree getDevicesTree(@PathParam("var") PathSegment tango_host,
-//                                      @QueryParam("f") List<String> filters) {
     @Path("/hosts/{host}/{port}/devices/tree")
-    public DevicesTree getDevicesTree(@PathParam("host") String host,
-                                      @PathParam("port") String port,
-                                      @QueryParam("f") List<String> filters) {
-        return getDevicesTree(Lists.newArrayList(host + ":" + port), filters);
+    public DevicesTree getDevicesTreeSingleHost(@Context UriInfo uriInfo, @Context TangoDatabaseProxy db) {
+        List<String> filters = uriInfo.getQueryParameters(true).get(WILDCARD);
+
+        DeviceFilters df = new DeviceFilters(filters);
+
+        DevicesTreeContext context = new DevicesTreeContext(Lists.newArrayList(db), df);
+        return new DevicesTree(context);
     }
 
-    @Path("/hosts/tree")
-    public DevicesTree getDevicesTree(@QueryParam("v") List<String> tango_hosts,
-                                      @QueryParam("f") List<String> filters) {
-        DeviceFilters filter = new DeviceFilters(filters.toArray(new String[filters.size()]));
-
-        Iterable<String> it =
-                new LinkedList<>(tango_hosts);
-
-        return new DevicesTree(it, filter);
+    @Path("/devices/tree")
+    public DevicesTree getDevicesTree(@Context ResourceContext rc) {
+        return rc.getResource(DevicesTree.class);
     }
 
     @Path("/subscriptions")
