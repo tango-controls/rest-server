@@ -1,9 +1,13 @@
-package org.tango.rest.rc4.entities;
+package org.tango.rest.v10;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.web.server.event.Event;
+import org.tango.rest.rc4.entities.Failure;
+import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.v10.event.Event;
+import org.tango.rest.v10.event.EventImpl;
+import org.tango.rest.v10.event.Subscription;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 
@@ -23,20 +27,30 @@ import java.util.stream.Collectors;
  */
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class Subscription {
-    public final int id;
-    public final List<Event> events = new ArrayList<>();
-    public final List<Failure> failures = new ArrayList<>();
+public class JaxRsSubscription {
+    private final Subscription subscription;
     private transient SseEventSink sink = null;
 
-    public Subscription(int id) {
-        this.id = id;
+    public JaxRsSubscription(int id) {
+        this.subscription = new Subscription(id);
     }
 
 
+    public int getId(){
+        return subscription.id;
+    }
+
+    public List<EventImpl> getEvents(){
+        return (List<EventImpl>) subscription.events;
+    }
+
+    public List<Failure> getFailures(){
+        return subscription.failures;
+    }
+
     @GET
     public Subscription get(){
-        return this;
+        return subscription;
     }
 
     @GET
@@ -44,27 +58,27 @@ public class Subscription {
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public void getSubscription(@Context SseEventSink sink){
         this.sink = new org.tango.web.server.event.SseEventSink(sink);
-        events.forEach(event -> event.broadcaster.register(this.sink));
+        getEvents().forEach(event -> event.broadcaster.register(this.sink));
     }
 
     @PUT
-    public Subscription putTargets(List<Event.Target> targets, @Context EventsManager manager){
-        List<Event> list = targets.stream()
+    public JaxRsSubscription putTargets(List<EventImpl.Target> targets, @Context EventsManager manager){
+        List<EventImpl> list = targets.stream()
                 .map(target ->
-                        manager.lookupEvent(target).orElseGet(() -> newEventWrapper(manager, target, failures)))
+                        manager.lookupEvent(target).orElseGet(() -> newEventWrapper(manager, target, subscription.failures)))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        this.events.addAll(list);
+        this.getEvents().addAll(list);
 
         getSink().ifPresent(sseEventSink -> list.forEach(event -> event.broadcaster.register(sseEventSink)));
         return this;
     }
 
     @DELETE
-    public Subscription deleteTargets(List<Event.Target> targets){
-        List<Event> toRemove = this.events.stream().filter(event -> targets.contains(event.target)).collect(Collectors.toList());
+    public JaxRsSubscription deleteTargets(List<Event.Target> targets){
+        List<EventImpl> toRemove = getEvents().stream().filter(event -> targets.contains(event.target)).collect(Collectors.toList());
 
-        this.events.removeAll(toRemove);
+        getEvents().removeAll(toRemove);
         cancel(toRemove);
 
         return this;
@@ -74,14 +88,14 @@ public class Subscription {
     @DELETE
     @Consumes(MediaType.WILDCARD)
     public void delete(@Context SubscriptionsContext context){
-        Subscription subscription = context.removeSubscription(id);
-        if(subscription != this) throw new AssertionError("Trying to delete invalid Subscription!");
-        subscription.cancel(subscription.events);
-        subscription.getSink().ifPresent(SseEventSink::close);
+        JaxRsSubscription jaxRsSubscription = context.removeSubscription(subscription.id);
+        if(jaxRsSubscription != this) throw new AssertionError("Trying to delete invalid Subscription!");
+        jaxRsSubscription.cancel(jaxRsSubscription.getEvents());
+        jaxRsSubscription.getSink().ifPresent(SseEventSink::close);
     }
 
 
-    private Event newEventWrapper(EventsManager manager, Event.Target target, List<Failure> failures) {
+    private EventImpl newEventWrapper(EventsManager manager, EventImpl.Target target, List<Failure> failures) {
         try {
             return manager.newEvent(target);
         } catch (TangoProxyException | NoSuchAttributeException e) {
@@ -95,7 +109,7 @@ public class Subscription {
         return Optional.ofNullable(sink);
     }
 
-    public void cancel(List<Event> events) {
+    public void cancel(List<EventImpl> events) {
         getSink().ifPresent(
                 sseEventSink -> events.forEach(event -> event.broadcaster.deregister(sseEventSink)));
     }

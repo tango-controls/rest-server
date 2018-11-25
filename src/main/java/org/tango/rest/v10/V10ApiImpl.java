@@ -69,7 +69,7 @@ public class V10ApiImpl {
 
     @Path("/subscriptions")
     @EventSystem
-    public Subscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
-        return new Subscriptions(manager, context);
+    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
+        return new JaxRsSubscriptions(manager, context);
     }
 }

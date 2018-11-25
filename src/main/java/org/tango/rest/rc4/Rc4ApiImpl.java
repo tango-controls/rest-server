@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.DeviceFilters;
+import org.tango.rest.v10.JaxRsSubscriptions;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
@@ -112,7 +113,7 @@ public class Rc4ApiImpl {
 
     @Path("/subscriptions")
     @EventSystem
-    public Subscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
-        return new Subscriptions(manager, context);
+    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
+        return new JaxRsSubscriptions(manager, context);
     }
 }

@@ -3,6 +3,8 @@ package org.tango.web.server.event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.*;
+import org.tango.rest.v10.event.Event;
+import org.tango.rest.v10.event.EventImpl;
 
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -18,7 +20,7 @@ public class EventsManager {
 
     private final Logger logger = LoggerFactory.getLogger(EventsManager.class);
 
-    private final ConcurrentMap<Event.Target, Event> events = new ConcurrentHashMap<>();
+    private final ConcurrentMap<EventImpl.Target, EventImpl> events = new ConcurrentHashMap<>();
     private final AtomicInteger eventId = new AtomicInteger(0);
 
     private final TangoSseBroadcasterFactory tangoSseBroadcasterFactory;
@@ -35,9 +37,9 @@ public class EventsManager {
 
         scheduler.scheduleAtFixedRate(() -> {
             events.entrySet().stream()
-                    .filter(targetEventEntry -> targetEventEntry.getValue().broadcaster.size() == 0)
+                    .filter(targetEventEntry -> ((EventImpl)targetEventEntry.getValue()).broadcaster.size() == 0)
                     .forEach(targetEventEntry -> {
-                        Event event = targetEventEntry.getValue();
+                        EventImpl event = (EventImpl) targetEventEntry.getValue();
 
                         events.remove(event.target);
                         event.broadcaster.close();
@@ -54,11 +56,11 @@ public class EventsManager {
         },EVENTS_CLEANUP_DELAY, EVENTS_CLEANUP_DELAY, TimeUnit.MINUTES);
     }
 
-    public Optional<Event> lookupEvent(Event.Target target){
+    public Optional<EventImpl> lookupEvent(EventImpl.Target target){
         return Optional.ofNullable(events.get(target));
     }
 
-    public Event newEvent(Event.Target target) throws TangoProxyException, NoSuchAttributeException {
+    public EventImpl newEvent(EventImpl.Target target) throws TangoProxyException, NoSuchAttributeException {
         TangoSseBroadcaster broadcaster = tangoSseBroadcasterFactory.newInstance();
 
 
@@ -68,8 +70,8 @@ public class EventsManager {
         logger.debug("Create new Event for {}. Id = {}", target, id);
 
 
-        Event event = new Event(id, target, proxy, new SseTangoEventListener(broadcaster,tangoSseBroadcasterFactory.getSse(),id), broadcaster);
-        Event event0 = events.putIfAbsent(target, event);
+        EventImpl event = new EventImpl(id, target, proxy, new SseTangoEventListener(broadcaster,tangoSseBroadcasterFactory.getSse(),id), broadcaster);
+        EventImpl event0 = events.putIfAbsent(target, event);
         //race condition -> use previous
         if(event0 != null){
             logger.debug("Re-use Event for {}. Id = {}", target, event0.id);

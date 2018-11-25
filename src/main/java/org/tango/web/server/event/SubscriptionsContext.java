@@ -1,6 +1,6 @@
 package org.tango.web.server.event;
 
-import org.tango.rest.rc4.entities.Subscription;
+import org.tango.rest.v10.JaxRsSubscription;
 
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.SseEventSink;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SubscriptionsContext {
     public static final long SUBSCRIPTIONS_MAINTENANCE_DELAY = 30L;
-    private final ConcurrentMap<Integer, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, JaxRsSubscription> subscriptions = new ConcurrentHashMap<>();
     private final AtomicInteger id = new AtomicInteger(0);
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2, new ThreadFactory() {
@@ -52,15 +52,15 @@ public class SubscriptionsContext {
         return id.incrementAndGet();
     }
 
-    public void addSubscription(Subscription subscription){
-        subscriptions.put(subscription.id, subscription);
+    public void addSubscription(JaxRsSubscription jaxRsSubscription){
+        subscriptions.put(jaxRsSubscription.getId(), jaxRsSubscription);
     }
 
-    public Subscription getSubscription(int id){
+    public JaxRsSubscription getSubscription(int id){
         return subscriptions.get(id);
     }
 
-    public Subscription removeSubscription(int id) {
+    public JaxRsSubscription removeSubscription(int id) {
         return subscriptions.remove(id);
     }
 }
