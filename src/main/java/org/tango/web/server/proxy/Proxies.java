@@ -10,12 +10,14 @@ import org.tango.client.database.DatabaseFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
 import org.tango.utils.DevFailedUtils;
-import org.tango.web.server.TangoProxyPool;
 import org.tango.web.server.util.TangoDeviceProxyUtils;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.tango.web.server.providers.TangoDatabaseProvider.DEFAULT_TANGO_PORT;
 
@@ -27,6 +29,8 @@ public class Proxies {
     private Proxies(){}
 
     public static TangoAttributeProxy newTangoAttributeProxy(String fullAttributeName) throws DevFailed {
+        Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(fullAttributeName);
+        if(!matcher.matches()) throw new AssertionError();
         TangoAttribute tangoAttribute = new TangoAttribute(fullAttributeName);
         return new TangoAttributeProxyImpl(tangoAttribute);
     }
@@ -40,21 +44,16 @@ public class Proxies {
         }
     }
 
-    public static Optional<TangoDeviceProxy> optionalTangoDeviceProxy(String host, String name){
+    public static final Pattern TANGO_DEVICE_FULL_NAME_PATTERN = Pattern.compile("tango://(?<host>(.+):(\\d{5}))/(?<name>.+/.+/.+)");
+    public static Optional<TangoDeviceProxy> optionalTangoDeviceProxy(String fullDeviceName){
         try {
+            Matcher matcher = TANGO_DEVICE_FULL_NAME_PATTERN.matcher(fullDeviceName);
+            if(!matcher.matches()) throw new AssertionError();
             TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(
-                    DeviceProxyFactory.get(TangoDeviceProxyUtils.toUriBuilder(host, name).build().toString()));
-            return Optional.of(new TangoDeviceProxyImpl(host, name, tangoProxy));
-        } catch (TangoProxyException|DevFailed devFailed) {
-            return Optional.empty();
-        }
-    }
+                    DeviceProxyFactory.get(fullDeviceName));
 
-    public static Optional<TangoDeviceProxy> optionalTangoDeviceProxyFromPool(String host, String name, TangoProxyPool pool){
-        try {
-            TangoProxy tangoProxy = pool.getProxy(TangoDeviceProxyUtils.toUriBuilder(host, name).build().toString());
-            return Optional.of(new TangoDeviceProxyImpl(host, name, tangoProxy));
-        } catch (TangoProxyException e) {
+            return Optional.of(new TangoDeviceProxyImpl(matcher.group("host"), matcher.group("name"), tangoProxy));
+        } catch (TangoProxyException|DevFailed devFailed) {
             return Optional.empty();
         }
     }
@@ -93,6 +92,17 @@ public class Proxies {
         return new TangoCommandProxyImpl(tangoCommand);
     }
 
+    public static final Pattern TANGO_MEMBER_FULL_NAME_PATTERN = Pattern.compile("(?<device>tango://(?<host>(.+):(\\d{5}))/(.+/.+/.+))/(?<name>.+)");
+    public static Optional<TangoCommandProxy> optionalTangoCommandProxy(String commandFullName) {
+        try {
+            Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(commandFullName);
+            if(!matcher.matches()) throw new AssertionError();
+            return Optional.of(newTangoCommandProxy(matcher.group("device"), matcher.group("name")));
+        } catch (DevFailed devFailed) {
+            return Optional.empty();
+        }
+    }
+
     public static Optional<TangoCommandProxy> optionalTangoCommandProxy(String deviceFullName, String name) {
         try {
             return Optional.of(newTangoCommandProxy(deviceFullName, name));
@@ -112,4 +122,24 @@ public class Proxies {
     }
 
 
+    public static final Pattern TANGO_DATABASE_FULL_NAME_PATTERN = Pattern.compile("(?<host>.+):(?<port>\\d{5})");
+    public static Optional<TangoDatabaseProxy> optionalTangoDatabaseProxy(String fullTangoHost) {
+        Matcher matcher = TANGO_DATABASE_FULL_NAME_PATTERN.matcher(fullTangoHost);
+        if(!matcher.matches()) throw new AssertionError();
+        try {
+            return Optional.of(getDatabase(matcher.group("host"), matcher.group("port")));
+        } catch (DevFailed devFailed) {
+            return Optional.empty();
+        }
+    }
+
+    public static TangoDeviceProxy newTangoDeviceProxy(String host, String name) throws TangoProxyException {
+        try {
+            TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(
+                    DeviceProxyFactory.get(TangoDeviceProxyUtils.toUriBuilder(host, name).build().toString()));
+            return new TangoDeviceProxyImpl(host, name, tangoProxy);
+        } catch (DevFailed devFailed) {
+            throw TangoUtils.convertDevFailedToException(devFailed);
+        }
+    }
 }

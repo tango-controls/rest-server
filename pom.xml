@@ -190,7 +190,6 @@
                         <exclude>**/IT*</exclude>
                         <exclude>**/*$*</exclude>
                     </excludes>
-                    <skip>true</skip>
                 </configuration>
             </plugin>
 
@@ -386,6 +385,7 @@
                                 <dependency>org.tango-controls:rest-test-suite</dependency>
                             </dependenciesToScan>
                             <includes>
+                                <include>**/IT*</include>
                                 <include>**/Rc*</include>
                                 <include>**/V*</include>
                             </includes>

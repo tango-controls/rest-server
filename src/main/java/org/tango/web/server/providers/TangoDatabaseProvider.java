@@ -43,7 +43,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
         UriInfo uriInfo = requestContext.getUriInfo();
         List<PathSegment> pathSegments = uriInfo.getPathSegments();
-        if(pathSegments.size() < 3) return;
+        if (pathSegments.size() < 3) return;
         if (!pathSegments.get(2).getPath().equalsIgnoreCase("hosts")) return;
 
         if (pathSegments.size() == 3/* no host was specified*/) {
@@ -66,16 +66,20 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
         TangoHost tangoHost = tangoHostExtractor.apply(uriInfo);
 
-        try {
-            TangoDatabaseProxy tangoDb = Proxies.getDatabase(tangoHost.host, tangoHost.port);
+        TangoDatabaseProxy tangoDb = tangoRestServer.getContext().hosts.
+                getUnchecked(tangoHost.toString()).orElseGet(() -> {
+            try {
+                return Proxies.getDatabase(tangoHost.host, tangoHost.port);
+            } catch (DevFailed devFailed) {
+                Response.Status status = Response.Status.BAD_REQUEST;
+                if (devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))
+                    status = Response.Status.NOT_FOUND;
+                requestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
+                return null;
+            }
+        });
 
-            ResteasyProviderFactory.pushContext(TangoDatabaseProxy.class, tangoDb);
-        } catch (DevFailed devFailed) {
-            Response.Status status = Response.Status.BAD_REQUEST;
-            if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))
-                status = Response.Status.NOT_FOUND;
-            requestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
-        }
+        ResteasyProviderFactory.pushContext(TangoDatabaseProxy.class, tangoDb);
     }
 
     @FunctionalInterface
@@ -90,6 +94,10 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         public TangoHost(String host, String port) {
             this.host = host;
             this.port = port;
+        }
+
+        public String toString() {
+            return host + ":" + port;
         }
     }
 }

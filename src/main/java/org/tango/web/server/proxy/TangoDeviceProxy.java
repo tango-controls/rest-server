@@ -2,8 +2,6 @@ package org.tango.web.server.proxy;
 
 import org.tango.client.ez.proxy.TangoProxy;
 
-import javax.ws.rs.core.UriBuilder;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,6 +14,8 @@ public interface TangoDeviceProxy {
     String getAlias();
 
     String getFullName();
+
+    String getHost();
 
     TangoProxy getProxy();
 

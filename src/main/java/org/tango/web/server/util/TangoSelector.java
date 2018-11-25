@@ -1,14 +1,11 @@
 package org.tango.web.server.util;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.DeviceProxy;
-import fr.esrf.TangoApi.DeviceProxyFactory;
-import fr.soleil.tango.clientapi.TangoAttribute;
-import fr.soleil.tango.clientapi.TangoCommand;
-import org.tango.web.server.TangoProxyPool;
+import org.tango.web.server.Context;
 import org.tango.web.server.proxy.*;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,12 +16,12 @@ import java.util.stream.Stream;
 //TODO handle exceptions
 public class TangoSelector {
 
-    private final TangoProxyPool proxyPool;
+    private final Context context;
     private final List<Wildcard> wildcards;
 
-    public TangoSelector(List<Wildcard> wildcards, TangoProxyPool proxyPool) {
+    public TangoSelector(List<Wildcard> wildcards, Context context) {
         this.wildcards = wildcards;
-        this.proxyPool = proxyPool;
+        this.context = context;
     }
 
     private Stream<WildcardDatabase> getWildcardDatabaseStream(){
@@ -47,7 +44,7 @@ public class TangoSelector {
                 .flatMap(wildcardDatabase ->
                     wildcardDatabase.database.getDeviceNames(wildcardDatabase.wildcard.asDeviceWildcard()).stream()
                             .map(s ->
-                                    Proxies.optionalTangoDeviceProxyFromPool(wildcardDatabase.database.getTangoHost(),s, proxyPool)
+                                    context.devices.getUnchecked(wildcardDatabase.database.getFullTangoHost() + "/" + s)
                                     .map(tangoDeviceProxy -> new WildcardDevice(wildcardDatabase,tangoDeviceProxy))
                                     .orElse(null)
                             )

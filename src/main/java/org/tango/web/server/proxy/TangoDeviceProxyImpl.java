@@ -13,12 +13,14 @@ import java.util.stream.Collectors;
  * @since 11/18/18
  */
 public class TangoDeviceProxyImpl implements TangoDeviceProxy {
+    private final String host;
     private final String name;
     private final TangoProxy proxy;
     private final String fullName;
 
     public TangoDeviceProxyImpl(String host, String name, TangoProxy proxy) {
         this.fullName = "tango://" + host + "/" + name;
+        this.host = host;
         this.name = name;
         this.proxy = proxy;
     }
@@ -40,6 +42,11 @@ public class TangoDeviceProxyImpl implements TangoDeviceProxy {
     @Override
     public String getFullName() {
         return fullName;
+    }
+
+    @Override
+    public String getHost() {
+        return host;
     }
 
     @Override

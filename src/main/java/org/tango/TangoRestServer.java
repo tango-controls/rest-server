@@ -1,19 +1,19 @@
 package org.tango;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.Tango.DevSource;
-import fr.esrf.Tango.DevState;
-import fr.esrf.Tango.DevVarLongStringArray;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import fr.esrf.Tango.*;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.server.CacheStatsCommand;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
-import org.tango.web.server.TangoProxyPool;
+import org.tango.server.annotation.Device;
+import org.tango.web.server.Context;
 import org.tango.web.server.tomcat.AccessLogConfiguration;
 import org.tango.web.server.tomcat.AuthConfiguration;
 import org.tango.web.server.tomcat.TomcatBootstrap;
@@ -47,8 +47,7 @@ public class TangoRestServer {
     public static final String STATIC_VAL_DESC = "Defines HTTP response expiration header value for static values and for how long server will keep the value. (aka list of the devices in a db).";
     public static final String SYS_DATABASE_2 = "sys/database/2";
     public static final String TANGO_LOCALHOST = "localhost:10000";
-    public final TangoProxyPool hostsPool = new TangoProxyPool();
-    public final TangoProxyPool proxyPool = new TangoProxyPool();
+    private final Context context = new Context();
     private final Logger logger = LoggerFactory.getLogger(TangoRestServer.class);
     @DeviceProperty(name = TANGO_ACCESS, defaultValue = DEFAULT_ACCESS_CONTROL)
     private String tangoAccessControlProperty;
@@ -133,20 +132,65 @@ public class TangoRestServer {
     }
 
     @Attribute
-    public String[] getAliveProxies() throws Exception {
-        Collection<String> result = proxyPool.proxies();
+    public String[] getDatabaseProxies() throws Exception {
+        Collection<String> result = getContext().hosts.asMap().keySet();
         return result.toArray(new String[result.size()]);
     }
 
-    @Command(inTypeDesc = "deviceName->value")
-    public void setProxiesSource(DevVarLongStringArray input) throws Exception {
+    @Command
+    public DevVarDoubleStringArray getDatabaseProxiesCacheStats() throws Exception {
+        return new CacheStatsCommand(getContext().hosts.stats()).toDevVarDoubleStringArray();
+    }
+
+    @Attribute
+    public String[] getDeviceProxies() throws Exception {
+        Collection<String> result = getContext().devices.asMap().keySet();
+        return result.toArray(new String[result.size()]);
+    }
+
+    @Command
+    public DevVarDoubleStringArray getDeviceProxiesCacheStats() throws Exception {
+        return new CacheStatsCommand(getContext().devices.stats()).toDevVarDoubleStringArray();
+    }
+
+    @Attribute
+    public String[] getAttributeProxies() throws Exception {
+        Collection<String> result = getContext().attributes.asMap().keySet();
+        return result.toArray(new String[result.size()]);
+    }
+
+    @Command
+    public DevVarDoubleStringArray getAttributeProxiesCacheStats() throws Exception {
+        return new CacheStatsCommand(getContext().attributes.stats()).toDevVarDoubleStringArray();
+    }
+
+    @Attribute
+    public String[] getCommandProxies() throws Exception {
+        Collection<String> result = getContext().commands.asMap().keySet();
+        return result.toArray(new String[result.size()]);
+    }
+
+    @Command
+    public DevVarDoubleStringArray getCommandProxiesCacheStats() throws Exception {
+        return new CacheStatsCommand(getContext().commands.stats()).toDevVarDoubleStringArray();
+    }
+
+    @Command(inTypeDesc = "device(s)->value(s) e.g. [[tango://localhost:10000/sys/tg_test/1],[0]]")
+    public void setProxySource(DevVarLongStringArray input) throws Exception {
         String[] svalue = input.svalue;
+        Preconditions.checkArgument(input.svalue.length == input.lvalue.length, "svalue.length does not match lvalue.length");
         for (int i = 0, svalueLength = svalue.length; i < svalueLength; i++) {
             String device = svalue[i];
-            TangoProxy proxy = proxyPool.getProxy(device);
-            DevSource new_src = DevSource.from_int(input.lvalue[i]);
-            proxy.toDeviceProxy().set_source(new_src);
-            proxyPool.tangoProxyCreationPolicies.put(proxy.getName(), new TangoProxyPool.TangoProxyCreationPolicy(new_src));
+            DevSource newDevSource = DevSource.from_int(input.lvalue[i]);
+            getContext().devices.getIfPresent(device).ifPresent(tangoDeviceProxy ->
+                    {
+                        try {
+                            tangoDeviceProxy.getProxy().toDeviceProxy().set_source(newDevSource);
+                        } catch (DevFailed devFailed) {
+                            Throwables.throwIfUnchecked(devFailed);
+                        }
+                    }
+            );
         }
     }
 
@@ -235,7 +279,7 @@ public class TangoRestServer {
         this.tomcatCacheSize = tomcatCacheSize;
     }
 
-    public TangoProxy getHostProxy(String host, String port, String dbName) throws TangoProxyException {
-        return hostsPool.getProxy("tango://" + host + ":" + port + "/" + dbName);
+    public Context getContext(){
+        return context;
     }
 }

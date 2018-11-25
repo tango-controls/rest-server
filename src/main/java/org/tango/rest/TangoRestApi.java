@@ -8,6 +8,7 @@ import org.tango.web.server.cache.SimpleBinaryCache;
 import org.tango.web.server.filters.*;
 import org.tango.web.server.interceptors.ImageAttributeValueProvider;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
+import org.tango.web.server.interceptors.TangoAttributeValueInterceptor;
 import org.tango.web.server.providers.*;
 
 import javax.servlet.ServletContext;
@@ -53,16 +54,17 @@ public class TangoRestApi extends Application {
         singletons.add(new TangoContextProvider(getTangoRestServer()));
         singletons.add(new TangoDatabaseProvider(getTangoRestServer()));
         singletons.add(new TangoDeviceProxyProvider(getTangoRestServer()));
-        singletons.add(new TangoAttributeProxyProvider());
-        singletons.add(new TangoCommandProxyProvider());
+        singletons.add(new TangoAttributeProxyProvider(getTangoRestServer()));
+        singletons.add(new TangoCommandProxyProvider(getTangoRestServer()));
         singletons.add(new TangoPipeProxyProvider());
         singletons.add(new EventSystemProvider());
         singletons.add(new DevicesTreeContextProvider());
-        singletons.add(new TangoSelectorProvider(getTangoRestServer().proxyPool));
+        singletons.add(new TangoSelectorProvider(getTangoRestServer()));
         singletons.add(new PartitionProvider());
 
         // = = = Interceptors = = =
         singletons.add(new ImageAttributeValueProvider());
+        singletons.add(new TangoAttributeValueInterceptor());
 
         // = = = Cache = = =
         SimpleBinaryCache cache = new SimpleBinaryCache(getTangoRestServer().getTomcatCacheSize());

@@ -1,9 +1,7 @@
 package org.tango.rest.rc4;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
@@ -17,11 +15,10 @@ import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 
-import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.net.URI;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import java.util.*;
 
 /**
@@ -46,22 +43,10 @@ public class Rc4ApiImpl {
 
     @GET
     @Path("/hosts")
-    public Map<String, String> getHosts(@Context final UriInfo uriInfo, @Context TangoRestServer tangoContext) throws TangoProxyException {
-        Map<String, String> result = Maps.newHashMap();
-
-        for (Map.Entry<String, String> entry : Collections2.transform(tangoContext.hostsPool.proxies(), new Function<String, Map.Entry<String, String>>() {
-            @Override
-            public Map.Entry<String, String> apply(@Nullable String input) {
-                if (input == null) return null;
-                URI uri = URI.create(input);
-                return new AbstractMap.SimpleEntry<>(
-                        String.format("%s:%d", uri.getHost(), uri.getPort()),
-                        String.format("%s%s/%d", uriInfo.getAbsolutePath(), uri.getHost(), uri.getPort()));
-            }
-        }))
-            result.put(entry.getKey(), entry.getValue());
-
-        return result;
+    public List<Map.Entry<String, String>> getHosts(@Context final UriInfo uriInfo, @Context TangoRestServer tangoContext) throws TangoProxyException {
+        return Lists.newArrayList(Iterables.transform(tangoContext.getContext().hosts.asMap().values(), input -> new AbstractMap.SimpleEntry<String, String>(
+                input.get().getTangoHost(),
+                String.format("%s%s/%s", uriInfo.getAbsolutePath(), input.get().getHost(), input.get().getPort()))));
     }
 
     @GET
