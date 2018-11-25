@@ -385,7 +385,7 @@
                                 <dependency>org.tango-controls:rest-test-suite</dependency>
                             </dependenciesToScan>
                             <includes>
-                                <include>**/IT*</include>
+                                <include>**/ITAccess*</include>
                                 <include>**/Rc*</include>
                                 <include>**/V*</include>
                             </includes>
