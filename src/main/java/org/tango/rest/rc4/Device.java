@@ -18,18 +18,17 @@ import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
 import org.tango.rest.rc4.entities.DeviceState;
-import org.tango.rest.rc4.entities.Failures;
 import org.tango.rest.rc4.entities.NamedEntity;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
-import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
@@ -37,8 +36,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -162,8 +159,8 @@ public class Device {
     }
 
     @Path("/attributes/{attr}")
-    public DeviceAttribute deviceAttribute(@PathParam("attr") String attrName, @Context TangoProxy proxy) throws Exception {
-        return new DeviceAttribute(attrName, proxy);
+    public DeviceAttribute deviceAttribute(@Context ResourceContext rc) {
+        return rc.getResource(DeviceAttribute.class);
     }
 
     @GET

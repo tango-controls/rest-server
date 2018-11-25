@@ -11,6 +11,7 @@ import fr.esrf.TangoApi.DbAttribute;
 import fr.esrf.TangoApi.DbDatum;
 import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
@@ -28,12 +29,15 @@ import org.tango.web.server.binding.StaticValue;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author ingvord
@@ -42,17 +46,12 @@ import java.util.NavigableSet;
 @Path("/attributes/{attr}")
 @Produces("application/json")
 public class DeviceAttribute {
-    private final String name;
-    private final TangoProxy proxy;
-
-    public DeviceAttribute(String name, TangoProxy proxy) {
-        this.name = name;
-        this.proxy = proxy;
-    }
+    @PathParam("attr")  String name;
+    @Context TangoProxy proxy;
 
     @GET
     @StaticValue
-    public Object get(@Context UriInfo uriInfo) throws DevFailed{
+    public Object get(@Context UriInfo uriInfo){
         final String href = uriInfo.getAbsolutePath().toString();
 
         return DeviceHelper.attributeInfoExToResponse(name, href);
@@ -60,11 +59,12 @@ public class DeviceAttribute {
 
     @GET
     @Path("/{event:change|periodic|archive|user}")
-    public Object deviceAttributeEvent(@PathParam("event") String eventAsString,
-                                       @DefaultValue("3000") @QueryParam("timeout") long timeout,
+    public void deviceAttributeEvent(@PathParam("event") String eventAsString,
+                                       @DefaultValue("30000") @QueryParam("timeout") long timeout,
                                        @DefaultValue("0") @QueryParam("last") long last,
                                        @Context ServletContext context,
-                                       @Context UriInfo uriInfo
+                                       @Context UriInfo uriInfo,
+                                       @Suspended final AsyncResponse response
     ) throws Exception {
         TangoEvent event = null;
         try {
@@ -82,11 +82,21 @@ public class DeviceAttribute {
         if (last > 0) {
             NavigableSet<?> result = buffer.getTail(eventKey, last);
             if (!result.isEmpty()) {
-                return result.toArray(new Object[result.size()]);
+                response.resume(result.toArray(new Object[result.size()]));
             }
         }
 
-        return buffer.createEvent(eventKey, proxy).get(timeout);
+        //this is required because field proxy is actually a proxy wrapper around ThreadLocal contextualData
+        final TangoProxy finalTangoProxy = ResteasyProviderFactory.getContextData(TangoProxy.class);
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                Object entity = buffer.createEvent(eventKey, finalTangoProxy).get(timeout);
+                response.resume(entity);
+            } catch (Exception e) {
+                response.resume(Failures.createInstance(e));
+            }
+        });
     }
 
     @GET
