@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.rest.v10.tree.TangoAlias;
 import org.tango.utils.DevFailedUtils;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,10 +33,10 @@ public class DeviceFilters {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getDomains(String host, Database db) {
+    public List<String> getDomains(String host, TangoDatabaseProxy db) {
         return filters.stream().map(filter -> {
             try {
-                return db.get_device_domain(filter.domain  + "*");
+                return db.asEsrfDatabase().get_device_domain(filter.domain  + "*");
             } catch (DevFailed devFailed) {
                 logger.warn("Failed to get domain list for {} due to {}", host, DevFailedUtils.toString(devFailed));
                 return null;
@@ -45,14 +46,14 @@ public class DeviceFilters {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getFamilies(String host, Database db, String domain) {
+    public List<String> getFamilies(String host, TangoDatabaseProxy db, String domain) {
         return filters.stream()
                 .filter(filter -> filter.domain.equals(domain)  || filter.domain.equals("*"))
                 .map(filter -> filter.family + "*")
                 .distinct()
                 .map(family -> {
                     try {
-                        return db.get_device_family(domain + "/" + family);
+                        return db.asEsrfDatabase().get_device_family(domain + "/" + family);
                     } catch (DevFailed devFailed) {
                         logger.warn("Failed to get family list for {} due to {}", host, DevFailedUtils.toString(devFailed));
                         return null;
@@ -62,7 +63,7 @@ public class DeviceFilters {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getMembers(String host, Database db, String domain, String family) {
+    public List<String> getMembers(String host, TangoDatabaseProxy db, String domain, String family) {
         return filters.stream()
                 .filter(filter -> filter.domain.equals(domain) || filter.domain.equals("*"))
                 .filter(filter -> filter.family.equals(family) || filter.family.equals("*"))
@@ -70,7 +71,7 @@ public class DeviceFilters {
                 .distinct()
                 .map(member -> {
                     try {
-                        return db.get_device_member(domain + "/" + family + "/" + member);
+                        return db.asEsrfDatabase().get_device_member(domain + "/" + family + "/" + member);
                     } catch (DevFailed devFailed) {
                         logger.warn("Failed to get member list for {} due to {}", host, DevFailedUtils.toString(devFailed));
                         return null;
