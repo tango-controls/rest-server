@@ -41,6 +41,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        logger.trace("TangoDatabaseProvider");
         UriInfo uriInfo = requestContext.getUriInfo();
         List<PathSegment> pathSegments = uriInfo.getPathSegments();
         if (pathSegments.size() < 3) return;

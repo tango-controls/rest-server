@@ -1,6 +1,8 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 
 import javax.annotation.Priority;
@@ -18,6 +20,7 @@ import java.io.IOException;
 @Priority(Priorities.USER)
 public class TangoContextProvider implements ContainerRequestFilter {
     private final TangoRestServer tangoRestServer;
+    private final Logger logger = LoggerFactory.getLogger(TangoContextProvider.class);
 
     public TangoContextProvider(TangoRestServer tangoRestServer) {
         this.tangoRestServer = tangoRestServer;
@@ -25,6 +28,7 @@ public class TangoContextProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        logger.trace("TangoContextProvider");
         ResteasyProviderFactory.pushContext(
                 TangoRestServer.class,
                 tangoRestServer);

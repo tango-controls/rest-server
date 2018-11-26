@@ -1,6 +1,8 @@
 package org.tango.web.server.providers;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.Context;
@@ -24,6 +26,7 @@ import java.util.List;
 @Provider
 @RequiresTangoSelector
 public class TangoSelectorProvider implements ContainerRequestFilter {
+    private final Logger logger = LoggerFactory.getLogger(TangoSelectorProvider.class);
     public static final String WILDCARD = "wildcard";
     private Context context;
 
@@ -33,6 +36,7 @@ public class TangoSelectorProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        logger.trace("TangoSelectorProvider");
         UriInfo uriInfo = requestContext.getUriInfo();
 
         List<String> queryWildcards = uriInfo.getQueryParameters().get(WILDCARD);

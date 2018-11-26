@@ -2,6 +2,8 @@ package org.tango.web.server.providers;
 
 import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoCommand;
@@ -28,6 +30,7 @@ import java.util.Objects;
 @Priority(Priorities.USER + 300)
 public class TangoCommandProxyProvider implements ContainerRequestFilter {
     private final TangoRestServer tangoRestServer;
+    private final Logger logger = LoggerFactory.getLogger(TangoCommandProxyProvider.class);
 
     public TangoCommandProxyProvider(TangoRestServer tangoRestServer) {
         this.tangoRestServer = tangoRestServer;
@@ -35,6 +38,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+        logger.trace("TangoCommandProxyProvider");
         UriInfo uriInfo = containerRequestContext.getUriInfo();
 
         String name = uriInfo.getPathParameters().getFirst("cmd");

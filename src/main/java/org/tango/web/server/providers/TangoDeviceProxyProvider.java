@@ -45,6 +45,7 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        logger.trace("TangoDeviceProxyProvider");
         TangoDatabaseProxy db = ResteasyProviderFactory.getContextData(TangoDatabaseProxy.class);
         if (db == null) return;
 
