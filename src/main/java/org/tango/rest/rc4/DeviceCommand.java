@@ -44,12 +44,10 @@ public class DeviceCommand {
     }
 
     @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Object deviceCommandPut(@QueryParam("async") boolean async,
                                    @Context UriInfo uriInfo,
                                    CommandInput value) throws Exception {
-        final String href = uriInfo.getAbsolutePath().toString();
-
         if (async) {
             DeviceData data = new DeviceData();
 

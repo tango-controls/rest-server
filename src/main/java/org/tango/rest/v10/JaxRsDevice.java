@@ -6,7 +6,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoApi.DbDatum;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
@@ -15,6 +14,7 @@ import org.tango.client.ez.data.type.ValueInsertionException;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.rc4.JaxRsDeviceProperties;
 import org.tango.rest.v10.entities.*;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
@@ -28,16 +28,15 @@ import org.tango.web.server.response.TangoRestDevice;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -201,54 +200,9 @@ public class JaxRsDevice {
         return rc.getResource(JaxRsTangoCommand.class);
     }
 
-    @GET
-    @Partitionable
-    @DynamicValue
     @Path("/properties")
-    public Object deviceProperties() throws DevFailed {
-        String[] propnames = tangoDevice.getProxy().toDeviceProxy().get_property_list("*");
-        if(propnames.length == 0) return propnames;
-        return Iterables.transform(
-                Arrays.asList(tangoDevice.getProxy().toDeviceProxy().get_property(propnames)),
-                new Function<DbDatum, Object>() {
-                    @Override
-                    public Object apply(final DbDatum input) {
-                        return DeviceHelper.dbDatumToResponse(input);
-                    }
-                });
-    }
-
-    @POST
-    @DynamicValue
-    @Path("/properties")
-    public Object devicePropertiesPost(@Context HttpServletRequest request) throws DevFailed {
-        return devicePropertiesPut(request);
-    }
-
-    @PUT
-    @DynamicValue
-    @Path("/properties")
-    public Object devicePropertiesPut(@Context HttpServletRequest request) throws DevFailed {
-        Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
-        boolean async = parametersMap.remove("async") != null;
-
-        DbDatum[] input = Iterables.toArray(Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DbDatum>() {
-            @Override
-            public DbDatum apply(Map.Entry<String, String[]> input) {
-                return new DbDatum(input.getKey(), input.getValue());
-            }
-        }), DbDatum.class);
-
-        tangoDevice.getProxy().toDeviceProxy().put_property(input);
-
-        if (async)
-            return null;
-        else return deviceProperties();
-    }
-
-    @Path("/properties/{prop}")
-    public DeviceProperty deviceProperty(@PathParam("prop") String propName, @Context UriInfo uriInfo) {
-        return new DeviceProperty(propName, uriInfo);
+    public JaxRsDeviceProperties getProperties(@Context ResourceContext rc){
+        return rc.getResource(JaxRsDeviceProperties.class);
     }
 
     @GET

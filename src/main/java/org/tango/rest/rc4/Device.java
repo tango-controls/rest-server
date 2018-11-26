@@ -8,7 +8,6 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.CommandInfo;
-import fr.esrf.TangoApi.DbDatum;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
@@ -26,14 +25,12 @@ import org.tango.web.server.proxy.TangoDatabaseProxy;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -204,54 +201,9 @@ public class Device {
         return new DeviceCommand(proxy, cmdName);
     }
 
-    @GET
-    @Partitionable
-    @DynamicValue
     @Path("/properties")
-    public Object deviceProperties(@Context TangoProxy proxy) throws DevFailed {
-        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
-        if(propnames.length == 0) return propnames;
-        return Iterables.transform(
-                Arrays.asList(proxy.toDeviceProxy().get_property(propnames)),
-                new Function<DbDatum, Object>() {
-                    @Override
-                    public Object apply(final DbDatum input) {
-                        return DeviceHelper.dbDatumToResponse(input);
-                    }
-                });
-    }
-
-    @POST
-    @DynamicValue
-    @Path("/properties")
-    public Object devicePropertiesPost(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        return devicePropertiesPut(request, proxy);
-    }
-
-    @PUT
-    @DynamicValue
-    @Path("/properties")
-    public Object devicePropertiesPut(@Context HttpServletRequest request, @Context TangoProxy proxy) throws DevFailed {
-        Map<String, String[]> parametersMap = new HashMap<>(request.getParameterMap());
-        boolean async = parametersMap.remove("async") != null;
-
-        DbDatum[] input = Iterables.toArray(Iterables.transform(parametersMap.entrySet(), new Function<Map.Entry<String, String[]>, DbDatum>() {
-            @Override
-            public DbDatum apply(Map.Entry<String, String[]> input) {
-                return new DbDatum(input.getKey(), input.getValue());
-            }
-        }), DbDatum.class);
-
-        proxy.toDeviceProxy().put_property(input);
-
-        if (async)
-            return null;
-        else return deviceProperties(proxy);
-    }
-
-    @Path("/properties/{prop}")
-    public DeviceProperty deviceProperty(@PathParam("prop") String propName, @Context UriInfo uriInfo) {
-        return new DeviceProperty(propName, uriInfo);
+    public JaxRsDeviceProperties getProperties(@Context ResourceContext rc){
+        return rc.getResource(JaxRsDeviceProperties.class);
     }
 
     @GET

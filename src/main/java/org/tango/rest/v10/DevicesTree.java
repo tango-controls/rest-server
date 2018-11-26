@@ -1,11 +1,11 @@
 package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.rest.v10.tree.*;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
+import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContext;
 import org.tango.web.server.tree.DevicesTreeContextImpl;
@@ -46,7 +46,7 @@ public class DevicesTree {
     @RequiresDeviceTreeContext
     public Response get(){
         List<TangoHost> result = context.getHosts().stream()
-                .map(database -> processTangoHost(database.asEsrfDatabase(), context.getWildcards()))
+                .map(database -> processTangoHost(database, context.getWildcards()))
                 .collect(Collectors.toList());
 
         return Response.status(Response.Status.OK)
@@ -56,12 +56,12 @@ public class DevicesTree {
                 .build();
     }
 
-    private TangoHost processTangoHost(Database db, DeviceFilters filter) {
+    private TangoHost processTangoHost(TangoDatabaseProxy db, DeviceFilters filter) {
         TangoHost result = new TangoHost();
         try {
             List<TangoContainer<?>> data = new ArrayList<>();
-            result.id = db.getFullTangoHost();
-            result.value = db.getFullTangoHost();
+            result.id = db.getTangoHost();
+            result.value = db.getTangoHost();
             data.add(processAliases(db, filter));
             data.addAll(processDomains(result.value, db, filter));
             result.data.addAll(data);
@@ -73,7 +73,7 @@ public class DevicesTree {
         }
     }
 
-    private List<TangoDomain> processDomains(String host, Database db, DeviceFilters filter) {
+    private List<TangoDomain> processDomains(String host, TangoDatabaseProxy db, DeviceFilters filter) {
         final List<String> domains = filter.getDomains(host, db);
         return domains.stream().map((domain) -> {
             TangoDomain tangoDomain = new TangoDomain();
@@ -85,7 +85,7 @@ public class DevicesTree {
         }).collect(Collectors.toList());
     }
 
-    private Function<String, TangoFamily> getStringToTangoFamilyFunction(String host, Database db, DeviceFilters filter, String domain) {
+    private Function<String, TangoFamily> getStringToTangoFamilyFunction(String host, TangoDatabaseProxy db, DeviceFilters filter, String domain) {
         return (family) -> {
             TangoFamily tangoFamily = new TangoFamily();
             tangoFamily.value = family;
@@ -97,8 +97,8 @@ public class DevicesTree {
     }
 
 
-    private TangoContainer<TangoAlias> processAliases(Database db, DeviceFilters filter) throws DevFailed {
-        final String[] aliases = db.get_device_alias_list("*");
+    private TangoContainer<TangoAlias> processAliases(TangoDatabaseProxy db, DeviceFilters filter) throws DevFailed {
+        final String[] aliases = db.asEsrfDatabase().get_device_alias_list("*");
 
         TangoContainer<TangoAlias> result = new TangoContainer<>();
         result.value = "aliases";
@@ -109,7 +109,7 @@ public class DevicesTree {
                     try {
                         TangoAlias tangoAlias = new TangoAlias();
                         tangoAlias.value = alias;
-                        tangoAlias.device_name = db.get_device_from_alias(alias);
+                        tangoAlias.device_name = db.asEsrfDatabase().get_device_from_alias(alias);
                         return tangoAlias;
                     } catch (DevFailed devFailed) {
                         return null;
