@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 MAINTAINER info@tango-controls.org
 
-ENV REST_SERVER_VERSION=rest-server-1.3-SNAPSHOT.jar
+ARG REST_SERVER_VERSION
 
 ENV REST_API_PORT=10001
 
