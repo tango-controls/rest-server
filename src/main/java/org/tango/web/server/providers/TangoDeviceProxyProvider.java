@@ -4,7 +4,6 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.proxy.Proxies;
@@ -74,9 +73,6 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
         if (Objects.nonNull(result)) {
             ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);
-            //TODO rc4 migrate to TangoDeviceProxy
-
-            ResteasyProviderFactory.pushContext(TangoProxy.class, result.getProxy());
         }
     }
 

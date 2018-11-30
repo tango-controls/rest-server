@@ -4,9 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DbDatum;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -23,15 +23,15 @@ import java.util.stream.Collectors;
 @Path("/properties")
 @Produces(MediaType.APPLICATION_JSON)
 public class JaxRsDeviceProperties {
-    @Context TangoProxy proxy;
+    @Context TangoDeviceProxy proxy;
 
     @GET
     @Partitionable
     @DynamicValue
     public List<Object> deviceProperties() throws DevFailed {
-        String[] propnames = proxy.toDeviceProxy().get_property_list("*");
+        String[] propnames = proxy.getProxy().toDeviceProxy().get_property_list("*");
         if(propnames.length == 0) return Collections.emptyList();
-        return Arrays.stream(proxy.toDeviceProxy().get_property(propnames))
+        return Arrays.stream(proxy.getProxy().toDeviceProxy().get_property(propnames))
                 .map(DeviceHelper::dbDatumToResponse)
                 .collect(Collectors.toList());
     }
@@ -55,7 +55,7 @@ public class JaxRsDeviceProperties {
             }
         }), DbDatum.class);
 
-        proxy.toDeviceProxy().put_property(input);
+        proxy.getProxy().toDeviceProxy().put_property(input);
 
         if (async)
             return null;

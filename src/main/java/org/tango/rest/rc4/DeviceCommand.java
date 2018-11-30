@@ -10,10 +10,10 @@ import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.client.ez.data.type.ValueExtractionException;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.rest.rc4.entities.CommandResult;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.Partitionable;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -25,22 +25,16 @@ import java.util.Arrays;
  * @author ingvord
  * @since 8/7/16
  */
-@Path("/commands/{cmd}")
+@Path("/{cmd}")
 @Produces("application/json")
 public class DeviceCommand {
-    private final String name;
-    private final TangoProxy proxy;
-
-
-    public DeviceCommand(TangoProxy proxy, String name) {
-        this.name = name;
-        this.proxy = proxy;
-    }
+    @PathParam("cmd") String name;
+    @Context TangoDeviceProxy proxy;
 
     @GET
     public Object get(@PathParam("cmd") String cmdName,
                       @Context UriInfo uriInfo) throws DevFailed {
-        return DeviceHelper.commandInfoToResponse(proxy.toDeviceProxy().command_query(cmdName), uriInfo.getAbsolutePath().toString());
+        return DeviceHelper.commandInfoToResponse(proxy.getProxy().toDeviceProxy().command_query(cmdName), uriInfo.getAbsolutePath().toString());
     }
 
     @PUT
@@ -53,10 +47,10 @@ public class DeviceCommand {
 
             ((TangoDataType<Object>) TangoDataTypes.forClass(value.type)).insert(TangoDataWrapper.create(data), value.input);
 
-            proxy.toDeviceProxy().command_inout_asynch(name, data);
+            proxy.getProxy().toDeviceProxy().command_inout_asynch(name, data);
             return null;
         } else {
-            final Object output = proxy.executeCommand(name, value.input);
+            final Object output = proxy.getProxy().executeCommand(name, value.input);
             return new CommandResult<>(name, output);
         }
     }
@@ -67,7 +61,7 @@ public class DeviceCommand {
     @Path("/history")
     public Object deviceCommandHistory(@PathParam("cmd") String cmdName, @Context UriInfo uriInfo) throws DevFailed {
         return Lists.transform(
-                Arrays.asList(proxy.toDeviceProxy().command_history(cmdName)), new Function<DeviceDataHistory, Object>() {
+                Arrays.asList(proxy.getProxy().toDeviceProxy().command_history(cmdName)), new Function<DeviceDataHistory, Object>() {
                     @Override
                     public Object apply(DeviceDataHistory input) {
                         if (!input.hasFailed()) {

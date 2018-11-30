@@ -1,11 +1,22 @@
 package org.tango.rest.rc4;
 
+import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DbDatum;
+import fr.esrf.TangoApi.DeviceAttribute;
 import fr.esrf.TangoApi.DeviceInfo;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.tango.client.ez.data.TangoDataWrapper;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.ValueInsertionException;
+import org.tango.client.ez.proxy.NoSuchAttributeException;
+import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 import org.tango.web.server.util.DeviceInfos;
 
 import java.net.URI;
+import java.util.*;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -51,5 +62,48 @@ public class DeviceHelper {
             public String name = dbDatum.name;
             public String[] values = dbDatum.extractStringArray();
         };
+    }
+
+    public static fr.esrf.TangoApi.DeviceAttribute[] getDeviceAttributesValue(TangoDeviceProxy deviceProxy, Set<Map.Entry<String, List<String>>> queryParams, boolean async) throws DevFailed {
+        //TODO split into good and bad attributes: write good ones; report bad ones (if present)
+        fr.esrf.TangoApi.DeviceAttribute[] attrs =
+                queryParams.stream()
+                .map(stringListEntry -> {
+                    String attrName = stringListEntry.getKey();
+                    String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
+                    DeviceAttribute result;
+
+                    try {
+                        result = new DeviceAttribute(attrName);
+                        TangoDataType<Object> dataType = (TangoDataType<Object>) deviceProxy.getProxy().getAttributeInfo(attrName).getType();
+                        Class<?> type = dataType.getDataTypeClass();
+                        Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
+
+                        dataType.insert(TangoDataWrapper.create(result, null), converted);
+
+                        return result;
+                    } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toArray(fr.esrf.TangoApi.DeviceAttribute[]::new);
+        if(async) {
+            deviceProxy.getProxy().toDeviceProxy().write_attribute_asynch(attrs);
+            return null;
+        } else {
+            String[] readNames =
+                    Arrays.stream(attrs)
+                    .map(deviceAttribute -> {
+                        try {
+                            return deviceAttribute.getName();
+                        } catch (DevFailed devFailed) {
+                            throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
+                        }
+                    })
+                    .toArray(String[]::new);
+            deviceProxy.getProxy().toDeviceProxy().write_attribute(attrs);
+            return deviceProxy.getProxy().toDeviceProxy().read_attribute(readNames);
+        }
     }
 }

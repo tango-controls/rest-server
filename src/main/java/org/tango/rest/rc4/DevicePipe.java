@@ -2,8 +2,8 @@ package org.tango.rest.rc4;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.web.server.binding.DynamicValue;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -13,22 +13,17 @@ import javax.ws.rs.core.UriInfo;
  * @author ingvord
  * @since 8/7/16
  */
-@Path("/pipes/{pipe}")
+@Path("/{pipe}")
 @Produces("application/json")
 public class DevicePipe {
-    private final TangoProxy proxy;
-    private final String name;
-
-    public DevicePipe(TangoProxy proxy, String name) {
-        this.proxy = proxy;
-        this.name = name;
-    }
+    @Context TangoDeviceProxy proxy;
+    @PathParam("pipe") String name;
 
     @GET
     @DynamicValue
     public Object get(@Context UriInfo uriInfo) throws DevFailed {
         final String href = uriInfo.getAbsolutePath().toString();
-        final fr.esrf.TangoApi.DevicePipe result = proxy.toDeviceProxy().readPipe(name);
+        final fr.esrf.TangoApi.DevicePipe result = proxy.getProxy().toDeviceProxy().readPipe(name);
         return new Object() {
             public String name = DevicePipe.this.name;
             public int size = result.getPipeBlob().size();
@@ -44,7 +39,7 @@ public class DevicePipe {
     @Consumes("application/json")
     @DynamicValue
     public Object devicePipePut(@QueryParam("async") boolean async, @Context UriInfo info, PipeBlob blob) throws DevFailed {
-        proxy.toDeviceProxy().writePipe(name, blob);
+        proxy.getProxy().toDeviceProxy().writePipe(name, blob);
         if (async) return null;
         else return get(info);
     }

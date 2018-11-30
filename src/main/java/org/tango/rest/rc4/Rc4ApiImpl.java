@@ -81,8 +81,8 @@ public class Rc4ApiImpl {
     }
 
     @Path("/hosts/{host}/{port}/devices/{domain}/{family}/{member}")
-    public Device getDevice() {
-        return new Device();
+    public JaxRsDevice getDevice(@Context ResourceContext rc) {
+        return rc.getResource(JaxRsDevice.class);
     }
 
     @Path("/hosts/{host}/{port}/devices/tree")

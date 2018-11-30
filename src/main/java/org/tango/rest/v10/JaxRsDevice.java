@@ -1,19 +1,11 @@
 package org.tango.rest.v10;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.soleil.tango.clientapi.TangoAttribute;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.tango.client.ez.data.TangoDataWrapper;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.ValueInsertionException;
-import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.client.ez.util.TangoUtils;
+import org.tango.rest.rc4.DeviceHelper;
 import org.tango.rest.rc4.JaxRsDeviceProperties;
 import org.tango.rest.v10.entities.*;
 import org.tango.web.server.binding.DynamicValue;
@@ -26,7 +18,6 @@ import org.tango.web.server.response.TangoRestAttribute;
 import org.tango.web.server.response.TangoRestCommand;
 import org.tango.web.server.response.TangoRestDevice;
 
-import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -35,7 +26,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +77,7 @@ public class JaxRsDevice {
     @Partitionable
     @DynamicValue
     @Path("/attributes/value")
+    //TODO replace with AttributeValue
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValues(@QueryParam("attr") String[] attrs) throws DevFailed {
         return tangoDevice.getProxy().toDeviceProxy().read_attribute(attrs);
     }
@@ -95,67 +86,12 @@ public class JaxRsDevice {
     @Partitionable
     @DynamicValue
     @Path("/attributes/value")
+    //TODO replace with AttributeValue
     public fr.esrf.TangoApi.DeviceAttribute[] deviceAttributeValuesPut(@Context ServletContext context,
                                                                         @Context UriInfo uriInfo) throws Exception {
         boolean async = uriInfo.getQueryParameters().containsKey("async");
-        //TODO split into good and bad attributes: write good ones; report bad ones (if present)
-        fr.esrf.TangoApi.DeviceAttribute[] attrs =
-                Iterables.toArray(
-                        Iterables.filter(
-                                Iterables.transform(
-                                        uriInfo.getQueryParameters().entrySet(), new Function<Map.Entry<String, List<String>>, fr.esrf.TangoApi.DeviceAttribute>() {
-                                            @Override
-                                            public fr.esrf.TangoApi.DeviceAttribute apply(Map.Entry<String, List<String>> stringListEntry) {
-                                                String attrName = stringListEntry.getKey();
-                                                String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
-                                                fr.esrf.TangoApi.DeviceAttribute result;
-
-                                                try {
-                                                    result = new fr.esrf.TangoApi.DeviceAttribute(attrName);
-                                                    TangoDataType<Object> dataType = (TangoDataType<Object>) tangoDevice.getProxy().getAttributeInfo(attrName).getType();
-                                                    Class<?> type = dataType.getDataTypeClass();
-                                                    Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
-
-                                                    dataType.insert(TangoDataWrapper.create(result, null), converted);
-
-                                                    return result;
-                                                } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
-                                                    return null;
-                                                }
-                                            }
-                                        }), new Predicate<fr.esrf.TangoApi.DeviceAttribute>() {
-
-                                    @Override
-                                    public boolean apply(@Nullable fr.esrf.TangoApi.DeviceAttribute input) {
-                                        return input != null;
-                                    }
-                                }
-
-                        ), fr.esrf.TangoApi.DeviceAttribute.class);
-
-
-
-
-        if(async) {
-            tangoDevice.getProxy().toDeviceProxy().write_attribute_asynch(attrs);
-            return null;
-        } else {
-            String[] readNames = Lists.transform(Arrays.asList(attrs), new Function<fr.esrf.TangoApi.DeviceAttribute, String>() {
-                @Override
-                public String apply(fr.esrf.TangoApi.DeviceAttribute deviceAttribute) {
-                    try {
-                        return deviceAttribute.getName();
-                    } catch (DevFailed devFailed) {
-                        throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
-                    }
-                }
-            }).toArray(new String[attrs.length]);
-            tangoDevice.getProxy().toDeviceProxy().write_attribute(attrs);
-            return tangoDevice.getProxy().toDeviceProxy().read_attribute(readNames);
-        }
+        return DeviceHelper.getDeviceAttributesValue(tangoDevice, uriInfo.getQueryParameters().entrySet(), async);
     }
-
-    ;
 
     @Path("/attributes/{attr}")
     @RequiresTangoAttribute

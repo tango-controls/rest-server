@@ -1,9 +1,9 @@
 package org.tango.web.server.rc4.readers;
 
 import org.tango.client.ez.proxy.NoSuchCommandException;
-import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.DeviceCommand;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -27,7 +27,7 @@ public class CommandInputMessageBodyReader implements MessageBodyReader<DeviceCo
     @Context
     private UriInfo uriInfo;
     @Context
-    private TangoProxy proxy;
+    private TangoDeviceProxy proxy;
     @Context
     private Providers providers;
 
@@ -41,7 +41,7 @@ public class CommandInputMessageBodyReader implements MessageBodyReader<DeviceCo
         String cmdName = uriInfo.getPathParameters().getFirst("cmd");
 
         try {
-            Class<?> arginType = proxy.getCommandInfo(cmdName).getArginType();
+            Class<?> arginType = proxy.getProxy().getCommandInfo(cmdName).getArginType();
             if (arginType == Void.class) return new DeviceCommand.CommandInput(cmdName, Void.class, null);
 
             MessageBodyReader<Object> bodyReader = (MessageBodyReader<Object>) providers.getMessageBodyReader(arginType, arginType, annotations, mediaType);

@@ -26,6 +26,7 @@ import org.tango.web.server.attribute.EventBuffer;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.proxy.TangoDeviceProxy;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -47,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 @Produces("application/json")
 public class DeviceAttribute {
     @PathParam("attr")  String name;
-    @Context TangoProxy proxy;
+    @Context TangoDeviceProxy proxy;
 
     @GET
     @StaticValue
@@ -72,12 +73,12 @@ public class DeviceAttribute {
         } catch (IllegalArgumentException ex) {
             throw new AssertionError("Can not happen! event must be one of change|periodic|archive|user but was " + eventAsString);
         }
-        EventBuffer.EventKey eventKey = new EventBuffer.EventKey(proxy, name, event);
+        EventBuffer.EventKey eventKey = new EventBuffer.EventKey(proxy.getProxy(), name, event);
 
         EventBuffer buffer = (EventBuffer) context.getAttribute(EventBuffer.class.getName());
 
         //subscribe this buffer if not yet done
-        buffer.subscribe(eventKey, proxy);
+        buffer.subscribe(eventKey, proxy.getProxy());
 
         if (last > 0) {
             NavigableSet<?> result = buffer.getTail(eventKey, last);
@@ -103,7 +104,7 @@ public class DeviceAttribute {
     @Partitionable
     @Path("/history")
     public Object deviceAttributeHistory(@Context ServletContext context) throws DevFailed {
-        return Lists.transform(Arrays.asList(proxy.toDeviceProxy().attribute_history(name)), new Function<DeviceDataHistory, Object>() {
+        return Lists.transform(Arrays.asList(proxy.getProxy().toDeviceProxy().attribute_history(name)), new Function<DeviceDataHistory, Object>() {
             @Override
             public Object apply(DeviceDataHistory input) {
                 if (!input.hasFailed()) {
@@ -128,7 +129,7 @@ public class DeviceAttribute {
     @Path("/info")
     //TODO return AttributeInfo from rest-api
     public AttributeInfoEx deviceAttributeInfo() throws DevFailed {
-        return proxy.toDeviceProxy().get_attribute_info_ex(name);
+        return proxy.getProxy().toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @PUT
@@ -136,16 +137,16 @@ public class DeviceAttribute {
     @Path("/info")
     //TODO return AttributeInfo from rest-api
     public AttributeInfoEx deviceAttributeInfoPut(@QueryParam("async") boolean async, AttributeConfig config) throws DevFailed {
-        proxy.toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config.wrapped)});
+        proxy.getProxy().toDeviceProxy().set_attribute_info(new AttributeInfoEx[]{new AttributeInfoEx(config.wrapped)});
         if (async) return null;
-        return proxy.toDeviceProxy().get_attribute_info_ex(name);
+        return proxy.getProxy().toDeviceProxy().get_attribute_info_ex(name);
     }
 
     @GET
     @StaticValue
     @Path("/properties")
     public List<AttributeProperty> deviceAttributeProperties() throws DevFailed {
-        return Lists.transform(proxy.toDeviceProxy().get_attribute_property(name), new Function<DbDatum, AttributeProperty>() {
+        return Lists.transform(proxy.getProxy().toDeviceProxy().get_attribute_property(name), new Function<DbDatum, AttributeProperty>() {
             @Override
             public AttributeProperty apply(DbDatum input) {
                 return new AttributeProperty(input);
@@ -157,7 +158,7 @@ public class DeviceAttribute {
     @StaticValue
     @Path("/properties/{prop}")
     public AttributeProperty deviceAttributeProperties(@PathParam("prop") final String property) throws DevFailed {
-        Iterable<? extends DbDatum> datumCollection = Iterables.filter(proxy.toDeviceProxy().get_attribute_property(name), new Predicate<DbDatum>() {
+        Iterable<? extends DbDatum> datumCollection = Iterables.filter(proxy.getProxy().toDeviceProxy().get_attribute_property(name), new Predicate<DbDatum>() {
             @Override
             public boolean apply(DbDatum input) {
                 return property.equalsIgnoreCase(input.name);
@@ -173,14 +174,14 @@ public class DeviceAttribute {
     public DbAttribute deviceAttributePropertyPut(@PathParam("prop") final String propName,
                                                   @QueryParam("value") final String propValue,
                                                   @QueryParam("async") boolean async) throws DevFailed {
-        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
+        DbAttribute dbAttribute = proxy.getProxy().toDeviceProxy().get_attribute_property(name);
 
         DbDatum datum = dbAttribute.datum(propName);
 
         if(datum != null) datum.insert(propValue);
         else dbAttribute.add(propName, propValue);
 
-        proxy.toDeviceProxy().put_attribute_property(dbAttribute);
+        proxy.getProxy().toDeviceProxy().put_attribute_property(dbAttribute);
 
         if(async) return null;
         return dbAttribute;
@@ -189,7 +190,7 @@ public class DeviceAttribute {
     @DELETE
     @Path("/properties/{prop}")
     public void deviceAttributePropertyDelete(@PathParam("prop") final String propName) throws DevFailed {
-        DbAttribute dbAttribute = proxy.toDeviceProxy().get_attribute_property(name);
+        DbAttribute dbAttribute = proxy.getProxy().toDeviceProxy().get_attribute_property(name);
 
         for (Iterator<DbDatum> iterator = dbAttribute.iterator(); iterator.hasNext(); ) {
             DbDatum dbDatum = iterator.next();
@@ -198,14 +199,14 @@ public class DeviceAttribute {
                 break;
             }
         }
-        proxy.toDeviceProxy().put_attribute_property(dbAttribute);
+        proxy.getProxy().toDeviceProxy().put_attribute_property(dbAttribute);
     }
 
     @GET
     @DynamicValue
     @Path("/value")
     public Object deviceAttributeValueGet() throws Exception {
-        final ValueTimeQuality<Object> result = proxy.readAttributeValueTimeQuality(name);
+        final ValueTimeQuality<Object> result = proxy.getProxy().readAttributeValueTimeQuality(name);
 
         return new AttributeValue<Object>(DeviceAttribute.this.name, result.value, result.quality.toString(), result.time);
     }
@@ -214,11 +215,11 @@ public class DeviceAttribute {
     @Path("/value")
     public Object deviceAttributeValuePut(@QueryParam("v") String value, @QueryParam("async") boolean async) throws Exception {
 
-        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(name);
+        TangoAttributeInfoWrapper attributeInfo = proxy.getProxy().getAttributeInfo(name);
         Class<?> targetType = attributeInfo.getClazz();
         Object converted = ConvertUtils.convert(value, targetType);
 
-        proxy.writeAttribute(name, converted);
+        proxy.getProxy().writeAttribute(name, converted);
         if (async) {
             return null;
         }
@@ -229,7 +230,7 @@ public class DeviceAttribute {
     @DynamicValue
     @Path("/value/plain")
     public Object deviceAttributeGetValuePlain() throws Exception {
-        return proxy.readAttribute(name);
+        return proxy.getProxy().readAttribute(name);
     }
 
     @GET
@@ -237,7 +238,7 @@ public class DeviceAttribute {
     @Path("/value/image")
     public Object deviceAttributeGetValueImage() throws Exception {
         //TODO may throw ClassCast in case non image attribute is requested
-        final TangoImage image =  proxy.readAttribute(name);
+        final TangoImage image =  proxy.getProxy().readAttribute(name);
         return new ImageAttributeValue(image);
     }
 
