@@ -10,7 +10,7 @@ RUN useradd -ms /bin/bash rest
 
 WORKDIR /home/rest
 
-COPY target/${REST_SERVER_VERSION}.jar
+COPY target/${REST_SERVER_VERSION}.jar ./
 
 EXPOSE ${REST_API_PORT}
 
