@@ -5,6 +5,9 @@ sudo: false
 services:
 - docker
 
+env:
+- DOCKER_IMAGE_NAME=tangocs/rest-server REGISTRY_USER=ingvord
+
 #skip mvn install
 install: /bin/true
 
@@ -20,6 +23,7 @@ script:
 after_success:
   - git fetch --unshallow
   - mvn sonar:sonar -Ptravis
+  - docker build --pull --cache-from "${DOCKER_IMAGE_NAME}:latest" --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
 
 jdk: 
   - openjdk8
@@ -30,7 +34,13 @@ addons:
     token:
       secure: $SONAR_TOKEN  
 
+before_deploy:
+- docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+- docker tag "$DOCKER_IMAGE_NAME" "${DOCKER_IMAGE_NAME}:${TRAVIS_TAG}"
+
 deploy:
+  - provider: script
+    script: docker push "${DOCKER_IMAGE_NAME}:${TRAVIS_TAG}"
   - provider: releases
     api_key: $GITHUB_OAUTH_TOKEN
     file:
