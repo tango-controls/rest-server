@@ -88,7 +88,7 @@ public class DeviceAttribute {
         }
 
         //this is required because field proxy is actually a proxy wrapper around ThreadLocal contextualData
-        final TangoProxy finalTangoProxy = ResteasyProviderFactory.getContextData(TangoProxy.class);
+        final TangoProxy finalTangoProxy = ResteasyProviderFactory.getContextData(TangoDeviceProxy.class).getProxy();
         
         CompletableFuture.runAsync(() -> {
             try {
