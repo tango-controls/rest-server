@@ -1,5 +1,7 @@
 [![logo](http://www.tango-controls.org/static/tango/img/logo_tangocontrols.png)](http://www.tango-controls.org)
 
+# TangoRestServer
+
 This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
 
 [![Build Status](https://travis-ci.org/tango-controls/rest-server.svg?branch=master)](https://travis-ci.org/tango-controls/rest-server)
