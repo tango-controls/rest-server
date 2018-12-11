@@ -13,7 +13,6 @@ import org.apache.tomcat.util.net.SSLHostConfigCertificate;
  * @since 12/11/18
  */
 public class Http2Configuration implements TomcatConfiguration {
-    public static final int SECURE_PORT = 10043;
     private final String keyFile;
     private final String certFile;
 
@@ -23,11 +22,15 @@ public class Http2Configuration implements TomcatConfiguration {
     }
 
     public void configure(Tomcat tomcat){
+        //preserve HTTP/1.1 connector on
+        Connector http11connector = tomcat.getConnector();
+        tomcat.setConnector(http11connector);
+
         Connector connector = new Connector(Http11AprProtocol.class.getName());
 
         connector.addLifecycleListener(new AprLifecycleListener());
 
-        connector.setPort(SECURE_PORT);
+        connector.setPort(http11connector.getPort() + 40);
         connector.setSecure(true);
         connector.setScheme("https");
         connector.setAttribute("SSLEnabled", "true");
