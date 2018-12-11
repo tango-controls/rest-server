@@ -20,7 +20,7 @@ import java.util.Map;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 04.02.2016
  */
-public class AuthConfiguration {
+public class AuthConfiguration implements TomcatConfiguration {
     public static final String LDAP_PROPERTIES = "LDAP_PROPERTIES";
     private final Logger logger = LoggerFactory.getLogger(AuthConfiguration.class);
 

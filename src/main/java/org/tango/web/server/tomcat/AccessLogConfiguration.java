@@ -10,7 +10,7 @@ import java.nio.file.Paths;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 9/19/17
  */
-public class AccessLogConfiguration {
+public class AccessLogConfiguration implements TomcatConfiguration {
 
     public void configure(Tomcat tomcat) {
         AccessLogValve accessLogValve = new AccessLogValve();

@@ -14,10 +14,7 @@ import org.tango.server.ServerManagerUtils;
 import org.tango.server.annotation.*;
 import org.tango.server.annotation.Device;
 import org.tango.web.server.Context;
-import org.tango.web.server.tomcat.AccessLogConfiguration;
-import org.tango.web.server.tomcat.AuthConfiguration;
-import org.tango.web.server.tomcat.TomcatBootstrap;
-import org.tango.web.server.tomcat.WebappConfiguration;
+import org.tango.web.server.tomcat.*;
 
 import javax.servlet.ServletException;
 import java.nio.file.Path;
@@ -37,6 +34,10 @@ public class TangoRestServer {
     public static final String TOMCAT_USERS = "TOMCAT_USERS";
     public static final String TOMCAT_PASSWORDS = "TOMCAT_PASSWORDS";
     public static final String TOMCAT_CACHE_SIZE = "TOMCAT_CACHE_SIZE";
+    public static final String TOMCAT_SSL_CERTIFICATE_FILE = "TOMCAT_SSL_CERTIFICATE_FILE";
+    public static final String TOMCAT_SSL_CERTIFICATE_KEY_FILE = "TOMCAT_SSL_CERTIFICATE_KEY_FILE";
+    public static final String DEFAULT_TOMCAT_SSL_CERTIFICATE_FILE = "/etc/ssl/certs/ssl-cert-snakeoil.pem";
+    public static final String DEFAULT_TOMCAT_SSL_CERTIFICATE_KEY_FILE = "/etc/ssl/private/ssl-cert-snakeoil.key";
     public static final String DEFAULT_ACCESS_CONTROL = "none";//"sys/access_control/1";
     public static final String TANGO_INSTANCE = "tango.rest.server.instance";
     public static final String DEFAULT_AUTH_CLASS = "plain";
@@ -61,6 +62,10 @@ public class TangoRestServer {
     private String[] tomcatPasswords;
     @DeviceProperty(name = TOMCAT_CACHE_SIZE, defaultValue = "100")
     private int tomcatCacheSize;
+    @DeviceProperty(name = TOMCAT_SSL_CERTIFICATE_KEY_FILE, defaultValue = DEFAULT_TOMCAT_SSL_CERTIFICATE_KEY_FILE)
+    private String tomcatSslCertificateKeyFile;
+    @DeviceProperty(name = TOMCAT_SSL_CERTIFICATE_FILE, defaultValue = DEFAULT_TOMCAT_SSL_CERTIFICATE_FILE)
+    private String tomcatSslCertificateFile;
     @Attribute(isMemorized = true)
     @AttributeProperties(description = CACHE_ENABLED_DESC)
     private volatile boolean cacheEnabled;
@@ -98,7 +103,7 @@ public class TangoRestServer {
         tomcat = new TomcatBootstrap(tomcatPort, baseDir,
                 new AuthConfiguration(tomcatAuthMethod, tomcatUsers, tomcatPasswords),
                 new WebappConfiguration(baseDir.toAbsolutePath().toString(), this),
-                new AccessLogConfiguration()).bootstrap();
+                new AccessLogConfiguration(), new Http2Configuration(tomcatSslCertificateFile, tomcatSslCertificateKeyFile)).bootstrap();
         setStatus(String.format("TangoRestServer ver=%s\n Running tomcat on port[%d] ", getVersion(), tomcatPort));
     }
 
@@ -281,5 +286,13 @@ public class TangoRestServer {
 
     public Context getContext(){
         return context;
+    }
+
+    public void setTomcatSslCertificateKeyFile(String tomcatSslCertificateKeyFile) {
+        this.tomcatSslCertificateKeyFile = tomcatSslCertificateKeyFile;
+    }
+
+    public void setTomcatSslCertificateFile(String tomcatSslCertificateFile) {
+        this.tomcatSslCertificateFile = tomcatSslCertificateFile;
     }
 }

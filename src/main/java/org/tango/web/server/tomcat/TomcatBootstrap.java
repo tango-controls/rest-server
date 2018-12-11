@@ -1,16 +1,11 @@
 package org.tango.web.server.tomcat;
 
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.coyote.http2.Http2Protocol;
-import org.apache.tomcat.util.net.SSLHostConfig;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -31,17 +26,19 @@ public class TomcatBootstrap {
     private final AuthConfiguration authConfiguration;
     private final WebappConfiguration webappConfiguration;
     private final AccessLogConfiguration accessLogConfiguration;
+    private final Http2Configuration http2Configuration;
 
 
     public TomcatBootstrap(int port,
                            Path baseDir,
-                           AuthConfiguration authConfiguration, WebappConfiguration webappConfiguration, AccessLogConfiguration accessLogConfiguration) {
+                           AuthConfiguration authConfiguration, WebappConfiguration webappConfiguration, AccessLogConfiguration accessLogConfiguration, Http2Configuration http2Configuration) {
         this.port = port;
         this.baseDir = baseDir;
 
         this.authConfiguration = authConfiguration;
         this.webappConfiguration = webappConfiguration;
         this.accessLogConfiguration = accessLogConfiguration;
+        this.http2Configuration = http2Configuration;
     }
 
     public static Path initializeBaseDir() {
@@ -66,30 +63,12 @@ public class TomcatBootstrap {
         tomcat.setPort(port);
         tomcat.setBaseDir(baseDir);
 
-        Connector connector = tomcat.getConnector();
-//        setupHttpsConnector(port, connector);
 
-//        tomcat.getConnector().addUpgradeProtocol(new Http2Protocol());
-
+        http2Configuration.configure(tomcat);
         accessLogConfiguration.configure(tomcat);
         authConfiguration.configure(tomcat);
         webappConfiguration.configure(tomcat);
         return tomcat;
-    }
-
-    private void setupHttpsConnector(int port, Connector connector) {
-        connector.setPort(port);
-        connector.setSecure(true);
-        connector.setScheme("https");
-        connector.setAttribute("SSLEnabled", "true");
-        SSLHostConfig sslHostConfig = new SSLHostConfig();
-        SSLHostConfigCertificate cert =
-                new SSLHostConfigCertificate(sslHostConfig, SSLHostConfigCertificate.Type.RSA);
-        cert.setCertificateKeystoreFile(Paths.get("/storage/Projects/hzg.wpn.projects/mTango/mtangorest.server/keystore").toAbsolutePath().toString());
-        cert.setCertificateKeystorePassword("igorkhokh@1234");
-        cert.setCertificateKeyAlias("mtango");
-        sslHostConfig.addCertificate(cert);
-        connector.addSslHostConfig(sslHostConfig);
     }
 
     public Tomcat bootstrap() {
