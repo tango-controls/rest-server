@@ -87,8 +87,13 @@ public class Proxies {
         }
     }
 
-    public static TangoCommandProxy newTangoCommandProxy(String deviceFullName, String name) throws DevFailed {
-        TangoCommand tangoCommand = new TangoCommand(deviceFullName, name);
+    private static TangoCommandProxy newTangoCommandProxy(String name) throws DevFailed {
+        TangoCommand tangoCommand = new TangoCommand(name);
+        return new TangoCommandProxyImpl(tangoCommand);
+    }
+
+    public static TangoCommandProxy newTangoCommandProxy(TangoDeviceProxy deviceProxy, String name) throws DevFailed {
+        TangoCommand tangoCommand = new TangoCommand(deviceProxy.getProxy().toDeviceProxy(), name);
         return new TangoCommandProxyImpl(tangoCommand);
     }
 
@@ -97,15 +102,15 @@ public class Proxies {
         try {
             Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(commandFullName);
             if(!matcher.matches()) throw new AssertionError();
-            return Optional.of(newTangoCommandProxy(matcher.group("device"), matcher.group("name")));
+            return Optional.of(newTangoCommandProxy(commandFullName));
         } catch (DevFailed devFailed) {
             return Optional.empty();
         }
     }
 
-    public static Optional<TangoCommandProxy> optionalTangoCommandProxy(String deviceFullName, String name) {
+    public static Optional<TangoCommandProxy> optionalTangoCommandProxy(TangoDeviceProxy device, String name) {
         try {
-            return Optional.of(newTangoCommandProxy(deviceFullName, name));
+            return Optional.of(newTangoCommandProxy(device, name));
         } catch (DevFailed devFailed) {
             return Optional.empty();
         }

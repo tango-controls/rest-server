@@ -85,7 +85,7 @@ public class TangoSelector {
                 .flatMap(wildcardDevice ->
                                 wildcardDevice.device.getCommandNames(wildcardDevice.wildcard.attribute).stream()
                                 .map(s ->
-                                        Proxies.optionalTangoCommandProxy(wildcardDevice.device.getFullName(), s)
+                                        Proxies.optionalTangoCommandProxy(wildcardDevice.device, s)
                                                 .map(tangoCommandProxy -> new WildcardMember<>(wildcardDevice, tangoCommandProxy))
                                                 .orElse(null)
                                 )

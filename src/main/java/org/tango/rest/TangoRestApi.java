@@ -40,6 +40,9 @@ public class TangoRestApi extends Application {
     public Set<Object> getSingletons() {
         Set<Object> singletons = new LinkedHashSet<>();
 
+        // = = = Utils = = =
+        singletons.add(new MdcFilter(getTangoRestServer()));
+
         // = = = CORS = = =
         CorsFilter cors = getCorsFilter();
         singletons.add(cors);

@@ -18,7 +18,7 @@
     <properties>
         <servlet-api.version>4.0.1</servlet-api.version>
         <tomcat.version>[8.5.34,)</tomcat.version>
-        <slf4j-api.version>1.7.6</slf4j-api.version>
+        <slf4j-api.version>1.7.5</slf4j-api.version>
         <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
     </properties>
 
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>org.tango-controls</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>9.5.10-hzg.2</version>
+            <version>9.5.10-hzg.4</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>

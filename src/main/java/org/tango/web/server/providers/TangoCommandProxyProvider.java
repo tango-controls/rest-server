@@ -56,7 +56,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
         TangoCommandProxy proxy = tangoRestServer.getContext().commands.getUnchecked(deviceProxy.getFullName() + "/" + name)
         .orElseGet(() -> {
             try {
-                return Proxies.newTangoCommandProxy(deviceProxy.getFullName(), name);
+                return Proxies.newTangoCommandProxy(deviceProxy, name);
             } catch (DevFailed devFailed) {
                 Response.Status status = Response.Status.BAD_REQUEST;
                 if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_CommandNotFound"))

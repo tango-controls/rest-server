@@ -11,8 +11,9 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.server.CacheStatsCommand;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
-import org.tango.server.annotation.*;
 import org.tango.server.annotation.Device;
+import org.tango.server.annotation.*;
+import org.tango.server.device.DeviceManager;
 import org.tango.web.server.Context;
 import org.tango.web.server.tomcat.*;
 
@@ -20,6 +21,7 @@ import javax.servlet.ServletException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -79,6 +81,12 @@ public class TangoRestServer {
     private DevState state = DevState.OFF;
     @Status
     private String status;
+    @DeviceManagement
+    private DeviceManager deviceManager;
+
+    public void setDeviceManager(final DeviceManager deviceManager) {
+        this.deviceManager = deviceManager;
+    }
     private Tomcat tomcat;
 
     public static void main(String[] args) {
@@ -294,5 +302,9 @@ public class TangoRestServer {
 
     public void setTomcatSslCertificateFile(String tomcatSslCertificateFile) {
         this.tomcatSslCertificateFile = tomcatSslCertificateFile;
+    }
+
+    public Map<String, String> getMdcContextMap() {
+        return deviceManager.getDevice().getMdcContextMap();
     }
 }
