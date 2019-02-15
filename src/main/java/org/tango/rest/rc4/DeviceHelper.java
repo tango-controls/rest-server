@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.rest.rc4;
 
 import fr.esrf.Tango.DevFailed;
@@ -68,40 +84,40 @@ public class DeviceHelper {
         //TODO split into good and bad attributes: write good ones; report bad ones (if present)
         fr.esrf.TangoApi.DeviceAttribute[] attrs =
                 queryParams.stream()
-                .map(stringListEntry -> {
-                    String attrName = stringListEntry.getKey();
-                    String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
-                    DeviceAttribute result;
+                        .map(stringListEntry -> {
+                            String attrName = stringListEntry.getKey();
+                            String[] value = stringListEntry.getValue().toArray(new String[stringListEntry.getValue().size()]);
+                            DeviceAttribute result;
 
-                    try {
-                        result = new DeviceAttribute(attrName);
-                        TangoDataType<Object> dataType = (TangoDataType<Object>) deviceProxy.getProxy().getAttributeInfo(attrName).getType();
-                        Class<?> type = dataType.getDataTypeClass();
-                        Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
+                            try {
+                                result = new DeviceAttribute(attrName);
+                                TangoDataType<Object> dataType = (TangoDataType<Object>) deviceProxy.getProxy().getAttributeInfo(attrName).getType();
+                                Class<?> type = dataType.getDataTypeClass();
+                                Object converted = ConvertUtils.convert(value.length == 1 ? value[0] : value, type);
 
-                        dataType.insert(TangoDataWrapper.create(result, null), converted);
+                                dataType.insert(TangoDataWrapper.create(result, null), converted);
 
-                        return result;
-                    } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toArray(fr.esrf.TangoApi.DeviceAttribute[]::new);
+                                return result;
+                            } catch (TangoProxyException | NoSuchAttributeException | ValueInsertionException e) {
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .toArray(fr.esrf.TangoApi.DeviceAttribute[]::new);
         if(async) {
             deviceProxy.getProxy().toDeviceProxy().write_attribute_asynch(attrs);
             return null;
         } else {
             String[] readNames =
                     Arrays.stream(attrs)
-                    .map(deviceAttribute -> {
-                        try {
-                            return deviceAttribute.getName();
-                        } catch (DevFailed devFailed) {
-                            throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
-                        }
-                    })
-                    .toArray(String[]::new);
+                            .map(deviceAttribute -> {
+                                try {
+                                    return deviceAttribute.getName();
+                                } catch (DevFailed devFailed) {
+                                    throw new AssertionError("Must not happen!", TangoUtils.convertDevFailedToException(devFailed));
+                                }
+                            })
+                            .toArray(String[]::new);
             deviceProxy.getProxy().toDeviceProxy().write_attribute(attrs);
             return deviceProxy.getProxy().toDeviceProxy().read_attribute(readNames);
         }

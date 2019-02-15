@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.web.server.providers;
 
 import fr.esrf.Tango.DevFailed;
@@ -54,17 +70,17 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
         }
 
         TangoCommandProxy proxy = tangoRestServer.getContext().commands.getUnchecked(deviceProxy.getFullName() + "/" + name)
-        .orElseGet(() -> {
-            try {
-                return Proxies.newTangoCommandProxy(deviceProxy, name);
-            } catch (DevFailed devFailed) {
-                Response.Status status = Response.Status.BAD_REQUEST;
-                if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_CommandNotFound"))
-                    status = Response.Status.NOT_FOUND;
-                containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
-                return null;
-            }
-        });
+                .orElseGet(() -> {
+                    try {
+                        return Proxies.newTangoCommandProxy(deviceProxy, name);
+                    } catch (DevFailed devFailed) {
+                        Response.Status status = Response.Status.BAD_REQUEST;
+                        if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_CommandNotFound"))
+                            status = Response.Status.NOT_FOUND;
+                        containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
+                        return null;
+                    }
+                });
 
 
         ResteasyProviderFactory.pushContext(TangoCommandProxy.class, proxy);

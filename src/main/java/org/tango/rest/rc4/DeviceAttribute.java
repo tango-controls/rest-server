@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.rest.rc4;
 
 import com.google.common.base.Function;
@@ -61,11 +77,11 @@ public class DeviceAttribute {
     @GET
     @Path("/{event:change|periodic|archive|user}")
     public void deviceAttributeEvent(@PathParam("event") String eventAsString,
-                                       @DefaultValue("30000") @QueryParam("timeout") long timeout,
-                                       @DefaultValue("0") @QueryParam("last") long last,
-                                       @Context ServletContext context,
-                                       @Context UriInfo uriInfo,
-                                       @Suspended final AsyncResponse response
+                                     @DefaultValue("30000") @QueryParam("timeout") long timeout,
+                                     @DefaultValue("0") @QueryParam("last") long last,
+                                     @Context ServletContext context,
+                                     @Context UriInfo uriInfo,
+                                     @Suspended final AsyncResponse response
     ) throws Exception {
         TangoEvent event = null;
         try {
@@ -89,7 +105,7 @@ public class DeviceAttribute {
 
         //this is required because field proxy is actually a proxy wrapper around ThreadLocal contextualData
         final TangoProxy finalTangoProxy = ResteasyProviderFactory.getContextData(TangoDeviceProxy.class).getProxy();
-        
+
         CompletableFuture.runAsync(() -> {
             try {
                 Object entity = buffer.createEvent(eventKey, finalTangoProxy).get(timeout);

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.web.server.proxy;
 
 import fr.esrf.Tango.DevFailed;
@@ -45,6 +61,7 @@ public class Proxies {
     }
 
     public static final Pattern TANGO_DEVICE_FULL_NAME_PATTERN = Pattern.compile("tango://(?<host>(.+):(\\d{5}))/(?<name>.+/.+/.+)");
+
     public static Optional<TangoDeviceProxy> optionalTangoDeviceProxy(String fullDeviceName){
         try {
             Matcher matcher = TANGO_DEVICE_FULL_NAME_PATTERN.matcher(fullDeviceName);
@@ -98,6 +115,7 @@ public class Proxies {
     }
 
     public static final Pattern TANGO_MEMBER_FULL_NAME_PATTERN = Pattern.compile("(?<device>tango://(?<host>(.+):(\\d{5}))/(.+/.+/.+))/(?<name>.+)");
+
     public static Optional<TangoCommandProxy> optionalTangoCommandProxy(String commandFullName) {
         try {
             Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(commandFullName);
@@ -128,6 +146,7 @@ public class Proxies {
 
 
     public static final Pattern TANGO_DATABASE_FULL_NAME_PATTERN = Pattern.compile("(?<host>.+):(?<port>\\d{5})");
+
     public static Optional<TangoDatabaseProxy> optionalTangoDatabaseProxy(String fullTangoHost) {
         Matcher matcher = TANGO_DATABASE_FULL_NAME_PATTERN.matcher(fullTangoHost);
         if(!matcher.matches()) throw new AssertionError();

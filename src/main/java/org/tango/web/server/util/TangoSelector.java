@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.web.server.util;
 
 import org.tango.web.server.Context;
@@ -27,9 +43,9 @@ public class TangoSelector {
     private Stream<WildcardDatabase> getWildcardDatabaseStream(){
         return wildcards.stream()
                 .map(wildcard ->
-                    Proxies.getDatabase(wildcard.host).map(tangoDatabaseProxy ->
-                        new WildcardDatabase(wildcard, tangoDatabaseProxy)
-                    ).orElse(null))
+                        Proxies.getDatabase(wildcard.host).map(tangoDatabaseProxy ->
+                                new WildcardDatabase(wildcard, tangoDatabaseProxy)
+                        ).orElse(null))
                 .filter(Objects::nonNull);
     }
 
@@ -42,13 +58,13 @@ public class TangoSelector {
     private Stream<WildcardDevice> getWildcardDeviceStream(){
         return getWildcardDatabaseStream()
                 .flatMap(wildcardDatabase ->
-                    wildcardDatabase.database.getDeviceNames(wildcardDatabase.wildcard.asDeviceWildcard()).stream()
-                            .map(s ->
-                                    context.devices.getUnchecked(wildcardDatabase.database.getFullTangoHost() + "/" + s)
-                                    .map(tangoDeviceProxy -> new WildcardDevice(wildcardDatabase,tangoDeviceProxy))
-                                    .orElse(null)
-                            )
-                            .filter(Objects::nonNull)
+                        wildcardDatabase.database.getDeviceNames(wildcardDatabase.wildcard.asDeviceWildcard()).stream()
+                                .map(s ->
+                                        context.devices.getUnchecked(wildcardDatabase.database.getFullTangoHost() + "/" + s)
+                                                .map(tangoDeviceProxy -> new WildcardDevice(wildcardDatabase,tangoDeviceProxy))
+                                                .orElse(null)
+                                )
+                                .filter(Objects::nonNull)
                 );
     }
 
@@ -65,13 +81,13 @@ public class TangoSelector {
     private Stream<WildcardMember<TangoAttributeProxy>> getWildcardAttributeStream(){
         return getWildcardDeviceStream()
                 .flatMap(wildcardDevice ->
-                    wildcardDevice.device.getAttributeNames(wildcardDevice.wildcard.attribute).stream()
-                            .map(s ->
-                                Proxies.optionalTangoAttributeProxy(wildcardDevice.device.getFullName() + "/" + s)
-                                        .map(tangoAttributeProxy -> new WildcardMember<>(wildcardDevice, tangoAttributeProxy))
-                                        .orElse(null)
-                            )
-                        .filter(Objects::nonNull)
+                        wildcardDevice.device.getAttributeNames(wildcardDevice.wildcard.attribute).stream()
+                                .map(s ->
+                                        Proxies.optionalTangoAttributeProxy(wildcardDevice.device.getFullName() + "/" + s)
+                                                .map(tangoAttributeProxy -> new WildcardMember<>(wildcardDevice, tangoAttributeProxy))
+                                                .orElse(null)
+                                )
+                                .filter(Objects::nonNull)
                 );
     }
 
@@ -83,7 +99,7 @@ public class TangoSelector {
     private Stream<WildcardMember<TangoCommandProxy>> getWildcardCommandStream(){
         return getWildcardDeviceStream()
                 .flatMap(wildcardDevice ->
-                                wildcardDevice.device.getCommandNames(wildcardDevice.wildcard.attribute).stream()
+                        wildcardDevice.device.getCommandNames(wildcardDevice.wildcard.attribute).stream()
                                 .map(s ->
                                         Proxies.optionalTangoCommandProxy(wildcardDevice.device, s)
                                                 .map(tangoCommandProxy -> new WildcardMember<>(wildcardDevice, tangoCommandProxy))
@@ -102,12 +118,12 @@ public class TangoSelector {
     private Stream<WildcardMember<TangoPipeProxy>> getWildcardPipeStream(){
         return getWildcardDeviceStream()
                 .flatMap(wildcardDevice ->
-                                wildcardDevice.device.getPipeNames(wildcardDevice.wildcard.attribute).stream()
+                        wildcardDevice.device.getPipeNames(wildcardDevice.wildcard.attribute).stream()
                                 .map(s ->
                                         Proxies.optionalTangoPipeProxy(
-                                                    wildcardDevice.getDatabase().getTangoHost(),
-                                                    wildcardDevice.getDevice().getName(),
-                                                    s)
+                                                wildcardDevice.getDatabase().getTangoHost(),
+                                                wildcardDevice.getDevice().getName(),
+                                                s)
                                                 .map(tangoCommandProxy -> new WildcardMember<>(wildcardDevice, tangoCommandProxy))
                                                 .orElse(null)
                                 )

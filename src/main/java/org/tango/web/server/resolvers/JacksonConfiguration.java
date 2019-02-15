@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Tango Controls
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tango.web.server.resolvers;
 
 import com.google.common.base.Function;
@@ -14,7 +30,9 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.*;
+import org.codehaus.jackson.map.ser.BeanPropertyFilter;
+import org.codehaus.jackson.map.ser.BeanPropertyWriter;
+import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.impl.SimpleBeanPropertyFilter;
 import org.codehaus.jackson.map.ser.impl.SimpleFilterProvider;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -277,7 +295,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
 
         @Override
         public void serialize(PipeWriteType value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
-             jgen.writeString(value.toString());
+            jgen.writeString(value.toString());
         }
     }
 
@@ -350,8 +368,7 @@ public class JacksonConfiguration implements ContextResolver<ObjectMapper> {
                     jgen.writeStringField("quality", value.getQuality().toString());
                     jgen.writeFieldName("timestamp");
                     jgen.writeNumber(value.getTime());
-                }
-                else {
+                } else {
                     jgen.writeStringField("name", value.getName());
                     jgen.writeArrayFieldStart("errors");
                     for(DevError error : value.getErrStack()){
