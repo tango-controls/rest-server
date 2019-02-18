@@ -73,7 +73,7 @@ public class PartitionProvider implements
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         Object entity = responseContext.getEntity();
-        if(!List.class.isAssignableFrom(entity.getClass())) return;
+        if(entity == null || !List.class.isAssignableFrom(entity.getClass())) return;
 
 
         List<?> entityAsList = (List<?>) entity;
