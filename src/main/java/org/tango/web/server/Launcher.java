@@ -17,14 +17,17 @@
 package org.tango.web.server;
 
 
+import fr.esrf.Tango.DevFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.client.ez.util.TangoUtils;
 import org.tango.server.ServerManager;
 import org.tango.server.ServerManagerUtils;
+import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.attribute.EventBuffer;
 
 import javax.servlet.ServletContext;
@@ -107,6 +110,11 @@ public class Launcher implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        logger.info("TangoRestServer has been destroyed!");
+        try {
+            ServerManager.getInstance().stop();
+            logger.info("TangoRestServer has been destroyed!");
+        } catch (DevFailed devFailed) {
+            logger.error("TangoRestServer failed to stop!", TangoUtils.convertDevFailedToException(devFailed));
+        }
     }
 }
