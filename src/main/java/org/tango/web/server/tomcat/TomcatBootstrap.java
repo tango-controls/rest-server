@@ -18,6 +18,7 @@ package org.tango.web.server.tomcat;
 
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
@@ -62,7 +63,7 @@ public class TomcatBootstrap {
         try(InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war")) {
             tomcatBaseDir = Files.createTempDirectory(
                     Paths.get(System.getProperty("user.dir")),"tomcat_");
-            tomcatBaseDir.toFile().deleteOnExit();
+            FileUtils.forceDeleteOnExit(tomcatBaseDir.toFile());
 
             Files.createDirectory(tomcatBaseDir.resolve("webapps"));
 
