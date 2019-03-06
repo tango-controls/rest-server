@@ -25,6 +25,7 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -43,11 +44,7 @@ public class Failures {
     }
 
     public static Failure createInstance(TangoProxyException cause) {
-        return new Failure(
-                new Failure.Error[]{
-                        new Failure.Error(
-                                cause.device, cause.reason, cause.severity, cause.origin)},
-                System.currentTimeMillis());
+        return createInstance(cause.devFailed);
     }
 
     public static Failure createInstance(Throwable cause) {
@@ -55,13 +52,14 @@ public class Failures {
     }
 
     public static Failure createInstance(DevFailed devFailed) {
-        return new Failure(Lists.transform(
-                Arrays.asList(devFailed.errors), new Function<DevError, Failure.Error>() {
-                    @Override
-                    public Failure.Error apply(DevError input) {
-                        return new Failure.Error(input.reason, input.desc, input.severity.toString(), input.origin);
-                    }
-                }).toArray(new Failure.Error[devFailed.errors.length]), System.currentTimeMillis());
+        return new Failure(
+                new ArrayList<Failure.Error>(){{
+                    addAll(Lists.reverse(
+                            Arrays.stream(devFailed.errors)
+                                    .map(devError -> new Failure.Error(devError.reason, devError.desc, devError.severity.toString(), devError.origin))
+                                    .collect(Collectors.toList())));
+                }}.toArray(new Failure.Error[0]),
+                System.currentTimeMillis());
     }
 
     private static Failure.Error[] throwableToErrors(Throwable throwable) {

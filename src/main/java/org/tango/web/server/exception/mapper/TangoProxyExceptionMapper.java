@@ -36,7 +36,7 @@ public class TangoProxyExceptionMapper implements ExceptionMapper<TangoProxyExce
 
     @Override
     public Response toResponse(TangoProxyException exception) {
-        logger.warn(exception.getLocalizedMessage());
+        logger.debug(exception.getLocalizedMessage());
         return getResponse(exception, Response.Status.BAD_REQUEST);
     }
 }

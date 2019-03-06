@@ -17,6 +17,7 @@
 package org.tango.web.server.exception.mapper;
 
 import fr.esrf.Tango.DevFailed;
+import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.Failures;
 
 import javax.ws.rs.core.MediaType;
@@ -35,6 +36,10 @@ public class Helper {
     }
 
     public static Response getResponse(Exception exception, Response.Status status) {
+        return Response.status(status).entity(Failures.createInstance(exception)).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    public static Response getResponse(TangoProxyException exception, Response.Status status) {
         return Response.status(status).entity(Failures.createInstance(exception)).type(MediaType.APPLICATION_JSON).build();
     }
 }
