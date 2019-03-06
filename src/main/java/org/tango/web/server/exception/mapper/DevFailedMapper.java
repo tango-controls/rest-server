@@ -16,6 +16,7 @@
 
 package org.tango.web.server.exception.mapper;
 
+import com.google.common.collect.Iterables;
 import fr.esrf.Tango.DevFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import java.util.Arrays;
 
 import static org.tango.web.server.exception.mapper.Helper.getResponse;
 
@@ -36,7 +39,7 @@ public class DevFailedMapper implements ExceptionMapper<DevFailed> {
 
     @Override
     public Response toResponse(DevFailed exception) {
-        logger.warn(exception.getLocalizedMessage());
+        logger.debug("Handle DevFailed: {}", Iterables.getLast(Arrays.asList(exception.errors)).reason);
         return getResponse(exception, Response.Status.BAD_REQUEST);
     }
 }
