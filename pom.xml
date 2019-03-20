@@ -48,6 +48,7 @@
         <tomcat.version>[8.5.34,)</tomcat.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
+        <tango.rest.server.instance.name>development</tango.rest.server.instance.name>
     </properties>
 
 
@@ -300,7 +301,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
+                <version>2.5</version>
                 <executions>
                     <execution>
                         <id>webapp.war</id>
@@ -321,9 +322,13 @@
                                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                                 </manifest>
                             </archive>
+                            <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+                </configuration>
             </plugin>
             <!-- skip installation to local maven repo -->
             <plugin>
@@ -531,6 +536,8 @@
                 <sonar.host.url>https://sonarcloud.io</sonar.host.url>
                 <sonar.organization>ingvord-github</sonar.organization>
                 <sonar.login>${env.SONAR_TOKEN}</sonar.login>
+                <!--override development TangoRestServer instance name for porduction -->
+                <tango.rest.server.instance.name>sys</tango.rest.server.instance.name>
             </properties>
             <build>
                 <plugins>

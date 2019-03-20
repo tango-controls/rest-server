@@ -24,7 +24,7 @@
     <!-- Tango device instance to start -->
     <context-param>
         <param-name>tango.rest.server.instance</param-name>
-        <param-value>development</param-value>
+        <param-value>${tango.rest.server.instance.name}</param-value>
     </context-param>
     <context-param>
         <param-name>resteasy.logger.type</param-name>

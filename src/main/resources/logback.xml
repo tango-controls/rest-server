@@ -62,6 +62,7 @@
     <logger name="org.tango" level="ERROR"/>
     <logger name="org.tango.rest" level="${log.level}"/>
     <logger name="org.tango.web" level="${log.level}"/>
+    <logger name="org.tango.web.server.cache.SimpleBinaryCache" level="INFO"/>
     <logger name="org.quartz" level="ERROR"/>
     <logger name="net.sf.ehcache" level="ERROR"/>
 
