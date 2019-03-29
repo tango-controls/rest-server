@@ -115,4 +115,13 @@ public class Rc4ApiImpl {
     public DevicesTree getDevicesTree(@Context ResourceContext rc) {
         return rc.getResource(DevicesTree.class);
     }
+
+    @Path("/subscriptions")
+    @EventSystem
+    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
+        JaxRsSubscriptions jaxRsSubscriptions = new JaxRsSubscriptions();
+        jaxRsSubscriptions.manager = manager;
+        jaxRsSubscriptions.context = context;
+        return jaxRsSubscriptions;
+    }
 }

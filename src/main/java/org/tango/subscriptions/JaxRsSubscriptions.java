@@ -40,9 +40,9 @@ public class JaxRsSubscriptions {
     private final Logger logger = LoggerFactory.getLogger(JaxRsSubscriptions.class);
 
     @Context
-    private EventsManager manager;
+    public EventsManager manager;
     @Context
-    private SubscriptionsContext context;
+    public SubscriptionsContext context;
 
     @POST
     public JaxRsSubscription createSubscription(List<EventImpl.Target> events){

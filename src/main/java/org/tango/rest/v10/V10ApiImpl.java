@@ -89,4 +89,13 @@ public class V10ApiImpl {
     public JaxRsTangoPipes getPipes(@Context ResourceContext rc) {
         return rc.getResource(JaxRsTangoPipes.class);
     }
+
+    @Path("/subscriptions")
+    @EventSystem
+    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
+        JaxRsSubscriptions jaxRsSubscriptions = new JaxRsSubscriptions();
+        jaxRsSubscriptions.manager = manager;
+        jaxRsSubscriptions.context = context;
+        return jaxRsSubscriptions;
+    }
 }
