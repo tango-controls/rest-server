@@ -77,7 +77,7 @@ public class JaxRsSubscription {
     }
 
     @PUT
-    public JaxRsSubscription putTargets(List<EventImpl.Target> targets, @Context EventsManager manager){
+    public List<EventImpl> putTargets(List<EventImpl.Target> targets, @Context EventsManager manager){
         List<EventImpl> list = targets.stream()
                 .map(target ->
                         manager.lookupEvent(target).orElseGet(() -> newEventWrapper(manager, target, subscription.failures)))
@@ -87,7 +87,7 @@ public class JaxRsSubscription {
         this.getEvents().addAll(list);
 
         getSink().ifPresent(sseEventSink -> list.forEach(event -> event.broadcaster.register(sseEventSink)));
-        return this;
+        return list;
     }
 
     @DELETE
