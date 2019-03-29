@@ -16,7 +16,7 @@
 
 package org.tango.web.server.event;
 
-import org.tango.rest.v10.JaxRsSubscription;
+import org.tango.subscriptions.JaxRsSubscription;
 
 import javax.ws.rs.sse.OutboundSseEvent;
 import javax.ws.rs.sse.SseEventSink;

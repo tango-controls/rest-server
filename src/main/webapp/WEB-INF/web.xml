@@ -61,6 +61,20 @@
         </init-param>
     </servlet>
 
+    <servlet>
+        <servlet-name>SubscriptionsTangoService</servlet-name>
+        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.tango.subscriptions.SubscriptionsTangoApi</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SubscriptionsTangoService</servlet-name>
+        <url-pattern>/subscriptions/*</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>RestTangoService</servlet-name>
         <url-pattern>/rest/*</url-pattern>
@@ -71,6 +85,12 @@
             <web-resource-name>CORS preflight</web-resource-name>
             <url-pattern>/*</url-pattern>
             <http-method>OPTIONS</http-method>
+        </web-resource-collection>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Tango subscriptions</web-resource-name>
+            <url-pattern>/subscriptions/*</url-pattern>
         </web-resource-collection>
     </security-constraint>
     <security-constraint>

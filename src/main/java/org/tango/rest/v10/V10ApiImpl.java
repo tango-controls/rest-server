@@ -18,6 +18,7 @@ package org.tango.rest.v10;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.subscriptions.JaxRsSubscriptions;
 import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.RequiresDeviceTreeContext;
 import org.tango.web.server.binding.StaticValue;
@@ -87,11 +88,5 @@ public class V10ApiImpl {
     @Path("/pipes")
     public JaxRsTangoPipes getPipes(@Context ResourceContext rc) {
         return rc.getResource(JaxRsTangoPipes.class);
-    }
-
-    @Path("/subscriptions")
-    @EventSystem
-    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
-        return new JaxRsSubscriptions(manager, context);
     }
 }

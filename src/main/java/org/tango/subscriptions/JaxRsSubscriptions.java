@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tango.rest.v10;
+package org.tango.subscriptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,7 @@ import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -38,14 +39,10 @@ import java.util.List;
 public class JaxRsSubscriptions {
     private final Logger logger = LoggerFactory.getLogger(JaxRsSubscriptions.class);
 
-    private final EventsManager manager;
-    private final SubscriptionsContext context;
-
-    public JaxRsSubscriptions(EventsManager manager, SubscriptionsContext context) {
-        this.manager = manager;
-        this.context = context;
-    }
-
+    @Context
+    private EventsManager manager;
+    @Context
+    private SubscriptionsContext context;
 
     @POST
     public JaxRsSubscription createSubscription(List<EventImpl.Target> events){

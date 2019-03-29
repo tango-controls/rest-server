@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tango.rest.v10;
+package org.tango.subscriptions;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.client.ez.proxy.NoSuchAttributeException;
@@ -82,6 +82,7 @@ public class JaxRsSubscription {
                 .map(target ->
                         manager.lookupEvent(target).orElseGet(() -> newEventWrapper(manager, target, subscription.failures)))
                 .filter(Objects::nonNull)
+                .filter(event -> !this.getEvents().contains(event))
                 .collect(Collectors.toList());
         this.getEvents().addAll(list);
 
