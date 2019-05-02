@@ -76,7 +76,6 @@ public class TangoRestApi extends Application {
         singletons.add(new TangoAttributeProxyProvider(getTangoRestServer()));
         singletons.add(new TangoCommandProxyProvider(getTangoRestServer()));
         singletons.add(new TangoPipeProxyProvider());
-        singletons.add(new EventSystemProvider());
         singletons.add(new DevicesTreeContextProvider());
         singletons.add(new TangoSelectorProvider(getTangoRestServer()));
         singletons.add(new PartitionProvider());
@@ -99,7 +98,7 @@ public class TangoRestApi extends Application {
         return singletons;
     }
 
-    private CorsFilter getCorsFilter() {
+    public static CorsFilter getCorsFilter() {
         CorsFilter cors = new CorsFilter();
         cors.getAllowedOrigins().add("*");
         cors.setAllowCredentials(true);

@@ -23,12 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.v10.DevicesTree;
-import org.tango.subscriptions.JaxRsSubscriptions;
-import org.tango.web.server.binding.EventSystem;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.event.EventsManager;
-import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.tree.DeviceFilters;
 import org.tango.web.server.tree.DevicesTreeContextImpl;
@@ -114,14 +110,5 @@ public class Rc4ApiImpl {
     @Path("/devices/tree")
     public DevicesTree getDevicesTree(@Context ResourceContext rc) {
         return rc.getResource(DevicesTree.class);
-    }
-
-    @Path("/subscriptions")
-    @EventSystem
-    public JaxRsSubscriptions subscriptions(@Context EventsManager manager, @Context SubscriptionsContext context) {
-        JaxRsSubscriptions jaxRsSubscriptions = new JaxRsSubscriptions();
-        jaxRsSubscriptions.manager = manager;
-        jaxRsSubscriptions.context = context;
-        return jaxRsSubscriptions;
     }
 }
