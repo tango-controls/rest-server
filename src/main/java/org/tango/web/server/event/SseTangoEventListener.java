@@ -16,6 +16,8 @@
 
 package org.tango.web.server.event;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.tango.client.ez.proxy.EventData;
 import org.tango.client.ez.proxy.TangoEventListener;
 
@@ -32,6 +34,8 @@ public class SseTangoEventListener implements TangoEventListener<Object> {
     private final Sse sse;
     private final int eventId;
 
+    private final Gson gson = new GsonBuilder().create();
+
     public SseTangoEventListener(TangoSseBroadcaster broadcaster, Sse sse, int eventId) {
         this.broadcaster = broadcaster;
         this.sse = sse;
@@ -43,7 +47,7 @@ public class SseTangoEventListener implements TangoEventListener<Object> {
         OutboundSseEvent event = sse.newEventBuilder().
                 id(Long.toString(data.getTime())).
                 name(Integer.toString(eventId)).
-                data(String.valueOf(data.getValue())).
+                data(gson.toJson(data.getValue())).
                 reconnectDelay(RECONNECTION_DELAY).
                 build();
 
