@@ -420,6 +420,7 @@
                                 <include>**/ITAccess*</include>
                                 <include>**/Rc*</include>
                                 <include>**/V*</include>
+                                <include>**/Subscriptions*</include>
                             </includes>
                             <argLine>-Dtango.rest.url=http://localhost:10001/tango/rest  -Dtango.host=localhost -Dtango.port=10000 -Dtango.rest.auth.method=basic -Dtango.rest.user=tango-cs -Dtango.rest.password=tango</argLine>
                         </configuration>
