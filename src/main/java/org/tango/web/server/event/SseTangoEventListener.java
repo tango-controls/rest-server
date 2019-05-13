@@ -18,6 +18,9 @@ package org.tango.web.server.event;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
+import fr.esrf.Tango.DevState;
 import org.tango.client.ez.proxy.EventData;
 import org.tango.client.ez.proxy.TangoEventListener;
 
@@ -34,7 +37,9 @@ public class SseTangoEventListener implements TangoEventListener<Object> {
     private final Sse sse;
     private final int eventId;
 
-    private final Gson gson = new GsonBuilder().create();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(DevState.class, (JsonSerializer<DevState>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+            .create();
 
     public SseTangoEventListener(TangoSseBroadcaster broadcaster, Sse sse, int eventId) {
         this.broadcaster = broadcaster;
