@@ -42,7 +42,6 @@ deploy:
   - provider: script
     script: docker push "${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}"
     on:
-      tags: true
       all_branches: true
   - provider: releases
     api_key: $GITHUB_OAUTH_TOKEN
