@@ -23,7 +23,7 @@ script:
 after_success:
   - git fetch --unshallow
   - mvn sonar:sonar -Ptravis
-  - docker build --pull --cache-from "${DOCKER_IMAGE_NAME}:latest" --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
+  - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
 
 jdk: 
   - openjdk8
