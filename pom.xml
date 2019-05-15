@@ -20,7 +20,7 @@
 
     <groupId>org.tango-controls</groupId>
     <artifactId>rest-server</artifactId>
-    <version>1.13</version>
+    <version>1.14-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <developers>
@@ -56,7 +56,7 @@
         <connection>scm:git:git@github.com:tango-controls/rest-server</connection>
         <developerConnection>scm:git:git@github.com:tango-controls/rest-server</developerConnection>
         <url>https://github.com/tango-controls/rest-server</url>
-        <tag>rest-server-1.13</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
