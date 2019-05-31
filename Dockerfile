@@ -4,6 +4,8 @@ MAINTAINER info@tango-controls.org
 
 ARG REST_SERVER_VERSION
 
+ENV REST_SERVER_VERSION=$REST_SERVER_VERSION
+
 ENV REST_API_PORT=10001
 
 RUN useradd -ms /bin/bash rest
