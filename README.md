@@ -27,6 +27,8 @@ This server implements [Tango REST API](https://github.com/tango-controls/rest-a
 
 # How to build
 
+Install `openjdk-8-jdk`. For Debian Buster see [this](https://linuxize.com/post/install-java-on-debian-10/#installing-openjdk-8)
+
 Use maven: `mvn package`
 
 This builds .jar and .zip packages.
