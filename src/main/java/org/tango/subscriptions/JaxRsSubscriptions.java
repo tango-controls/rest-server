@@ -18,8 +18,8 @@ package org.tango.subscriptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.v10.event.EventImpl;
 import org.tango.web.server.binding.EventSystem;
+import org.tango.web.server.event.EventImpl;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 

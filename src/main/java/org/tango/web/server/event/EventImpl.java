@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.tango.rest.v10.event;
+package org.tango.web.server.event;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.tango.client.ez.proxy.*;
-import org.tango.web.server.event.TangoSseBroadcaster;
+import org.tango.rest.v10.event.Event;
 
 import java.util.Objects;
 

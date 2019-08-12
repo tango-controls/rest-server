@@ -22,8 +22,8 @@ import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.Failure;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.rest.v10.event.Event;
-import org.tango.rest.v10.event.EventImpl;
 import org.tango.rest.v10.event.Subscription;
+import org.tango.web.server.event.EventImpl;
 import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 
@@ -71,9 +71,10 @@ public class JaxRsSubscription {
     @GET
     @Path("/event-stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    public void getSubscription(@Context SseEventSink sink){
+    public void getSubscription(@Context SubscriptionsContext context,@Context SseEventSink sink){
         this.sink = new org.tango.web.server.event.SseEventSink(sink);
         getEvents().forEach(event -> event.broadcaster.register(this.sink));
+        context.getMaintenanceBroadcaster().register(this.sink);
     }
 
     @PUT

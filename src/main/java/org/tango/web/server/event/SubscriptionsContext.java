@@ -16,9 +16,12 @@
 
 package org.tango.web.server.event;
 
+import org.jboss.resteasy.plugins.providers.sse.SseBroadcasterImpl;
 import org.tango.subscriptions.JaxRsSubscription;
 
 import javax.ws.rs.sse.OutboundSseEvent;
+import javax.ws.rs.sse.Sse;
+import javax.ws.rs.sse.SseBroadcaster;
 import javax.ws.rs.sse.SseEventSink;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,8 +34,9 @@ public class SubscriptionsContext {
     public static final long SUBSCRIPTIONS_MAINTENANCE_DELAY = 30L;
     private final ConcurrentMap<Integer, JaxRsSubscription> subscriptions = new ConcurrentHashMap<>();
     private final AtomicInteger id = new AtomicInteger(0);
+    private final SseBroadcaster maintenanceBroadcaster = new SseBroadcasterImpl();
 
-    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2, new ThreadFactory() {
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "event-system-subscriptions-maintenance-thread");
@@ -56,12 +60,24 @@ public class SubscriptionsContext {
         }
     };
 
-    public SubscriptionsContext() {
+    public SubscriptionsContext(final Sse sse) {
         this.scheduler.scheduleAtFixedRate(() -> {
             subscriptions.entrySet().removeIf(integerSubscriptionEntry ->
                     integerSubscriptionEntry.getValue().getSink().orElse(DUMMY_SINK).isClosed()
             );
         }, SUBSCRIPTIONS_MAINTENANCE_DELAY,SUBSCRIPTIONS_MAINTENANCE_DELAY,TimeUnit.MINUTES);
+
+        this.scheduler.scheduleAtFixedRate(() -> {
+            OutboundSseEvent event = sse.newEventBuilder()
+                    .id(String.valueOf(System.currentTimeMillis()))
+                    .name("maintenance")
+                    .data("I am OK!")//TODO something meaningful
+                    .reconnectDelay(SUBSCRIPTIONS_MAINTENANCE_DELAY)
+                    .build();
+
+
+            maintenanceBroadcaster.broadcast(event);
+        }, SUBSCRIPTIONS_MAINTENANCE_DELAY,SUBSCRIPTIONS_MAINTENANCE_DELAY,TimeUnit.SECONDS);
     }
 
     public int getNextId(){
@@ -78,5 +94,9 @@ public class SubscriptionsContext {
 
     public JaxRsSubscription removeSubscription(int id) {
         return subscriptions.remove(id);
+    }
+
+    public SseBroadcaster getMaintenanceBroadcaster() {
+        return maintenanceBroadcaster;
     }
 }

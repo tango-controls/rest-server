@@ -22,6 +22,7 @@ import org.tango.web.server.event.EventsManager;
 import org.tango.web.server.event.SubscriptionsContext;
 import org.tango.web.server.event.TangoSseBroadcasterFactory;
 
+import javax.annotation.PreDestroy;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
@@ -43,7 +44,7 @@ public class EventSystemProvider implements ContainerRequestFilter {
     @Context
     public void setSse(Sse sse) {
         this.context = new EventsManager(new TangoSseBroadcasterFactory(sse));
-        this.subscriptions = new SubscriptionsContext();
+        this.subscriptions = new SubscriptionsContext(sse);
     }
 
 
@@ -53,5 +54,10 @@ public class EventSystemProvider implements ContainerRequestFilter {
                 context);
         ResteasyProviderFactory.pushContext(SubscriptionsContext.class,
                 subscriptions);
+    }
+
+    @PreDestroy
+    public void preDestroy(){
+        this.subscriptions.getMaintenanceBroadcaster().close();
     }
 }

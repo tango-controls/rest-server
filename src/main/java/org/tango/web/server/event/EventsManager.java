@@ -22,7 +22,6 @@ import fr.esrf.TangoApi.DeviceProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.*;
-import org.tango.rest.v10.event.EventImpl;
 
 import java.util.Optional;
 import java.util.concurrent.*;
