@@ -51,10 +51,10 @@ public class DeviceHelper {
     public static Object attributeInfoExToResponse(final String attrName, final String href) {
         return new Object() {
             public String name = attrName;
-            public String value = href + "/" + name + "/value";
-            public String info = href + "/" + name + "/info";
-            public String properties = href + "/" + name + "/properties";
-            public String history = href + "/" + name + "/history";
+            public String value = href + "/value";
+            public String info = href + "/info";
+            public String properties = href + "/properties";
+            public String history = href + "/history";
             public Object _links = new Object() {
                 public String _self = href;
                 //TODO use LinksProvider
@@ -66,7 +66,7 @@ public class DeviceHelper {
         return new Object() {
             public String name = input.cmd_name;
             public CommandInfo info = input;
-            public String history = href + "/" + name + "/history";
+            public String history = href + "/history";
             public Object _links = new Object() {
                 public String _self = href;
             };

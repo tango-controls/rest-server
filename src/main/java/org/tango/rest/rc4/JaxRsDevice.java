@@ -68,7 +68,7 @@ public class JaxRsDevice {
                 Arrays.asList(deviceProxy.getProxy().toDeviceProxy().get_attribute_info_ex()), new Function<AttributeInfoEx, Object>() {
                     @Override
                     public Object apply(final AttributeInfoEx input) {
-                        return DeviceHelper.attributeInfoExToResponse(input.name, href);
+                        return DeviceHelper.attributeInfoExToResponse(input.name, href + "/" + input.name);
                     }
                 });
     }
@@ -134,7 +134,7 @@ public class JaxRsDevice {
         return Lists.transform(Arrays.asList(deviceProxy.getProxy().toDeviceProxy().command_list_query()), new Function<CommandInfo, Object>() {
             @Override
             public Object apply(final CommandInfo input) {
-                return DeviceHelper.commandInfoToResponse(input, href);
+                return DeviceHelper.commandInfoToResponse(input, href + "/" + input.cmd_name);
             }
         });
     }
