@@ -141,8 +141,7 @@ public class TangoRestServer {
     }
 
     @Init
-    @StateMachine(endState = DeviceState.ON)
-    public void init() throws DevFailed, ServletException, TangoProxyException, LifecycleException {
+    public void init() {
         logger.info("Initializing TangoRestServer device...");
 
         tangoAccessControlProperty = System.getProperty(TANGO_ACCESS, tangoAccessControlProperty);
@@ -150,15 +149,16 @@ public class TangoRestServer {
         System.setProperty(TANGO_ACCESS, tangoAccessControlProperty);
 
         tomcatPort = Integer.parseInt(System.getProperty(TOMCAT_PORT_PROPERTY, Integer.toString(tomcatPort)));
+        deviceManager.pushStateChangeEvent(DeviceState.ON);
     }
 
     @Delete
-    @StateMachine(endState = DeviceState.OFF)
     public void delete() throws LifecycleException {
         if (tomcat != null) {
             tomcat.stop();
             tomcat.destroy();
         }
+        deviceManager.pushStateChangeEvent(DeviceState.OFF);
     }
 
     @Attribute
