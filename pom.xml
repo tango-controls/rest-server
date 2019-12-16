@@ -172,7 +172,7 @@
         <dependency>
             <groupId>org.tango-controls</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>9.5.18-hzg.6</version>
+            <version>9.5.18-hzg.7</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
