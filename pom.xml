@@ -45,8 +45,9 @@
 
     <properties>
         <servlet-api.version>4.0.1</servlet-api.version>
-        <tomcat.version>[8.5.34,)</tomcat.version>
+        <tomcat.version>[8.5.34,9.0.33]</tomcat.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
+        <rest-test-suite.version>2.9</rest-test-suite.version>
         <custom.build.name>${project.artifactId}-${project.version}</custom.build.name>
         <tango.rest.server.instance.name>development</tango.rest.server.instance.name>
     </properties>
@@ -85,7 +86,7 @@
         <dependency>
             <groupId>org.tango-controls</groupId>
             <artifactId>rest-test-suite</artifactId>
-            <version>2.8</version>
+            <version>${rest-test-suite.version}</version>
             <classifier>tests</classifier>
             <type>test-jar</type>
             <scope>test</scope>

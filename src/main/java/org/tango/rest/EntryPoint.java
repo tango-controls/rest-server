@@ -44,6 +44,7 @@ public class EntryPoint {
 
         supportedVersions.put("rc4", Rc4ApiImpl.class);
         supportedVersions.put("v10", V10ApiImpl.class);
+        supportedVersions.put("v11", V10ApiImpl.class);
 
         this.supportedVersions = supportedVersions;
     }
