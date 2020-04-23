@@ -52,16 +52,24 @@ public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Ob
         @Override
         public CommandInOut<Object, Object> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             try {
-                Class<?> arginType = proxy.getProxy().getCommandInfo(json.getAsJsonObject().get("name").getAsString()).getArginType();
+                Class<?> arginType = proxy.getProxy().getCommandInfo(getCommandName(json)).getArginType();
                 return new CommandInOut<>(
-                        json.getAsJsonObject().get("host").getAsString(),
-                        json.getAsJsonObject().get("device").getAsString(),
-                        json.getAsJsonObject().get("name").getAsString(),
+                        getOrNull("host", json),
+                        getOrNull("device", json),
+                        getOrNull("name", json),
                         context.deserialize(json.getAsJsonObject().get("input"), arginType)
                 );
             } catch (TangoProxyException | NoSuchCommandException e) {
                 throw new JsonParseException(e);
             }
+        }
+
+        private String getCommandName(JsonElement json) {
+            return uriInfo.getPathParameters().containsKey("cmd") ? uriInfo.getPathParameters().getFirst("cmd") : json.getAsJsonObject().get("name").getAsString();
+        }
+
+        private String getOrNull(String key, JsonElement json) {
+            return json.getAsJsonObject().get(key).isJsonNull() ? null : json.getAsJsonObject().get(key).getAsString();
         }
     }
 }

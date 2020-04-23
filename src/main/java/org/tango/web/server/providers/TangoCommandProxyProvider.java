@@ -16,11 +16,11 @@
 
 package org.tango.web.server.providers;
 
-import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.TangoRestServer;
+import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoCommand;
 import org.tango.web.server.proxy.Proxies;
@@ -72,14 +72,15 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
         TangoCommandProxy proxy = tangoRestServer.getContext().commands.getUnchecked(deviceProxy.getFullName() + "/" + name)
                 .orElseGet(() -> {
                     try {
-                        return Proxies.newTangoCommandProxy(deviceProxy, name);
-                    } catch (DevFailed devFailed) {
+                        if (deviceProxy.getProxy().hasCommand(name))
+                            return Proxies.newTangoCommandProxy(deviceProxy, name);
+                        else
+                            containerRequestContext.abortWith(Response.status(Response.Status.NOT_FOUND).build());
+                    } catch (TangoProxyException e) {
                         Response.Status status = Response.Status.BAD_REQUEST;
-                        if(devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_CommandNotFound"))
-                            status = Response.Status.NOT_FOUND;
-                        containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
-                        return null;
+                        containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(e)).build());
                     }
+                    return null;
                 });
 
 

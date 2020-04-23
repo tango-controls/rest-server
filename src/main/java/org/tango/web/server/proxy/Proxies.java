@@ -103,7 +103,7 @@ public class Proxies {
         }
     }
 
-    public static TangoCommandProxy newTangoCommandProxy(TangoDeviceProxy deviceProxy, String name) throws DevFailed {
+    public static TangoCommandProxy newTangoCommandProxy(TangoDeviceProxy deviceProxy, String name) {
         return new TangoCommandProxyImpl(deviceProxy.getProxy(), name);
     }
 
@@ -113,10 +113,15 @@ public class Proxies {
         try {
             Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(commandFullName);
             if(!matcher.matches()) throw new AssertionError();
-            return Optional.of(
-                    newTangoCommandProxy(
-                            new TangoDeviceProxyImpl(matcher.group("host"), matcher.group(5), TangoProxies.newDeviceProxyWrapper(matcher.group("device"))),
-                            matcher.group("name")));
+            TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(matcher.group("device"));
+            String name = matcher.group("name");
+            if (proxy.hasCommand(name))
+                return Optional.of(
+                        newTangoCommandProxy(
+                                new TangoDeviceProxyImpl(matcher.group("host"), matcher.group(5), proxy),
+                                name));
+            else
+                return Optional.empty();
         } catch (DevFailed | TangoProxyException devFailed) {
             return Optional.empty();
         }
