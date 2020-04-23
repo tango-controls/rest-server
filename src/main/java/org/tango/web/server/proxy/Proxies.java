@@ -21,7 +21,6 @@ import fr.esrf.TangoApi.Database;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.DeviceProxyFactory;
 import fr.soleil.tango.clientapi.TangoAttribute;
-import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.client.database.DatabaseFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -104,14 +103,8 @@ public class Proxies {
         }
     }
 
-    private static TangoCommandProxy newTangoCommandProxy(String name) throws DevFailed {
-        TangoCommand tangoCommand = new TangoCommand(name);
-        return new TangoCommandProxyImpl(tangoCommand);
-    }
-
     public static TangoCommandProxy newTangoCommandProxy(TangoDeviceProxy deviceProxy, String name) throws DevFailed {
-        TangoCommand tangoCommand = new TangoCommand(deviceProxy.getProxy().toDeviceProxy(), name);
-        return new TangoCommandProxyImpl(tangoCommand);
+        return new TangoCommandProxyImpl(deviceProxy.getProxy(), name);
     }
 
     public static final Pattern TANGO_MEMBER_FULL_NAME_PATTERN = Pattern.compile("(?<device>tango://(?<host>(.+):(\\d{5}))/(.+/.+/.+))/(?<name>.+)");
@@ -120,8 +113,11 @@ public class Proxies {
         try {
             Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(commandFullName);
             if(!matcher.matches()) throw new AssertionError();
-            return Optional.of(newTangoCommandProxy(commandFullName));
-        } catch (DevFailed devFailed) {
+            return Optional.of(
+                    newTangoCommandProxy(
+                            new TangoDeviceProxyImpl(matcher.group("host"), matcher.group(5), TangoProxies.newDeviceProxyWrapper(matcher.group("device"))),
+                            matcher.group("name")));
+        } catch (DevFailed | TangoProxyException devFailed) {
             return Optional.empty();
         }
     }

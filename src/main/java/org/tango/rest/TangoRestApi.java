@@ -26,6 +26,7 @@ import org.tango.web.server.interceptors.ImageAttributeValueProvider;
 import org.tango.web.server.interceptors.JsonpResponseWrapper;
 import org.tango.web.server.interceptors.TangoAttributeValueInterceptor;
 import org.tango.web.server.providers.*;
+import org.tango.web.server.v10.readers.CommandInOutBodyReader;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -94,6 +95,8 @@ public class TangoRestApi extends Application {
         // = = = JsonP  = = =
         singletons.add(new JsonpMethodFilter());
         singletons.add(new JsonpResponseWrapper());
+
+        singletons.add(new CommandInOutBodyReader());
 
         return singletons;
     }

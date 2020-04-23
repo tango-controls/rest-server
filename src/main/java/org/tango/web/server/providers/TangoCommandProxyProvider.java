@@ -59,7 +59,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
 
         String name = uriInfo.getPathParameters().getFirst("cmd");
         if(Objects.isNull(name)) {
-            containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance("attribute name is null")).build());
+            containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance("command name is null")).build());
             throw new AssertionError();
         }
 
