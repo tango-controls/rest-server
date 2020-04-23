@@ -122,17 +122,13 @@ public class Proxies {
                                 name));
             else
                 return Optional.empty();
-        } catch (DevFailed | TangoProxyException devFailed) {
+        } catch (TangoProxyException devFailed) {
             return Optional.empty();
         }
     }
 
     public static Optional<TangoCommandProxy> optionalTangoCommandProxy(TangoDeviceProxy device, String name) {
-        try {
-            return Optional.of(newTangoCommandProxy(device, name));
-        } catch (DevFailed devFailed) {
-            return Optional.empty();
-        }
+        return Optional.of(newTangoCommandProxy(device, name));
     }
 
     public static Optional<TangoPipeProxy> optionalTangoPipeProxy(String host, String deviceName, String name) {
