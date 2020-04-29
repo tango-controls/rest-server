@@ -138,8 +138,8 @@ public class JaxRsDevice {
         return Arrays.stream(tangoDevice.getProxy().toDeviceProxy().command_list_query())
                 .map(commandInfo -> new TangoRestCommand(
                         commandInfo.cmd_name,
-                        tangoDatabase.getTangoHost(),
                         tangoDevice.getName(),
+                        tangoDatabase.getTangoHost(),
                         commandInfo,
                         uriInfo.getAbsolutePathBuilder().path(commandInfo.cmd_name).build(),
                         null))
