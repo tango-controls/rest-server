@@ -16,14 +16,19 @@
 
 package org.tango.rest.v10;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import org.tango.rest.rc4.DeviceHelper;
 import org.tango.rest.rc4.JaxRsDeviceProperties;
-import org.tango.rest.v10.entities.*;
+import org.tango.rest.v10.entities.Attribute;
+import org.tango.rest.v10.entities.Command;
+import org.tango.rest.v10.entities.Device;
+import org.tango.rest.v10.entities.DeviceState;
+import org.tango.rest.v10.entities.pipe.DispLevel;
+import org.tango.rest.v10.entities.pipe.Pipe;
+import org.tango.rest.v10.entities.pipe.PipeInfo;
+import org.tango.rest.v10.entities.pipe.PipeWriteType;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoAttribute;
@@ -161,14 +166,17 @@ public class JaxRsDevice {
     @Partitionable
     @StaticValue
     @Path("/pipes")
-    public Object devicePipes(@Context UriInfo uriInfo) throws DevFailed {
+    public List<Pipe> devicePipes(@DefaultValue("*") @QueryParam("wildcard") String wildcard, @Context UriInfo uriInfo) throws DevFailed {
         final UriBuilder href = uriInfo.getAbsolutePathBuilder();
-        return Lists.transform(tangoDevice.getProxy().toDeviceProxy().getPipeNames(), new Function<String, Object>() {
-            @Override
-            public Object apply(final String input) {
-                return new NamedEntity(input, null, href.path(input).build());
-            }
-        });
+        return tangoDevice.getProxy().toDeviceProxy().getPipeConfig().stream()
+                .map(pipeConfig -> new Pipe(pipeConfig.getName(), tangoDevice.getName(), tangoDevice.getHost(), new PipeInfo(
+                        pipeConfig.getName(),
+                        pipeConfig.getDescription(),
+                        pipeConfig.getLabel(),
+                        new DispLevel(pipeConfig.getLevel()),
+                        new PipeWriteType(pipeConfig.getWriteType())
+                ), href.path(pipeConfig.getName()).build()))
+                .collect(Collectors.toList());
     }
 
     @Path("/pipes/{pipe}")
