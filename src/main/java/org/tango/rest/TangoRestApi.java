@@ -27,6 +27,7 @@ import org.tango.web.server.interceptors.JsonpResponseWrapper;
 import org.tango.web.server.interceptors.TangoAttributeValueInterceptor;
 import org.tango.web.server.providers.*;
 import org.tango.web.server.v10.readers.CommandInOutBodyReader;
+import org.tango.web.server.writers.PlainTextWriter;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -97,6 +98,7 @@ public class TangoRestApi extends Application {
         singletons.add(new JsonpResponseWrapper());
 
         singletons.add(new CommandInOutBodyReader());
+        singletons.add(new PlainTextWriter());
 
         return singletons;
     }
