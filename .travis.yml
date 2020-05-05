@@ -18,9 +18,10 @@ before_script:
   - docker ps
 
 script:
-  - mvn -B verify -Ptravis,test-suite -Dcustom.build.name=$TRAVIS_BRANCH
+  - mvn -B verify -Ptest-suite -Dcustom.build.name=$TRAVIS_BRANCH
 
 after_success:
+  - sleep 3
   - git fetch --unshallow
   - mvn sonar:sonar -Ptravis -Dsonar.login=$SONAR_TOKEN  -Dsonar.projectKey=org.tango-controls:rest-server
   - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
