@@ -22,7 +22,7 @@ script:
 
 after_success:
   - git fetch --unshallow
-  - mvn sonar:sonar -Ptravis -Dsonar.login=$SONAR_TOKEN -Dsonar.projectKey=org.tango-controls:rest-server
+  - mvn sonar:sonar -Ptravis -Dsonar.login=$SONAR_TOKEN  -Dsonar.projectKey=org.tango-controls:rest-server
   - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
 
 jdk: 
@@ -31,8 +31,6 @@ jdk:
 addons:
   sonarcloud:
     organization: "ingvord-github"
-    token:
-      secure: $SONAR_TOKEN  
 
 before_deploy:
 - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
