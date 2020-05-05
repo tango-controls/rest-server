@@ -193,10 +193,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>11</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -537,6 +536,7 @@
             <properties>
                 <sonar.host.url>https://sonarcloud.io</sonar.host.url>
                 <sonar.organization>ingvord-github</sonar.organization>
+                <sonar.java.source>11</sonar.java.source>
                 <!--sonar.login>${env.SONAR_TOKEN}</sonar.login-->
                 <!--override development TangoRestServer instance name for porduction -->
                 <tango.rest.server.instance.name>sys</tango.rest.server.instance.name>
