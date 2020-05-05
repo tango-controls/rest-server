@@ -28,10 +28,6 @@ after_success:
 
 jdk: 
   - openjdk11
-  
-addons:
-  sonarcloud:
-    organization: "ingvord-github"
 
 before_deploy:
 - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
