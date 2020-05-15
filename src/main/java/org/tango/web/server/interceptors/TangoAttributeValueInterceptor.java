@@ -54,11 +54,7 @@ public class TangoAttributeValueInterceptor implements ContainerRequestFilter {
             Response.ResponseBuilder responseBuilder = requestContext.getRequest().evaluatePreconditions(lastModified);
             if(responseBuilder != null) requestContext.abortWith(responseBuilder.build());
         } catch (DevFailed devFailed) {
-            try {
-                logger.warn("Failed to getTimestamp from attribute {}/{}", tangoAttributeProxy.getDeviceName(), tangoAttributeProxy.getName());
-            } catch (DevFailed devFailedAgain) {
-                requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailedAgain)).build());
-            }
+            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
         }
     }
 }
