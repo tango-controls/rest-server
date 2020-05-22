@@ -67,7 +67,7 @@ public class JaxRsTangoCommand {
     public CommandInOut<Object, Object> put(@QueryParam("async") boolean async,
                                             @Context UriInfo uriInfo,
                                             CommandInOut<Object, Object> value) throws Exception {
-        if (async) {
+        if (async || value.output == null) {
             CompletableFuture.runAsync(() -> {
                 try {
                     command.execute(value.input);
