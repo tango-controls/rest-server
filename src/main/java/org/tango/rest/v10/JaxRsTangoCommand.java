@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceDataHistory;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
@@ -67,16 +68,22 @@ public class JaxRsTangoCommand {
     public CommandInOut<Object, Object> put(@QueryParam("async") boolean async,
                                             @Context UriInfo uriInfo,
                                             CommandInOut<Object, Object> value) throws Exception {
-        if (async || value.output == null) {
+        if (async) {
+            final TangoCommandProxy proxy = ResteasyProviderFactory.getContextData(TangoCommandProxy.class);
+            ;
             CompletableFuture.runAsync(() -> {
                 try {
-                    command.execute(value.input);
+                    proxy.execute(value.input);
                 } catch (DevFailed ignored) {
                 }
             });
             return null;
         } else {
-            value.output = command.executeExtract(value.input);
+            if (value.output == null) {
+                command.execute(value.input);
+            } else {
+                value.output = command.executeExtract(value.input);
+            }
             return value;
         }
     }
