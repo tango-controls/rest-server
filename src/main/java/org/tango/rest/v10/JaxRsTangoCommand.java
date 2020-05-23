@@ -79,11 +79,7 @@ public class JaxRsTangoCommand {
             });
             return null;
         } else {
-            if (value.output == null) {
-                command.execute(value.input);
-            } else {
-                value.output = command.executeExtract(value.input);
-            }
+            value.output = command.executeExtract(value.input);
             return value;
         }
     }
