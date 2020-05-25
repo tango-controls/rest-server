@@ -17,6 +17,7 @@ import javax.ws.rs.ext.Providers;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Optional;
 
 /**
  * @author ingvord
@@ -44,13 +45,18 @@ public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Ob
                     public CommandInOut<Object, Object> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
                         try {
                             Class<?> arginType = proxy.getProxy().getCommandInfo(getCommandName(json)).getArginType();
-                            Object input = null;
-                            if (arginType != Void.class) {
+                            JsonElement input = Optional.ofNullable(json.getAsJsonObject().get("input")).orElseGet(() -> JsonNull.INSTANCE);
+                            Object parsedInput;
+                            if (input.isJsonPrimitive()) {
+                                parsedInput = context.deserialize(input, arginType);
+                            } else if (input.isJsonObject()) {
                                 MessageBodyReader<Object> bodyReader = (MessageBodyReader<Object>) providers.getMessageBodyReader(arginType, arginType, annotations, mediaType);
 
                                 InputStream is = new ByteArrayInputStream(json.getAsJsonObject().get("input").toString().getBytes("UTF-8"));//TODO from mediaType
 
-                                input = bodyReader.readFrom((Class<Object>) arginType, arginType, annotations, mediaType, httpHeaders, is);
+                                parsedInput = bodyReader.readFrom((Class<Object>) arginType, arginType, annotations, mediaType, httpHeaders, is);
+                            } else {
+                                parsedInput = null;
                             }
 
 
@@ -58,7 +64,7 @@ public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Ob
                                     getOrNull("host", json),
                                     getOrNull("device", json),
                                     getOrNull("name", json),
-                                    input
+                                    parsedInput
                             );
                         } catch (TangoProxyException | NoSuchCommandException | IOException e) {
                             throw new JsonParseException(e);
