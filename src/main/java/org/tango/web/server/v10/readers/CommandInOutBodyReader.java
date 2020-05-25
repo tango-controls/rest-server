@@ -14,10 +14,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -27,9 +24,6 @@ import java.lang.reflect.Type;
  */
 @Provider
 public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Object, Object>> {
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(CommandInOut.class, new CommandInOutDeserializer())
-            .create();
     @Context
     private UriInfo uriInfo;
     @Context
@@ -44,32 +38,42 @@ public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Ob
 
     @Override
     public CommandInOut<Object, Object> readFrom(Class<CommandInOut<Object, Object>> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(CommandInOut.class, new JsonDeserializer<CommandInOut<Object, Object>>() {
+                    @Override
+                    public CommandInOut<Object, Object> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                        try {
+                            Class<?> arginType = proxy.getProxy().getCommandInfo(getCommandName(json)).getArginType();
+                            Object input = null;
+                            if (arginType != Void.class) {
+                                MessageBodyReader<Object> bodyReader = (MessageBodyReader<Object>) providers.getMessageBodyReader(arginType, arginType, annotations, mediaType);
+
+                                InputStream is = new ByteArrayInputStream(json.getAsJsonObject().get("input").toString().getBytes("UTF-8"));//TODO from mediaType
+
+                                input = bodyReader.readFrom((Class<Object>) arginType, arginType, annotations, mediaType, httpHeaders, is);
+                            }
+
+
+                            return new CommandInOut<Object, Object>(
+                                    getOrNull("host", json),
+                                    getOrNull("device", json),
+                                    getOrNull("name", json),
+                                    input
+                            );
+                        } catch (TangoProxyException | NoSuchCommandException | IOException e) {
+                            throw new JsonParseException(e);
+                        }
+                    }
+                })
+                .create();
         return gson.fromJson(new BufferedReader(new InputStreamReader(entityStream)), CommandInOut.class);
     }
 
-    private class CommandInOutDeserializer implements JsonDeserializer<CommandInOut<Object, Object>> {
+    private String getCommandName(JsonElement json) {
+        return uriInfo.getPathParameters().containsKey("cmd") ? uriInfo.getPathParameters().getFirst("cmd") : json.getAsJsonObject().get("name").getAsString();
+    }
 
-        @Override
-        public CommandInOut<Object, Object> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            try {
-                Class<?> arginType = proxy.getProxy().getCommandInfo(getCommandName(json)).getArginType();
-                return new CommandInOut<>(
-                        getOrNull("host", json),
-                        getOrNull("device", json),
-                        getOrNull("name", json),
-                        context.deserialize(json.getAsJsonObject().get("input"), arginType)
-                );
-            } catch (TangoProxyException | NoSuchCommandException e) {
-                throw new JsonParseException(e);
-            }
-        }
-
-        private String getCommandName(JsonElement json) {
-            return uriInfo.getPathParameters().containsKey("cmd") ? uriInfo.getPathParameters().getFirst("cmd") : json.getAsJsonObject().get("name").getAsString();
-        }
-
-        private String getOrNull(String key, JsonElement json) {
-            return json.getAsJsonObject().get(key).isJsonNull() ? null : json.getAsJsonObject().get(key).getAsString();
-        }
+    private String getOrNull(String key, JsonElement json) {
+        return json.getAsJsonObject().get(key).isJsonNull() ? null : json.getAsJsonObject().get(key).getAsString();
     }
 }
