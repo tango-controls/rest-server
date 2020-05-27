@@ -47,7 +47,7 @@ public class CommandInOutBodyReader implements MessageBodyReader<CommandInOut<Ob
                             Class<?> arginType = proxy.getProxy().getCommandInfo(getCommandName(json)).getArginType();
                             JsonElement input = Optional.ofNullable(json.getAsJsonObject().get("input")).orElseGet(() -> JsonNull.INSTANCE);
                             Object parsedInput;
-                            if (input.isJsonPrimitive()) {
+                            if (input.isJsonPrimitive() || input.isJsonArray()) {
                                 parsedInput = context.deserialize(input, arginType);
                             } else if (input.isJsonObject()) {
                                 MessageBodyReader<Object> bodyReader = (MessageBodyReader<Object>) providers.getMessageBodyReader(arginType, arginType, annotations, mediaType);
