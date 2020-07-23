@@ -16,7 +16,7 @@
 
 package org.tango.web.server.filters;
 
-import org.tango.TangoRestServer;
+import org.tango.web.server.TangoRestContext;
 import org.tango.web.server.binding.StaticValue;
 
 import javax.ws.rs.ext.Provider;
@@ -28,12 +28,12 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @StaticValue
 public class StaticValueCacheControlProvider extends AbstractCacheControlProvider {
-    public StaticValueCacheControlProvider(TangoRestServer tangoRestServer) {
-        super(tangoRestServer);
+    public StaticValueCacheControlProvider(TangoRestContext context) {
+        super(context);
     }
 
     @Override
     protected long getDelay() {
-        return tangoRestServer.getStaticValueExpirationDelay();
+        return context.staticValueExpirationDelay.get();
     }
 }

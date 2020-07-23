@@ -19,9 +19,8 @@ package org.tango.web.server.providers;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
-import org.tango.rest.rc4.entities.Failures;
-import org.tango.web.server.Context;
+import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.util.TangoSelector;
 import org.tango.web.server.util.Wildcard;
@@ -44,11 +43,12 @@ import java.util.List;
 public class TangoSelectorProvider implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(TangoSelectorProvider.class);
     public static final String WILDCARD = "wildcard";
-    private Context context;
+    private final ThreadLocal<TangoProxiesCache> context;
 
-    public TangoSelectorProvider(TangoRestServer tangoRestServer) {
-        this.context = tangoRestServer.getContext();
+    public TangoSelectorProvider(ThreadLocal<TangoProxiesCache> context) {
+        this.context = context;
     }
+
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -65,7 +65,7 @@ public class TangoSelectorProvider implements ContainerRequestFilter {
             return;
         }
 
-        ResteasyProviderFactory.pushContext(TangoSelector.class, new TangoSelector(wildcards, context));
+        ResteasyProviderFactory.pushContext(TangoSelector.class, new TangoSelector(wildcards, context.get()));
 
     }
 

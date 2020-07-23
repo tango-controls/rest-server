@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tango.rest.rc4;
+package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DbDatum;

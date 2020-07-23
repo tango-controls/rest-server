@@ -33,7 +33,7 @@ import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.ReadAttributeException;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.web.server.attribute.AttributeConfig;
 import org.tango.web.server.attribute.AttributeProperty;

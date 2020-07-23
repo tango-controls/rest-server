@@ -16,7 +16,7 @@
 
 package org.tango.web.server.util;
 
-import org.tango.web.server.Context;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.*;
 
 import java.util.AbstractMap;
@@ -32,10 +32,10 @@ import java.util.stream.Stream;
 //TODO handle exceptions
 public class TangoSelector {
 
-    private final Context context;
+    private final TangoProxiesCache context;
     private final List<Wildcard> wildcards;
 
-    public TangoSelector(List<Wildcard> wildcards, Context context) {
+    public TangoSelector(List<Wildcard> wildcards, TangoProxiesCache context) {
         this.wildcards = wildcards;
         this.context = context;
     }

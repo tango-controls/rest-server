@@ -16,7 +16,7 @@
 
 package org.tango.web.server.filters;
 
-import org.tango.TangoRestServer;
+import org.tango.web.server.TangoRestContext;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -38,20 +38,20 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractCacheControlProvider implements ContainerResponseFilter {
     private SimpleDateFormat dateFormat;
 
-    protected final TangoRestServer tangoRestServer;
+    protected final TangoRestContext context;
 
-    public AbstractCacheControlProvider(TangoRestServer tangoRestServer) {
+    public AbstractCacheControlProvider(TangoRestContext context) {
         dateFormat = new SimpleDateFormat(
                 "EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        this.tangoRestServer = tangoRestServer;
+        this.context = context;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         if(responseContext.getStatus() >= 400) return;
 
-        if (!tangoRestServer.isCacheEnabled()) return;
+        if (!context.isCacheEnabled()) return;
 
 
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tango.rest.rc4;
+package org.tango.rest.v10;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;

@@ -17,8 +17,8 @@
 package org.tango.rest;
 
 import com.google.common.collect.Maps;
-import org.tango.rest.rc4.Rc4ApiImpl;
 import org.tango.rest.v10.V10ApiImpl;
+import org.tango.web.server.TangoRestContext;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -35,6 +35,8 @@ import java.util.Map;
 @Path("/rest")
 @Produces("application/json")
 public class EntryPoint {
+    private final TangoRestSysEndpoint sys;
+
     private final Map<String, Class<?>> supportedVersions;
     @Context
     private UriInfo uriInfo;
@@ -42,18 +44,21 @@ public class EntryPoint {
     {
         Map<String, Class<?>> supportedVersions = Maps.newHashMap();
 
-        supportedVersions.put("rc4", Rc4ApiImpl.class);
         supportedVersions.put("v10", V10ApiImpl.class);
         supportedVersions.put("v11", V10ApiImpl.class);
 
         this.supportedVersions = supportedVersions;
     }
 
-    @GET
-    public Map<String,String> versions(@Context ServletContext context){
-        Map<String,String> result = new HashMap<>();
+    public EntryPoint(TangoRestContext context) {
+        this.sys = new TangoRestSysEndpoint(context);
+    }
 
-        for(String version : supportedVersions.keySet()){
+    @GET
+    public Map<String, String> versions(@Context ServletContext context) {
+        Map<String, String> result = new HashMap<>();
+
+        for (String version : supportedVersions.keySet()) {
             result.put(version, uriInfo.getAbsolutePath() + "/" + version);
         }
 
@@ -61,9 +66,15 @@ public class EntryPoint {
     }
 
     @Path("/{version}")
-    public Object getVersion(@Context ResourceContext rc, @PathParam("version") String version){
+    public Object getVersion(@Context ResourceContext rc, @PathParam("version") String version) {
         Class<?> versionEngine = supportedVersions.get(version);
-        if(versionEngine == null) throw new NotFoundException("this implementation does not support version " + version);
+        if (versionEngine == null)
+            throw new NotFoundException("this implementation does not support version " + version);
         return rc.getResource(versionEngine);
+    }
+
+    @Path("/sys")
+    public TangoRestSysEndpoint sys() {
+        return sys;
     }
 }

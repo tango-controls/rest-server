@@ -20,9 +20,8 @@ import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
-import org.tango.rest.rc4.Rc4ApiImpl;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 
@@ -48,10 +47,10 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
     public static final String DEFAULT_TANGO_PORT = "10000";
     private final Logger logger = LoggerFactory.getLogger(TangoDatabaseProvider.class);
 
-    private final TangoRestServer tangoRestServer;
+    private final ThreadLocal<TangoProxiesCache> context;
 
-    public TangoDatabaseProvider(TangoRestServer tangoRestServer) {
-        this.tangoRestServer = tangoRestServer;
+    public TangoDatabaseProvider(ThreadLocal<TangoProxiesCache> context) {
+        this.context = context;
     }
 
 
@@ -71,8 +70,6 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         }
 
         TangoHostExtractor tangoHostExtractor =
-                pathSegments.get(1).getPath().equalsIgnoreCase(Rc4ApiImpl.RC_4) ?
-                        uriInfo1 -> new TangoHost(uriInfo1.getPathSegments().get(3).getPath(), uriInfo1.getPathSegments().get(4).getPath()) : //assume rc5
                         uriInfo12 -> {
                             PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
                             return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
@@ -83,7 +80,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
 
         TangoHost tangoHost = tangoHostExtractor.apply(uriInfo);
 
-        TangoDatabaseProxy tangoDb = tangoRestServer.getContext().hosts.
+        TangoDatabaseProxy tangoDb = context.get().hosts.
                 getUnchecked(tangoHost.toString()).orElseGet(() -> {
             try {
                 return Proxies.getDatabase(tangoHost.host, tangoHost.port);

@@ -19,8 +19,6 @@ package org.tango.rest.v10;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
 import fr.soleil.tango.clientapi.TangoAttribute;
-import org.tango.rest.rc4.DeviceHelper;
-import org.tango.rest.rc4.JaxRsDeviceProperties;
 import org.tango.rest.v10.entities.Attribute;
 import org.tango.rest.v10.entities.Command;
 import org.tango.rest.v10.entities.Device;

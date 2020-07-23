@@ -33,7 +33,6 @@
     <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
-            org.tango.web.server.rc4.readers.CommandInputMessageBodyReader,
             org.tango.web.server.exception.mapper.DevFailedMapper,
             org.tango.web.server.exception.mapper.TangoProxyExceptionMapper,
             org.tango.web.server.exception.mapper.NoSuchAttribute,
@@ -48,10 +47,6 @@
     <listener>
         <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
     </listener>
-    <listener>
-        <listener-class>org.tango.web.server.Launcher</listener-class>
-    </listener>
-
     <servlet>
         <servlet-name>RestTangoService</servlet-name>
         <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>

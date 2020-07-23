@@ -21,7 +21,7 @@ import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DevicePipe;
 import fr.soleil.tango.clientapi.TangoAttribute;
 import fr.soleil.tango.clientapi.TangoCommand;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.rest.v10.entities.CommandInOut;
 import org.tango.rest.v10.entities.pipe.Pipe;
