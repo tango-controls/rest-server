@@ -34,23 +34,16 @@ public class TangoDatabaseProxyImpl implements TangoDatabaseProxy {
     private final String host;
     private final String port;
     private final Database tangoDb;
-    private final org.tango.client.database.Database soleilDb;
 
-    public TangoDatabaseProxyImpl(String host, String port, org.tango.client.database.Database soleilDb, Database tangoDb) {
+    public TangoDatabaseProxyImpl(String host, String port, Database tangoDb) {
         this.host = host;
         this.port = port;
-        this.soleilDb = soleilDb;
         this.tangoDb = tangoDb;
     }
 
     @Override
     public Database asEsrfDatabase(){
         return tangoDb;
-    }
-
-    @Override
-    public org.tango.client.database.Database asSoleilDatabase(){
-        return soleilDb;
     }
 
     @Override

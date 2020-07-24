@@ -29,10 +29,9 @@ import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
-import org.tango.client.ez.proxy.NoSuchAttributeException;
-import org.tango.client.ez.proxy.ReadAttributeException;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
+import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.web.server.attribute.AttributeConfig;
@@ -211,18 +210,15 @@ public class JaxRsDeviceAttribute {
     @DynamicValue
     @TangoAttributeValue
     @Path("/value")
-    public AttributeValue<Object> deviceAttributeValueGet() throws DevFailed, NoSuchAttributeException, ReadAttributeException {
-        Object result;
-        if(tangoAttribute.isImage())
-            result = deviceProxy.getProxy().readAttribute(name);
-        else
-            result = tangoAttribute.read();
-        return new AttributeValue<Object>(
+    public AttributeValue<Object> deviceAttributeValueGet() throws DevFailed {
+        ValueTimeQuality<Object> result = tangoAttribute.read();
+        return new AttributeValue<>(
                 JaxRsDeviceAttribute.this.name,
-                databaseProxy.getTangoHost() ,
-                deviceProxy.getName(), result,
-                tangoAttribute.getQuality().toString(),
-                tangoAttribute.getTimestamp());
+                databaseProxy.getTangoHost(),
+                deviceProxy.getName(),
+                result.value,
+                result.quality.toString(),
+                result.time);
     }
 
     @PUT
@@ -252,8 +248,7 @@ public class JaxRsDeviceAttribute {
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/value")
     public Object deviceAttributeGetValuePlain() throws Exception {
-        tangoAttribute.update();
-        return tangoAttribute.extract();
+        return tangoAttribute.readPlain();
     }
 
     @GET

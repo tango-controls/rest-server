@@ -21,11 +21,6 @@
                              http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
 
-    <!-- Tango device instance to start -->
-    <context-param>
-        <param-name>tango.rest.server.instance</param-name>
-        <param-value>${tango.rest.server.instance.name}</param-value>
-    </context-param>
     <context-param>
         <param-name>resteasy.logger.type</param-name>
         <param-value>SLF4J</param-value>

@@ -43,7 +43,7 @@ public class TangoSelector {
     private Stream<WildcardDatabase> getWildcardDatabaseStream(){
         return wildcards.stream()
                 .map(wildcard ->
-                        Proxies.getDatabase(wildcard.host).map(tangoDatabaseProxy ->
+                        Proxies.getDatabaseProxy(wildcard.host).map(tangoDatabaseProxy ->
                                 new WildcardDatabase(wildcard, tangoDatabaseProxy)
                         ).orElse(null))
                 .filter(Objects::nonNull);
@@ -139,7 +139,7 @@ public class TangoSelector {
 
     private Stream<String> getDeviceMemberURLStream() {
         return wildcards.stream()
-                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, Proxies.getDatabase(wildcard.host).orElse(null)))
+                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, Proxies.getDatabaseProxy(wildcard.host).orElse(null)))
                 .filter(entry -> Objects.nonNull(entry.getValue()))
                 .flatMap(this::getDeviceMemberURL);
     }

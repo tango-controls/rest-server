@@ -20,16 +20,12 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.Database;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.DeviceProxyFactory;
-import fr.soleil.tango.clientapi.TangoAttribute;
-import org.tango.client.database.DatabaseFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.client.ez.util.TangoUtils;
-import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.util.TangoDeviceProxyUtils;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,63 +37,61 @@ import static org.tango.web.server.providers.TangoDatabaseProvider.DEFAULT_TANGO
  * @since 11/19/18
  */
 public class Proxies {
-    private Proxies(){}
+    private Proxies() {
+    }
 
-    public static TangoAttributeProxy newTangoAttributeProxy(String fullAttributeName) throws DevFailed {
-        Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(fullAttributeName);
-        if(!matcher.matches()) throw new AssertionError();
-        TangoAttribute tangoAttribute = new TangoAttribute(fullAttributeName);
-        return new TangoAttributeProxyImpl(tangoAttribute);
+    public static TangoAttributeProxy newTangoAttributeProxy(TangoDeviceProxy deviceProxy, String name) {
+        return new TangoAttributeProxyImpl(deviceProxy, name);
     }
 
 
-    public static Optional<TangoAttributeProxy> optionalTangoAttributeProxy(String fullAttributeName){
+    public static Optional<TangoAttributeProxy> optionalTangoAttributeProxy(String fullAttributeName) {
         try {
-            return Optional.of(newTangoAttributeProxy(fullAttributeName));
-        } catch (DevFailed devFailed) {
+            Matcher matcher = TANGO_MEMBER_FULL_NAME_PATTERN.matcher(fullAttributeName);
+            if (!matcher.matches()) throw new AssertionError();
+            TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(matcher.group("device"));
+            String name = matcher.group("name");
+            if (proxy.hasAttribute(name))
+                return Optional.of(
+                        newTangoAttributeProxy(
+                                new TangoDeviceProxyImpl(matcher.group("host"), matcher.group(5), proxy),
+                                name));
+            else
+                return Optional.empty();
+        } catch (TangoProxyException devFailed) {
             return Optional.empty();
         }
     }
 
     public static final Pattern TANGO_DEVICE_FULL_NAME_PATTERN = Pattern.compile("tango://(?<host>(.+):(\\d{5}))/(?<name>.+/.+/.+)");
 
-    public static Optional<TangoDeviceProxy> optionalTangoDeviceProxy(String fullDeviceName){
+    public static Optional<TangoDeviceProxy> optionalTangoDeviceProxy(String fullDeviceName) {
         try {
             Matcher matcher = TANGO_DEVICE_FULL_NAME_PATTERN.matcher(fullDeviceName);
-            if(!matcher.matches()) throw new AssertionError();
+            if (!matcher.matches()) throw new AssertionError();
             TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(
                     DeviceProxyFactory.get(fullDeviceName));
 
             return Optional.of(new TangoDeviceProxyImpl(matcher.group("host"), matcher.group("name"), tangoProxy));
-        } catch (TangoProxyException|DevFailed devFailed) {
+        } catch (TangoProxyException | DevFailed devFailed) {
             return Optional.empty();
         }
     }
 
-    public static TangoDatabaseProxy getDatabase(String host, String port) throws DevFailed {
-        try {
-            DatabaseFactory.setUseDb(true);
-            org.tango.client.database.Database obj = (org.tango.client.database.Database) DatabaseFactory.getDatabase(host, port);
-            Field fldDatabase = obj.getClass().getDeclaredField("database");
-            fldDatabase.setAccessible(true);
-
-            return new TangoDatabaseProxyImpl(host, port, obj, (Database) fldDatabase.get(obj));
-        } catch (NoSuchFieldException|IllegalAccessException e) {
-            throw DevFailedUtils.newDevFailed(e);
-        }
+    public static TangoDatabaseProxy newDatabaseProxy(String host, String port) throws DevFailed {
+        return new TangoDatabaseProxyImpl(host, port, new Database(host, port));
     }
 
     /**
-     *
      * @param s localhost:10000
      * @return optional db
      */
-    public static Optional<TangoDatabaseProxy> getDatabase(String s){
+    public static Optional<TangoDatabaseProxy> getDatabaseProxy(String s) {
         String[] host_port = s.split(":");
         String host = host_port[0];
         String port = host_port.length == 1 ? DEFAULT_TANGO_PORT : host_port[1];
         try {
-            return Optional.of(getDatabase(host, port));
+            return Optional.of(newDatabaseProxy(host, port));
         } catch (DevFailed devFailed) {
             return Optional.empty();
         }
@@ -148,7 +142,7 @@ public class Proxies {
         Matcher matcher = TANGO_DATABASE_FULL_NAME_PATTERN.matcher(fullTangoHost);
         if(!matcher.matches()) throw new AssertionError();
         try {
-            return Optional.of(getDatabase(matcher.group("host"), matcher.group("port")));
+            return Optional.of(newDatabaseProxy(matcher.group("host"), matcher.group("port")));
         } catch (DevFailed devFailed) {
             return Optional.empty();
         }

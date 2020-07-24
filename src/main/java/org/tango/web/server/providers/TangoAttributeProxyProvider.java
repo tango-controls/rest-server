@@ -16,8 +16,6 @@
 
 package org.tango.web.server.providers;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.CommunicationTimeout;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,17 +70,7 @@ public class TangoAttributeProxyProvider implements ContainerRequestFilter {
 
 
         TangoAttributeProxy proxy = context.get().attributes.getUnchecked(deviceProxy.getFullName() + "/" + name).orElseGet(() -> {
-            try {
-                return Proxies.newTangoAttributeProxy(deviceProxy.getFullName() + "/" + name);
-            } catch (DevFailed devFailed) {
-                Response.Status status = Response.Status.BAD_REQUEST;
-                if (CommunicationTimeout.class.isAssignableFrom(devFailed.getClass()))
-                    status = Response.Status.GATEWAY_TIMEOUT;
-                if (devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("API_AttrNotFound"))
-                    status = Response.Status.NOT_FOUND;
-                containerRequestContext.abortWith(Response.status(status).entity(Failures.createInstance(devFailed)).build());
-                return null;
-            }
+                return Proxies.newTangoAttributeProxy(deviceProxy, name);
         }) ;
         ResteasyProviderFactory.pushContext(TangoAttributeProxy.class, proxy);
     }

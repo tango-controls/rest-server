@@ -18,7 +18,6 @@ package org.tango.web.server.proxy;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceProxy;
-import fr.soleil.tango.clientapi.TangoCommand;
 
 /**
  * @author ingvord
@@ -32,6 +31,4 @@ public interface TangoCommandProxy {
     Object executeExtract(Object value) throws DevFailed;
 
     DeviceProxy getDeviceProxy();
-
-    TangoCommand asTangoCommand();
 }

@@ -16,12 +16,15 @@
 
 package org.tango.rest.v10;
 
+import org.javatuples.Pair;
 import org.tango.rest.v10.entities.Attribute;
 import org.tango.rest.v10.entities.AttributeValue;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.binding.StaticValue;
+import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.util.TangoRestEntityUtils;
 import org.tango.web.server.util.TangoSelector;
 
@@ -32,6 +35,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -67,14 +71,18 @@ public class JaxRsTangoAttributes {
     @Partitionable
     @DynamicValue
     @Path("/value")
-    public List<AttributeValue<?>> write(@DefaultValue("false") @QueryParam("async") boolean async, List<AttributeValue<?>> values){
-        if(async) {
+    public List<AttributeValue<?>> write(@DefaultValue("false") @QueryParam("async") boolean async, @Context TangoProxiesCache proxies, List<AttributeValue<?>> values) {
+        Stream<Pair<AttributeValue<?>, TangoAttributeProxy>> pairs = values.stream()
+                .map(attributeValue -> new Pair<>(attributeValue, proxies.attributes.getUnchecked(String.format("tango://%s/%s/%s", attributeValue.host, attributeValue.device, attributeValue.name))))
+                .filter(pair -> pair.getValue1().isPresent())
+                .map(pair -> new Pair<>(pair.getValue0(), pair.getValue1().get()));
+
+        if (async) {
             //TODO servlet async
-            CompletableFuture.runAsync(() -> values.forEach(TangoRestEntityUtils::setValueToTangoAttribute));
+            CompletableFuture.runAsync(() -> pairs.forEach(TangoRestEntityUtils::setValueToTangoAttribute));
             return null;
         } else {
-            return values.stream()
-                    .map(TangoRestEntityUtils::setValueToTangoAttribute).collect(Collectors.toList());
+            return pairs.map(TangoRestEntityUtils::setValueToTangoAttribute).collect(Collectors.toList());
         }
     }
 

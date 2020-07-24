@@ -19,14 +19,15 @@ package org.tango.web.server.util;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DevicePipe;
-import fr.soleil.tango.clientapi.TangoAttribute;
-import fr.soleil.tango.clientapi.TangoCommand;
+import org.javatuples.Pair;
+import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.rest.v10.entities.CommandInOut;
 import org.tango.rest.v10.entities.pipe.Pipe;
 import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.proxy.TangoAttributeProxy;
+import org.tango.web.server.proxy.TangoCommandProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
 import org.tango.web.server.response.TangoPipeValue;
 import org.tango.web.server.response.TangoRestAttribute;
@@ -36,7 +37,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.StringJoiner;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -49,15 +49,15 @@ public class TangoRestEntityUtils {
         try {
             URI uri = new URI(tangoAttribute.getName());
             String host = uri.getAuthority();
-            String device = tangoAttribute.getAttributeProxy().getDeviceProxy().get_name();
-            String name = tangoAttribute.getDeviceAttribute().getName();
+            String device = tangoAttribute.getDeviceProxy().get_name();
+            String name = tangoAttribute.getName();
 
             URI href = getDeviceURI(uriInfo, host, device)
                     .path("attributes")
                     .path(name).build();
 
             return new TangoRestAttribute(
-                    host, device, name, tangoAttribute.getAttributeProxy().get_info_ex(), href, tangoAttribute
+                    host, device, name, tangoAttribute.getDeviceProxy().get_attribute_info_ex(name), href, tangoAttribute
             );
         } catch (DevFailed devFailed) {
             return new TangoRestAttribute(devFailed.errors);
@@ -68,42 +68,36 @@ public class TangoRestEntityUtils {
 
     public static Object getValueFromTangoAttribute(TangoRestAttribute tangoRestAttribute) {
         try {
-            tangoRestAttribute.attribute.update();
+            ValueTimeQuality<Object> result = tangoRestAttribute.attribute.read();
 
-            return new AttributeValue<>(tangoRestAttribute.name, tangoRestAttribute.host, tangoRestAttribute.device, tangoRestAttribute.attribute.extract(), tangoRestAttribute.attribute.getQuality().toString(), tangoRestAttribute.attribute.getTimestamp());
+            return new AttributeValue<>(
+                    tangoRestAttribute.name,
+                    tangoRestAttribute.host,
+                    tangoRestAttribute.device,
+                    result.value,
+                    result.quality.toString(),
+                    result.time);
         } catch (DevFailed devFailed) {
             return Failures.createInstance(devFailed);
         }
 
     }
 
-    public static AttributeValue<?> setValueToTangoAttribute(AttributeValue<?> attributeValue) {
-        StringJoiner stringJoiner = new StringJoiner("/");
-        stringJoiner.add("tango:/").add(attributeValue.host).add(attributeValue.device).add(attributeValue.name);
+    public static AttributeValue<?> setValueToTangoAttribute(Pair<AttributeValue<?>, TangoAttributeProxy> pair) {
+        AttributeValue<?> attributeValue = pair.getValue0();
         try {
-            TangoAttribute tangoAttribute = new TangoAttribute(stringJoiner.toString());//TODO cache
-            tangoAttribute.write(attributeValue.value);
-            attributeValue.quality = tangoAttribute.getQuality().toString();
-            attributeValue.timestamp = tangoAttribute.getTimestamp();
+            pair.getValue1().write(attributeValue.value);
+            attributeValue.quality = "PENDING";
+            attributeValue.timestamp = System.currentTimeMillis();
         } catch (DevFailed devFailed) {
+            attributeValue.quality = "FAILURE";
+            attributeValue.timestamp = System.currentTimeMillis();
             attributeValue.errors = devFailed.errors;
         }
         return attributeValue;
     }
 
-    public static TangoAttribute newTangoAttribute(String path) {
-        try {
-            return new TangoAttribute(path);
-        } catch (DevFailed devFailed) {
-            try {
-                return new TangoAttribute(path, null);
-            } catch (DevFailed devFailed1) {
-                throw new AssertionError(devFailed);
-            }
-        }
-    }
-
-    public static TangoRestCommand newTangoCommand(TangoCommand tangoCommand, UriInfo uriInfo) {
+    public static TangoRestCommand newTangoCommand(TangoCommandProxy tangoCommand, UriInfo uriInfo) {
         try {
             String host = tangoCommand.getDeviceProxy().get_tango_host();
             String device = tangoCommand.getDeviceProxy().name();
@@ -112,7 +106,7 @@ public class TangoRestEntityUtils {
 
             URI href = getDeviceURI(uriInfo, host, device).path("commands").path(name).build();
 
-            return new TangoRestCommand(name, device, host, info, href, tangoCommand);
+            return new TangoRestCommand(name, device, host, info, href);
         } catch (DevFailed devFailed) {
             return new TangoRestCommand(devFailed.errors);
         }
@@ -123,9 +117,9 @@ public class TangoRestEntityUtils {
                 .path("rest/rc5/hosts").path(host.replace(":",";port=")).path("devices").path(device);
     }
 
-    public static CommandInOut<Object, Object> executeCommand(CommandInOut<Object, Object> input) {
+    public static CommandInOut<Object, Object> executeCommand(TangoCommandProxy command, CommandInOut<Object, Object> input) {
         try {
-            input.output = new TangoCommand("tango://" + input.host + "/" + input.device, input.name).executeExtract(input.input);
+            input.output = command.executeExtract(input.input);
         } catch (DevFailed devFailed) {
             input.errors = devFailed.errors;
         }

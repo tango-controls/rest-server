@@ -83,7 +83,7 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         TangoDatabaseProxy tangoDb = context.get().hosts.
                 getUnchecked(tangoHost.toString()).orElseGet(() -> {
             try {
-                return Proxies.getDatabase(tangoHost.host, tangoHost.port);
+                return Proxies.newDatabaseProxy(tangoHost.host, tangoHost.port);
             } catch (DevFailed devFailed) {
                 Response.Status status = Response.Status.BAD_REQUEST;
                 if (devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))
