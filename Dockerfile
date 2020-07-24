@@ -1,19 +1,15 @@
-FROM openjdk:8-jre
+FROM tomcat:9-jdk11-openjdk
 
-MAINTAINER info@tango-controls.org
+MAINTAINER mail@ingvord.ru
 
 ARG REST_SERVER_VERSION
 
 ENV REST_SERVER_VERSION=$REST_SERVER_VERSION
 
-ENV REST_API_PORT=10001
+COPY target/rest-server-${REST_SERVER_VERSION}.war /usr/local/tomcat/webapps/tango.war
 
-RUN useradd -ms /bin/bash rest
+RUN apt-get update && apt-get install -y ssl-cert libtcnative-1
 
-WORKDIR /home/rest
-
-COPY target/${REST_SERVER_VERSION}.jar ./
-
-EXPOSE ${REST_API_PORT}
-
-ENTRYPOINT java -DTANGO_HOST=${TANGO_HOST} -DTOMCAT_PORT=${REST_API_PORT} -DTANGO_ACCESS=${TANGO_ACCESS} -jar ${REST_SERVER_VERSION}.jar -nodb -dlist sys/rest/0
+COPY docker/tomcat-users.xml \
+     docker/server.xml \
+     /usr/local/tomcat/conf/

@@ -25,7 +25,6 @@ import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.rest.v10.entities.CommandInOut;
 import org.tango.rest.v10.entities.pipe.Pipe;
-import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoCommandProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
@@ -36,7 +35,6 @@ import org.tango.web.server.response.TangoRestCommand;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -47,8 +45,7 @@ public class TangoRestEntityUtils {
 
     public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) {
         try {
-            URI uri = new URI(tangoAttribute.getName());
-            String host = uri.getAuthority();
+            String host = tangoAttribute.getDeviceProxy().getFullTangoHost();
             String device = tangoAttribute.getDeviceProxy().get_name();
             String name = tangoAttribute.getName();
 
@@ -61,8 +58,6 @@ public class TangoRestEntityUtils {
             );
         } catch (DevFailed devFailed) {
             return new TangoRestAttribute(devFailed.errors);
-        } catch (URISyntaxException e) {
-            return new TangoRestAttribute(DevFailedUtils.newDevFailed(e).errors);
         }
     }
 
@@ -114,7 +109,7 @@ public class TangoRestEntityUtils {
 
     private static UriBuilder getDeviceURI(UriInfo uriInfo, String host, String device) {
         return UriBuilder.fromUri(uriInfo.getBaseUri())
-                .path("rest/rc5/hosts").path(host.replace(":",";port=")).path("devices").path(device);
+                .path("rest/v11/hosts").path(host.replace(":", ";port=")).path("devices").path(device);
     }
 
     public static CommandInOut<Object, Object> executeCommand(TangoCommandProxy command, CommandInOut<Object, Object> input) {
