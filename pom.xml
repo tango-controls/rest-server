@@ -516,8 +516,7 @@
                 <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml
                 </sonar.coverage.jacoco.xmlReportPaths>
                 <sonar.login>${env.SONAR_TOKEN}</sonar.login>
-                <!--override development TangoRestServer instance name for porduction -->
-                <tango.rest.server.instance.name>sys</tango.rest.server.instance.name>
+                <custom.build.name>${env.TRAVIS_BRANCH}</custom.build.name>
             </properties>
             <build>
                 <plugins>

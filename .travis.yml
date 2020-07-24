@@ -10,7 +10,7 @@ env:
 
 #skip mvn install
 install:
-  - mvn package
+  - mvn package -Ptravis
   - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
   - docker run -p 10001:8080 -p 10043:8443 -d "$DOCKER_IMAGE_NAME"
 
