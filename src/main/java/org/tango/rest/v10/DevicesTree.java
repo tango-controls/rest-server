@@ -17,6 +17,7 @@
 package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.ApiUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.rest.v10.tree.*;
@@ -114,6 +115,7 @@ public class DevicesTree {
 
 
     private TangoContainer<TangoAlias> processAliases(TangoDatabaseProxy db, DeviceFilters filter) throws DevFailed {
+        ApiUtil.change_db_obj(db.getHost(), db.getPort());  //TODO if not set next call creates default db -> no TANGO_HOST set error
         final String[] aliases = db.asEsrfDatabase().get_device_alias_list("*");
 
         TangoContainer<TangoAlias> result = new TangoContainer<>();
