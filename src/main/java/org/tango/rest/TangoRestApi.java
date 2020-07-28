@@ -41,7 +41,7 @@ import java.util.Set;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 4/17/17
  */
-@ApplicationPath("/rest")
+@ApplicationPath("/")
 public class TangoRestApi extends Application {
     private final ThreadLocal<TangoProxiesCache> proxies = ThreadLocal.withInitial(TangoProxiesCache::new);
     private final TangoRestContext context = new TangoRestContext();

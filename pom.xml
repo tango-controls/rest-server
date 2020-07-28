@@ -107,24 +107,6 @@
             <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <version>${tomcat.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-logging-log4j</artifactId>
-            <version>${tomcat.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-jasper</artifactId>
-            <version>${tomcat.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
             <version>${slf4j-api.version}</version>
@@ -370,9 +352,26 @@
     <profiles>
         <profile>
             <id>test-suite</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.tomcat.embed</groupId>
+                    <artifactId>tomcat-embed-core</artifactId>
+                    <version>${tomcat.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.tomcat.embed</groupId>
+                    <artifactId>tomcat-embed-logging-log4j</artifactId>
+                    <version>${tomcat.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.tomcat.embed</groupId>
+                    <artifactId>tomcat-embed-jasper</artifactId>
+                    <version>${tomcat.version}</version>
+                </dependency>
+            </dependencies>
             <build>
                 <plugins>
-                    
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
@@ -414,6 +413,7 @@
                             <excludes>
                                 <exclude>fr.esrf.*</exclude>
                                 <exclude>fr.soleil.*</exclude>
+                                <exclude>org.apache.*</exclude>
                             </excludes>
                         </configuration>
                         <executions>
@@ -458,7 +458,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
+                        <version>3.0.0</version>
                         <executions>
                             <execution>
                                 <id>run-rest-server</id>
@@ -474,17 +474,18 @@
                             <arguments>
                                 <!-- Sets the VM argument line used when integration tests are run. -->
                                 <argument>${jacoco-agent}</argument>
-                                <argument>-DTANGO_HOST=localhost:10000</argument>
                                 <argument>-DLOG_HOME=${project.build.directory}/log</argument>
                                 <argument>-DLOG_LEVEL=ERROR</argument>
-                                <argument>-Dlogback.configurationFile=${project.basedir}/src/test-integration/resources/logback.xml</argument>
-                                <argument>-jar</argument>
-                                <argument>${custom.build.name}.jar</argument>
-                                <argument>-nodb</argument>
-                                <argument>-dlist</argument>
-                                <argument>test/rest/0</argument>
+                                <argument>
+                                    -Dlogback.configurationFile=${project.basedir}/src/test-integration/resources/logback.xml
+                                </argument>
+                                <argument>-cp</argument>
+                                <classpath/>
+                                <argument>org.tango.rest.TangoRestServer</argument>
+                                <argument>${project.build.directory}</argument>
                             </arguments>
                             <async>true</async>
+                            <classpathScope>test</classpathScope>
                             <!--asyncDestroyOnShutdown>true</asyncDestroyOnShutdown-->
                         </configuration>
                     </plugin>

@@ -11,8 +11,8 @@ import java.nio.file.Paths;
  * @since 25.07.2020
  */
 public class TangoRestServer {
-    public static void main(String[] args) throws Exception {
-        Path baseDir = Paths.get("target/webapp");
+    public static void main(String[] args) {
+        Path baseDir = Paths.get(args[0]);
 
         Tomcat tomcat = new TomcatBootstrap(10001, baseDir,
                 new AuthConfiguration("plain", new String[]{"tango-cs"}, new String[]{"tango"}),

@@ -18,24 +18,16 @@ package org.tango.rest.tomcat;
 
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.TangoRestServer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 9/18/17
  */
 public class TomcatBootstrap {
-    public static final String WEBAPP_WAR = "webapp.war";
     private final Logger logger = LoggerFactory.getLogger(TomcatBootstrap.class);
     private final int port;
     private final Path baseDir;
@@ -58,27 +50,9 @@ public class TomcatBootstrap {
         this.http2Configuration = http2Configuration;
     }
 
-    public static Path initializeBaseDir() {
-        Path tomcatBaseDir;
-        try (InputStream webapp = TangoRestServer.class.getResourceAsStream("/webapp.war")) {
-            tomcatBaseDir = Files.createTempDirectory(
-                    Paths.get(System.getProperty("user.dir")), "tomcat_");
-            FileUtils.forceDeleteOnExit(tomcatBaseDir.toFile());
-
-            Files.createDirectory(tomcatBaseDir.resolve("webapps"));
-
-            Files.copy(webapp, tomcatBaseDir.resolve(WEBAPP_WAR), StandardCopyOption.REPLACE_EXISTING);
-
-            return tomcatBaseDir;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private Tomcat createTomcat(int port, String baseDir) {
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(port);
-        tomcat.setBaseDir(baseDir);
 
 
         http2Configuration.configure(tomcat);
