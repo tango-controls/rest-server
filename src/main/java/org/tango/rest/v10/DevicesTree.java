@@ -115,7 +115,7 @@ public class DevicesTree {
 
 
     private TangoContainer<TangoAlias> processAliases(TangoDatabaseProxy db, DeviceFilters filter) throws DevFailed {
-        ApiUtil.change_db_obj(db.getHost(), db.getPort());  //TODO if not set next call creates default db -> no TANGO_HOST set error
+        ApiUtil.set_db_obj(db.getHost(), db.getPort());
         final String[] aliases = db.asEsrfDatabase().get_device_alias_list("*");
 
         TangoContainer<TangoAlias> result = new TangoContainer<>();

@@ -181,7 +181,7 @@
         <dependency>
             <groupId>org.tango-controls</groupId>
             <artifactId>TangORB</artifactId>
-            <version>9.5.18-hzg.8</version>
+            <version>9.6.1-hzg.2</version>
         </dependency>
         <dependency>
             <groupId>de.hzg.wpi.utils</groupId>

@@ -17,6 +17,7 @@
 package org.tango.web.server.providers;
 
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.ApiUtil;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,15 +71,19 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         }
 
         TangoHostExtractor tangoHostExtractor =
-                        uriInfo12 -> {
-                            PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
-                            return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
-                                    pathSegment.getMatrixParameters().getFirst("port"))
-                                    .orElse(DEFAULT_TANGO_PORT));
-                        };
+                uriInfo12 -> {
+                    PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
+                    return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
+                            pathSegment.getMatrixParameters().getFirst("port"))
+                            .orElse(DEFAULT_TANGO_PORT));
+                };
 
 
         TangoHost tangoHost = tangoHostExtractor.apply(uriInfo);
+        try {
+            ApiUtil.set_db_obj(tangoHost.host, tangoHost.port);
+        } catch (DevFailed ignored) {
+        }
 
         TangoDatabaseProxy tangoDb = context.get().hosts.
                 getUnchecked(tangoHost.toString()).orElseGet(() -> {
