@@ -21,6 +21,7 @@ before_script:
   - sleep 30
   - docker ps
   - TANGO_HOST_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' tango-cs`
+  - echo $TANGO_HOST_IP
 
 script:
   - mvn -B verify -Ptest-suite -Dcustom.build.name=$TRAVIS_BRANCH
