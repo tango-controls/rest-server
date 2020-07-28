@@ -29,6 +29,7 @@ import fr.esrf.TangoApi.DeviceDataHistory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.tango.client.ez.data.TangoDataWrapper;
 import org.tango.client.ez.data.type.*;
+import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.TangoAttributeInfoWrapper;
 import org.tango.client.ez.proxy.TangoEvent;
 import org.tango.client.ez.proxy.ValueTimeQuality;
@@ -71,7 +72,7 @@ public class JaxRsDeviceAttribute {
     @GET
     @RequiresTangoAttribute
     @StaticValue
-    public TangoRestAttribute get(@Context UriInfo uriInfo) {
+    public TangoRestAttribute get(@Context UriInfo uriInfo) throws NoSuchAttributeException {
         return TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo);
     }
 

@@ -20,11 +20,13 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CommandInfo;
 import fr.esrf.TangoApi.DevicePipe;
 import org.javatuples.Pair;
+import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.client.ez.proxy.ValueTimeQuality;
 import org.tango.rest.entities.Failures;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.rest.v10.entities.CommandInOut;
 import org.tango.rest.v10.entities.pipe.Pipe;
+import org.tango.utils.DevFailedUtils;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 import org.tango.web.server.proxy.TangoCommandProxy;
 import org.tango.web.server.proxy.TangoPipeProxy;
@@ -43,7 +45,7 @@ import java.net.URI;
 public class TangoRestEntityUtils {
     private TangoRestEntityUtils(){}
 
-    public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) {
+    public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) throws NoSuchAttributeException {
         try {
             String host = tangoAttribute.getDeviceProxy().getFullTangoHost();
             String device = tangoAttribute.getDeviceProxy().get_name();
@@ -57,6 +59,8 @@ public class TangoRestEntityUtils {
                     host, device, name, tangoAttribute.getDeviceProxy().get_attribute_info_ex(name), href, tangoAttribute
             );
         } catch (DevFailed devFailed) {
+            if (devFailed.errors.length > 0 && devFailed.errors[0].reason.equalsIgnoreCase("API_AttrNotFound"))
+                throw new NoSuchAttributeException();
             return new TangoRestAttribute(devFailed.errors);
         }
     }
@@ -84,10 +88,12 @@ public class TangoRestEntityUtils {
             pair.getValue1().write(attributeValue.value);
             attributeValue.quality = "PENDING";
             attributeValue.timestamp = System.currentTimeMillis();
-        } catch (DevFailed devFailed) {
+        } catch (Exception devFailed) {
             attributeValue.quality = "FAILURE";
             attributeValue.timestamp = System.currentTimeMillis();
-            attributeValue.errors = devFailed.errors;
+            attributeValue.errors = devFailed.getClass().isAssignableFrom(DevFailed.class) ?
+                    ((DevFailed) devFailed).errors :
+                    DevFailedUtils.newDevFailed(devFailed).errors;
         }
         return attributeValue;
     }

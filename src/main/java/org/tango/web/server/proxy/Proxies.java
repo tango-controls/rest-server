@@ -23,7 +23,6 @@ import fr.esrf.TangoApi.DeviceProxyFactory;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.client.ez.util.TangoUtils;
 import org.tango.web.server.util.TangoDeviceProxyUtils;
 
 import java.util.Optional;
@@ -69,11 +68,10 @@ public class Proxies {
         try {
             Matcher matcher = TANGO_DEVICE_FULL_NAME_PATTERN.matcher(fullDeviceName);
             if (!matcher.matches()) throw new AssertionError();
-            TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(
-                    DeviceProxyFactory.get(fullDeviceName));
+            TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(fullDeviceName);
 
             return Optional.of(new TangoDeviceProxyImpl(matcher.group("host"), matcher.group("name"), tangoProxy));
-        } catch (TangoProxyException | DevFailed devFailed) {
+        } catch (TangoProxyException devFailed) {
             return Optional.empty();
         }
     }
@@ -149,12 +147,7 @@ public class Proxies {
     }
 
     public static TangoDeviceProxy newTangoDeviceProxy(String host, String name) throws TangoProxyException {
-        try {
-            TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(
-                    DeviceProxyFactory.get(TangoDeviceProxyUtils.toUriBuilder(host, name).build().toString()));
-            return new TangoDeviceProxyImpl(host, name, tangoProxy);
-        } catch (DevFailed devFailed) {
-            throw TangoUtils.convertDevFailedToException(devFailed);
-        }
+        TangoProxy tangoProxy = TangoProxies.newDeviceProxyWrapper(TangoDeviceProxyUtils.toUriBuilder(host, name).build().toString());
+        return new TangoDeviceProxyImpl(host, name, tangoProxy);
     }
 }

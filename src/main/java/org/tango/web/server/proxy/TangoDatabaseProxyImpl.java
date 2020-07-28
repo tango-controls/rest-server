@@ -17,6 +17,7 @@
 package org.tango.web.server.proxy;
 
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.ApiUtil;
 import fr.esrf.TangoApi.Database;
 import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.DeviceProxyFactory;
@@ -74,6 +75,7 @@ public class TangoDatabaseProxyImpl implements TangoDatabaseProxy {
     @Override
     public List<String> getDeviceNames(String wildcard) {
         try {
+            ApiUtil.set_db_obj(host, port);
             return Arrays.asList(tangoDb.getDevices(wildcard));
         } catch (DevFailed devFailed) {
             return Collections.emptyList();

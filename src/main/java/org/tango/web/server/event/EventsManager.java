@@ -16,9 +16,6 @@
 
 package org.tango.web.server.event;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.DeviceProxy;
-import fr.esrf.TangoApi.DeviceProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.*;
@@ -80,13 +77,7 @@ public class EventsManager {
     public EventImpl newEvent(EventImpl.Target target) throws TangoProxyException, NoSuchAttributeException {
         TangoSseBroadcaster broadcaster = tangoSseBroadcasterFactory.newInstance();
 
-        DeviceProxy deviceProxy;
-        try {
-            deviceProxy = DeviceProxyFactory.get(target.toTangoDeviceURLString());
-        } catch (DevFailed devFailed) {
-            throw new TangoProxyException("DeviceProxyFactory.get has failed",devFailed);
-        }
-        final TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(deviceProxy);
+        final TangoProxy proxy = TangoProxies.newDeviceProxyWrapper(target.toTangoDeviceURLString());
 
         int id = eventId.incrementAndGet();
         logger.debug("Create new Event for {}. Id = {}", target, id);

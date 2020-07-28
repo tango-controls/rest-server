@@ -17,6 +17,7 @@
 package org.tango.rest.v10;
 
 import org.javatuples.Pair;
+import org.tango.client.ez.proxy.NoSuchAttributeException;
 import org.tango.rest.v10.entities.Attribute;
 import org.tango.rest.v10.entities.AttributeValue;
 import org.tango.web.server.TangoProxiesCache;
@@ -33,6 +34,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +52,14 @@ public class JaxRsTangoAttributes {
     @RequiresTangoSelector
     public List<Attribute> get(@Context TangoSelector tangoSelector, final @Context UriInfo uriInfo){
         return tangoSelector.selectAttributesStream()
-                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+                .map(tangoAttribute -> {
+                    try {
+                        return TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo);
+                    } catch (NoSuchAttributeException e) {
+                        return null;//TODO error?
+                    }
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -61,7 +70,14 @@ public class JaxRsTangoAttributes {
     @Path("/value")
     public List<Object> read(@Context TangoSelector tangoSelector, final @Context UriInfo uriInfo){
         return tangoSelector.selectAttributesStream()
-                .map(tangoAttribute -> TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo))
+                .map(tangoAttribute -> {
+                    try {
+                        return TangoRestEntityUtils.fromTangoAttribute(tangoAttribute, uriInfo);
+                    } catch (NoSuchAttributeException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
                 .map(TangoRestEntityUtils::getValueFromTangoAttribute)
                 .collect(Collectors.toList());
     }

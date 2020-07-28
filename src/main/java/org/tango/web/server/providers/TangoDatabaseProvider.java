@@ -16,6 +16,7 @@
 
 package org.tango.web.server.providers;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.ApiUtil;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -83,6 +84,8 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         try {
             ApiUtil.set_db_obj(tangoHost.host, tangoHost.port);
         } catch (DevFailed ignored) {
+        } catch (UncheckedExecutionException e) {
+            requestContext.abortWith(Response.status(Response.Status.NOT_FOUND).entity(Failures.createInstance(e)).build());
         }
 
         TangoDatabaseProxy tangoDb = context.get().hosts.
