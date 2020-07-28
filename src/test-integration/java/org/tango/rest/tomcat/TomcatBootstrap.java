@@ -18,9 +18,12 @@ package org.tango.rest.tomcat;
 
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -50,9 +53,19 @@ public class TomcatBootstrap {
         this.http2Configuration = http2Configuration;
     }
 
-    private Tomcat createTomcat(int port, String baseDir) {
+    public Path initializeBaseDir() throws IOException {
+        Path tomcatBaseDir = Files.createTempDirectory(
+                baseDir, "tomcat_");
+        FileUtils.forceDeleteOnExit(tomcatBaseDir.toFile());
+
+        Files.createDirectory(tomcatBaseDir.resolve("webapps"));
+        return tomcatBaseDir;
+    }
+
+    private Tomcat createTomcat(int port) throws IOException {
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(port);
+        tomcat.setBaseDir(initializeBaseDir().toAbsolutePath().toString());
 
 
         http2Configuration.configure(tomcat);
@@ -62,10 +75,10 @@ public class TomcatBootstrap {
         return tomcat;
     }
 
-    public Tomcat bootstrap() {
+    public Tomcat bootstrap() throws IOException {
         logger.debug("Configure tomcat for device");
 
-        Tomcat tomcat = createTomcat(port, baseDir.toAbsolutePath().toString());
+        Tomcat tomcat = createTomcat(port);
 
         logger.debug("Starting tomcat of device...");
         try {

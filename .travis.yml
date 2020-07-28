@@ -11,17 +11,12 @@ env:
 #skip mvn install
 install:
   - mvn package -Ptravis,test-suite
-  - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
-  - docker run -p 10001:8080 -p 10043:8443 -d "$DOCKER_IMAGE_NAME"
-
 
 before_script:
   - docker-compose up -d
   #TODO wait-for-it
   - sleep 30
   - docker ps
-  - TANGO_HOST_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' tango-cs`
-  - echo $TANGO_HOST_IP
 
 script:
   - mvn -B verify -Ptest-suite -Dcustom.build.name=$TRAVIS_BRANCH
@@ -32,6 +27,7 @@ after_success:
   - sleep 3
   - git fetch --unshallow
   - mvn sonar:sonar -Ptravis -Dsonar.login=$SONAR_TOKEN  -Dsonar.projectKey=org.tango-controls:rest-server
+  - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
 
 jdk:
   - openjdk11

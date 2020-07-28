@@ -11,12 +11,12 @@ import java.nio.file.Paths;
  * @since 25.07.2020
  */
 public class TangoRestServer {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Path baseDir = Paths.get(args[0]);
 
         Tomcat tomcat = new TomcatBootstrap(10001, baseDir,
                 new AuthConfiguration("plain", new String[]{"tango-cs"}, new String[]{"tango"}),
-                new WebappConfiguration(baseDir.toAbsolutePath().toString()),
+                new WebappConfiguration(baseDir.toAbsolutePath().toString(), args[1]),
                 new AccessLogConfiguration(),
                 new Http2Configuration("/etc/ssl/certs/ssl-cert-snakeoil.pem", "/etc/ssl/private/ssl-cert-snakeoil.key"))
                 .bootstrap();
