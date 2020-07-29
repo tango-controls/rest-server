@@ -20,7 +20,7 @@
 
     <groupId>org.tango-controls</groupId>
     <artifactId>rest-server</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0</version>
     <packaging>war</packaging>
 
     <developers>
@@ -57,7 +57,7 @@
         <connection>scm:git:git@github.com:tango-controls/rest-server</connection>
         <developerConnection>scm:git:git@github.com:tango-controls/rest-server</developerConnection>
         <url>https://github.com/tango-controls/rest-server</url>
-        <tag>HEAD</tag>
+        <tag>rest-server-2.0</tag>
     </scm>
 
     <dependencyManagement>
@@ -486,7 +486,7 @@
                                     -Dlogback.configurationFile=${project.basedir}/src/test-integration/resources/logback.xml
                                 </argument>
                                 <argument>-cp</argument>
-                                <classpath/>
+                                <classpath />
                                 <argument>org.tango.rest.TangoRestServer</argument>
                                 <argument>${project.build.directory}</argument>
                                 <argument>${custom.build.name}</argument>
@@ -506,7 +506,7 @@
                                 <phase>pre-integration-test</phase>
                                 <configuration>
                                     <target>
-                                        <sleep seconds="5"/>
+                                        <sleep seconds="5" />
                                     </target>
                                 </configuration>
                                 <goals>
