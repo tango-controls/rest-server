@@ -16,7 +16,6 @@
 
 package org.tango.rest.entities;
 
-import com.google.common.collect.Lists;
 import fr.esrf.Tango.DevFailed;
 import org.tango.client.ez.proxy.TangoProxyException;
 import org.tango.rest.rc4.entities.Failure;
@@ -24,7 +23,6 @@ import org.tango.rest.rc4.entities.Failure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -52,12 +50,9 @@ public class Failures {
 
     public static Failure createInstance(DevFailed devFailed) {
         return new Failure(
-                new ArrayList<Failure.Error>(){{
-                    addAll(Lists.reverse(
-                            Arrays.stream(devFailed.errors)
-                                    .map(devError -> new Failure.Error(devError.reason, devError.desc, devError.severity.toString(), devError.origin))
-                                    .collect(Collectors.toList())));
-                }}.toArray(new Failure.Error[0]),
+                Arrays.stream(devFailed.errors)
+                        .map(devError -> new Failure.Error(devError.reason, devError.desc, devError.severity.toString(), devError.origin))
+                        .toArray(Failure.Error[]::new),
                 System.currentTimeMillis());
     }
 
