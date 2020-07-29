@@ -84,7 +84,7 @@ public class DevicesTreeContextProvider implements ContainerRequestFilter {
             if(tango_hosts == null) return Collections.emptyList();
             return tango_hosts.stream()
                     .filter(this::checkURISyntax)
-                    .map(Proxies::getDatabase)
+                    .map(Proxies::getDatabaseProxy)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toList());

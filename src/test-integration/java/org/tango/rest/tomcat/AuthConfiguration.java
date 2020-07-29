@@ -1,20 +1,4 @@
-/*
- * Copyright 2019 Tango Controls
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package org.tango.web.server.tomcat;
+package org.tango.rest.tomcat;
 
 import de.hzg.wpi.utils.authorization.AuthorizationMechanism;
 import de.hzg.wpi.utils.authorization.Kerberos;
@@ -24,7 +8,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
+import org.tango.rest.TangoRestServer;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
@@ -38,10 +22,8 @@ import java.util.Map;
  */
 public class AuthConfiguration implements TomcatConfiguration {
     public static final String LDAP_PROPERTIES = "LDAP_PROPERTIES";
-    private final Logger logger = LoggerFactory.getLogger(AuthConfiguration.class);
-
     public static final String[] DEFAULT_ROLES = {"desy-user", "mtango-rest", "mtango-groovy"};
-
+    private final Logger logger = LoggerFactory.getLogger(AuthConfiguration.class);
     private Map<String, String> users = new HashMap<>();
     private MultivaluedMap<String, String> roles = new MultivaluedMapImpl<>();
     private AuthorizationMechanism authMethod;
@@ -54,7 +36,7 @@ public class AuthConfiguration implements TomcatConfiguration {
         this.authMethod = createAuthorizationMechanism(authMethod);
     }
 
-    private AuthorizationMechanism createAuthorizationMechanism(String authMethod){
+    private AuthorizationMechanism createAuthorizationMechanism(String authMethod) {
         logger.debug("Configure tomcat auth {} for device", authMethod);
         try {
             switch (authMethod) {
@@ -73,7 +55,7 @@ public class AuthConfiguration implements TomcatConfiguration {
         }
     }
 
-    public void configure(Tomcat tomcat){
+    public void configure(Tomcat tomcat) {
         logger.debug("Configuring tomcat auth for device...");
         authMethod.configure(tomcat);
         logger.debug("Done!");

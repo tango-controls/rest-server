@@ -16,7 +16,7 @@
 
 package org.tango.web.server.util;
 
-import org.tango.web.server.Context;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.*;
 
 import java.util.AbstractMap;
@@ -32,10 +32,10 @@ import java.util.stream.Stream;
 //TODO handle exceptions
 public class TangoSelector {
 
-    private final Context context;
+    private final TangoProxiesCache context;
     private final List<Wildcard> wildcards;
 
-    public TangoSelector(List<Wildcard> wildcards, Context context) {
+    public TangoSelector(List<Wildcard> wildcards, TangoProxiesCache context) {
         this.wildcards = wildcards;
         this.context = context;
     }
@@ -43,7 +43,7 @@ public class TangoSelector {
     private Stream<WildcardDatabase> getWildcardDatabaseStream(){
         return wildcards.stream()
                 .map(wildcard ->
-                        Proxies.getDatabase(wildcard.host).map(tangoDatabaseProxy ->
+                        Proxies.getDatabaseProxy(wildcard.host).map(tangoDatabaseProxy ->
                                 new WildcardDatabase(wildcard, tangoDatabaseProxy)
                         ).orElse(null))
                 .filter(Objects::nonNull);
@@ -139,7 +139,7 @@ public class TangoSelector {
 
     private Stream<String> getDeviceMemberURLStream() {
         return wildcards.stream()
-                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, Proxies.getDatabase(wildcard.host).orElse(null)))
+                .map(wildcard -> new AbstractMap.SimpleEntry<>(wildcard, Proxies.getDatabaseProxy(wildcard.host).orElse(null)))
                 .filter(entry -> Objects.nonNull(entry.getValue()))
                 .flatMap(this::getDeviceMemberURL);
     }

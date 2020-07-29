@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.tango.rest.rc4.entities;
+package org.tango.rest.entities;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import fr.esrf.Tango.DevError;
 import fr.esrf.Tango.DevFailed;
 import org.tango.client.ez.proxy.TangoProxyException;
+import org.tango.rest.rc4.entities.Failure;
 
 import java.util.ArrayList;
 import java.util.Arrays;

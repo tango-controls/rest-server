@@ -19,9 +19,9 @@ package org.tango.web.server.providers;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 import org.tango.web.server.proxy.TangoDeviceProxy;
@@ -52,10 +52,10 @@ import java.util.StringJoiner;
 public class TangoDeviceProxyProvider implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(TangoDeviceProxyProvider.class);
 
-    private final TangoRestServer tangoRestServer;
+    private final ThreadLocal<TangoProxiesCache> context;
 
-    public TangoDeviceProxyProvider(TangoRestServer tangoRestServer) {
-        this.tangoRestServer = tangoRestServer;
+    public TangoDeviceProxyProvider(ThreadLocal<TangoProxiesCache> context) {
+        this.context = context;
     }
 
     @Override
@@ -75,17 +75,17 @@ public class TangoDeviceProxyProvider implements ContainerRequestFilter {
 
         TangoDeviceName name = new TangoDeviceName(db.getTangoHost(), domain, family, member);
 
-        TangoDeviceProxy result = tangoRestServer.getContext().devices.getUnchecked(name.toString()).orElseGet(() -> {
+        TangoDeviceProxy result = context.get().devices.getUnchecked(name.toString()).orElseGet(() -> {
             try {
                 return Proxies.newTangoDeviceProxy(name.host, name.name);
             } catch (TangoProxyException e) {
                 Response.Status status = Response.Status.BAD_REQUEST;
-                if(e.reason.contains("DB_DeviceNotDefined"))
+                if (e.reason.contains("DB_DeviceNotDefined"))
                     status = Response.Status.NOT_FOUND;
                 requestContext.abortWith(Response.status(status).entity(Failures.createInstance(e)).build());
                 return null;
             }
-        } );
+        });
 
         if (Objects.nonNull(result)) {
             ResteasyProviderFactory.pushContext(TangoDeviceProxy.class, result);

@@ -19,9 +19,9 @@ package org.tango.web.server.providers;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
 import org.tango.client.ez.proxy.TangoProxyException;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.binding.RequiresTangoCommand;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoCommandProxy;
@@ -45,11 +45,12 @@ import java.util.Objects;
 @RequiresTangoCommand
 @Priority(Priorities.USER + 300)
 public class TangoCommandProxyProvider implements ContainerRequestFilter {
-    private final TangoRestServer tangoRestServer;
     private final Logger logger = LoggerFactory.getLogger(TangoCommandProxyProvider.class);
+    private final ThreadLocal<TangoProxiesCache> context;
 
-    public TangoCommandProxyProvider(TangoRestServer tangoRestServer) {
-        this.tangoRestServer = tangoRestServer;
+
+    public TangoCommandProxyProvider(ThreadLocal<TangoProxiesCache> context) {
+        this.context = context;
     }
 
     @Override
@@ -58,7 +59,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
         UriInfo uriInfo = containerRequestContext.getUriInfo();
 
         String name = uriInfo.getPathParameters().getFirst("cmd");
-        if(Objects.isNull(name)) {
+        if (Objects.isNull(name)) {
             containerRequestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance("command name is null")).build());
             throw new AssertionError();
         }
@@ -69,7 +70,7 @@ public class TangoCommandProxyProvider implements ContainerRequestFilter {
             throw new AssertionError();
         }
 
-        TangoCommandProxy proxy = tangoRestServer.getContext().commands.getUnchecked(deviceProxy.getFullName() + "/" + name)
+        TangoCommandProxy proxy = context.get().commands.getUnchecked(deviceProxy.getFullName() + "/" + name)
                 .orElseGet(() -> {
                     try {
                         if (deviceProxy.getProxy().hasCommand(name))

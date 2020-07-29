@@ -16,286 +16,80 @@
 
 package org.tango.web.server.proxy;
 
-import fr.esrf.Tango.AttrQuality;
-import fr.esrf.Tango.AttrWriteType;
+import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.AttributeProxy;
-import fr.esrf.TangoApi.DeviceAttribute;
-import fr.soleil.tango.clientapi.TangoAttribute;
+import fr.esrf.TangoApi.DeviceProxy;
+import org.tango.client.ez.proxy.*;
+import org.tango.utils.DevFailedUtils;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author ingvord
  * @since 11/18/18
  */
 public class TangoAttributeProxyImpl implements TangoAttributeProxy {
-    private final TangoAttribute attribute;
+    private final TangoDeviceProxy proxy;
+    private final String attribute;
+    private final AtomicLong lastUpdated = new AtomicLong();
 
-    public TangoAttributeProxyImpl(TangoAttribute attribute) {
+    public TangoAttributeProxyImpl(TangoDeviceProxy deviceProxy, String attribute) {
+        this.proxy = deviceProxy;
         this.attribute = attribute;
     }
 
     @Override
-    public void write() throws DevFailed {
-        attribute.write();
-    }
-
-    @Override
     public void write(Object value) throws DevFailed {
-        attribute.write(value);
+        try {
+            proxy.getProxy().writeAttribute(attribute, value);
+            lastUpdated.set(System.currentTimeMillis());
+        } catch (WriteAttributeException | NoSuchAttributeException e) {
+            throw DevFailedUtils.newDevFailed(e);
+        }
     }
 
     @Override
-    public <T> void writeImage(int dimX, int dimY, Object values) throws DevFailed {
-        attribute.writeImage(dimX, dimY, values);
+    public <T> T readPlain() throws DevFailed {
+        try {
+            lastUpdated.set(System.currentTimeMillis());
+            return proxy.getProxy().readAttribute(attribute);
+        } catch (ReadAttributeException | NoSuchAttributeException e) {
+            throw DevFailedUtils.newDevFailed(e);
+        }
     }
 
     @Override
-    public void update() throws DevFailed {
-        attribute.update();
-    }
-
-    @Override
-    public <T> T read(Class<T> type) throws DevFailed {
-        return attribute.read(type);
-    }
-
-    @Override
-    public Object read() throws DevFailed {
-        return attribute.read();
-    }
-
-    @Override
-    public Number readAsNumber() throws DevFailed {
-        return attribute.readAsNumber();
-    }
-
-    @Override
-    public <T> Object readArray(Class<T> type) throws DevFailed {
-        return attribute.readArray(type);
-    }
-
-    @Override
-    public <T> Object readWrittenArray(Class<T> type) throws DevFailed {
-        return attribute.readWrittenArray(type);
-    }
-
-    @Override
-    public <T> T readWritten(Class<T> type) throws DevFailed {
-        return attribute.readWritten(type);
-    }
-
-    @Override
-    public Object readWritten() throws DevFailed {
-        return attribute.readWritten();
-    }
-
-    @Override
-    public Number readWrittenAsNumber() throws DevFailed {
-        return attribute.readWrittenAsNumber();
-    }
-
-    @Override
-    public <T> T[] readSpecOrImage(Class<T> type) throws DevFailed {
-        return attribute.readSpecOrImage(type);
-    }
-
-    @Override
-    public Number[] readSpecOrImageAsNumber() throws DevFailed {
-        return attribute.readSpecOrImageAsNumber();
-    }
-
-    @Override
-    public <T> T[] readWrittenSpecOrImage(Class<T> type) throws DevFailed {
-        return attribute.readWrittenSpecOrImage(type);
-    }
-
-    @Override
-    public Number[] readWrittenSpecOrImageAsNumber() throws DevFailed {
-        return attribute.readWrittenSpecOrImageAsNumber();
-    }
-
-    @Override
-    public String readAsString(String separator, String endSeparator) throws DevFailed {
-        return attribute.readAsString(separator, endSeparator);
-    }
-
-    @Override
-    public void insert(Object value) throws DevFailed {
-        attribute.insert(value);
-    }
-
-    @Override
-    public void insertImage(int dimX, int dimY, Object values) throws DevFailed {
-        attribute.insertImage(dimX, dimY, values);
-    }
-
-    @Override
-    public <T> T extract(Class<T> type) throws DevFailed {
-        return attribute.extract(type);
-    }
-
-    @Override
-    public <T> Object extractArray(Class<T> type) throws DevFailed {
-        return attribute.extractArray(type);
-    }
-
-    @Override
-    public <T> Object extractWrittenArray(Class<T> type) throws DevFailed {
-        return attribute.extractWrittenArray(type);
-    }
-
-    @Override
-    public Number extractNumber() throws DevFailed {
-        return attribute.extractNumber();
-    }
-
-    @Override
-    public Object extract() throws DevFailed {
-        return attribute.extract();
-    }
-
-    @Override
-    public Object extractWritten() throws DevFailed {
-        return attribute.extractWritten();
-    }
-
-    @Override
-    public <T> T extractWritten(Class<T> type) throws DevFailed {
-        return attribute.extractWritten(type);
-    }
-
-    @Override
-    public Number extractNumberWritten() throws DevFailed {
-        return attribute.extractNumberWritten();
-    }
-
-    @Override
-    public <T> T[] extractSpecOrImage(Class<T> type) throws DevFailed {
-        return attribute.extractSpecOrImage(type);
-    }
-
-    @Override
-    public Number[] extractNumberSpecOrImage() throws DevFailed {
-        return attribute.extractNumberSpecOrImage();
-    }
-
-    @Override
-    public <T> T[] extractWrittenSpecOrImage(Class<T> type) throws DevFailed {
-        return attribute.extractWrittenSpecOrImage(type);
-    }
-
-    @Override
-    public Number[] extractNumberWrittenSpecOrImage() throws DevFailed {
-        return attribute.extractNumberWrittenSpecOrImage();
-    }
-
-    @Override
-    public String extractToString(String separator, String endSeparator) throws DevFailed {
-        return attribute.extractToString(separator, endSeparator);
-    }
-
-    @Override
-    public boolean isNumber() {
-        return attribute.isNumber();
-    }
-
-    @Override
-    public boolean isBoolean() {
-        return attribute.isBoolean();
-    }
-
-    @Override
-    public boolean isString() {
-        return attribute.isString();
-    }
-
-    @Override
-    public boolean isWritable() {
-        return attribute.isWritable();
-    }
-
-    @Override
-    public boolean isScalar() {
-        return attribute.isScalar();
-    }
-
-    @Override
-    public boolean isSpectrum() {
-        return attribute.isSpectrum();
+    public <T> ValueTimeQuality<T> read() throws DevFailed {
+        try {
+            ValueTimeQuality<T> result = proxy.getProxy().readAttributeValueTimeQuality(attribute);
+            lastUpdated.set(result.time);
+            return result;
+        } catch (ReadAttributeException | NoSuchAttributeException e) {
+            throw DevFailedUtils.newDevFailed(e);
+        }
     }
 
     @Override
     public boolean isImage() {
-        return attribute.isImage();
+        try {
+            return proxy.getProxy().getAttributeInfo(attribute).getFormat().toAttrDataFormat() == AttrDataFormat.IMAGE;
+        } catch (TangoProxyException | NoSuchAttributeException e) {
+            return false;
+        }
     }
 
     @Override
-    public AttributeProxy getAttributeProxy() {
-        return attribute.getAttributeProxy();
-    }
-
-    @Override
-    public DeviceAttribute getDeviceAttribute() {
-        return attribute.getDeviceAttribute();
-    }
-
-    @Override
-    public int getDimX() throws DevFailed {
-        return attribute.getDimX();
-    }
-
-    @Override
-    public int getDimY() throws DevFailed {
-        return attribute.getDimY();
-    }
-
-    @Override
-    public int getWrittenDimX() throws DevFailed {
-        return attribute.getWrittenDimX();
-    }
-
-    @Override
-    public int getWrittenDimY() throws DevFailed {
-        return attribute.getWrittenDimY();
-    }
-
-    @Override
-    public int getDataType() throws DevFailed {
-        return attribute.getDataType();
-    }
-
-    @Override
-    public AttrWriteType getWriteType() {
-        return attribute.getWriteType();
-    }
-
-    @Override
-    public long getTimestamp() throws DevFailed {
-        return attribute.getTimestamp();
-    }
-
-    @Override
-    public AttrQuality getQuality() throws DevFailed {
-        return attribute.getQuality();
-    }
-
-    @Override
-    public String getDeviceName() throws DevFailed {
-        return attribute.getDeviceName();
+    public DeviceProxy getDeviceProxy() {
+        return proxy.getProxy().toDeviceProxy();
     }
 
     @Override
     public String getName() {
-        return attribute.getName();
-    }
-
-    @Override
-    public void setTimeout(int timeout) throws DevFailed {
-        attribute.setTimeout(timeout);
-    }
-
-    @Override
-    public TangoAttribute asTangoAttribute() {
         return attribute;
+    }
+
+    @Override
+    public long getLastUpdatedTimestamp() {
+        return lastUpdated.get();
     }
 }

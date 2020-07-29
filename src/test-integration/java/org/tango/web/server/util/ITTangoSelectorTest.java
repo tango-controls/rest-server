@@ -19,7 +19,7 @@ package org.tango.web.server.util;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.tango.web.server.Context;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.TangoAttributeProxy;
 
 import java.util.List;
@@ -32,11 +32,11 @@ import static org.junit.Assert.assertFalse;
  * @since 11/16/18
  */
 public class ITTangoSelectorTest {
-    private Context context;
+    private TangoProxiesCache context;
 
     @Before
     public void before() {
-        context = new Context();
+        context = new TangoProxiesCache();
     }
 
 

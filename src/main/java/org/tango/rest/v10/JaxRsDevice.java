@@ -18,9 +18,6 @@ package org.tango.rest.v10;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.soleil.tango.clientapi.TangoAttribute;
-import org.tango.rest.rc4.DeviceHelper;
-import org.tango.rest.rc4.JaxRsDeviceProperties;
 import org.tango.rest.v10.entities.Attribute;
 import org.tango.rest.v10.entities.Command;
 import org.tango.rest.v10.entities.Device;
@@ -117,7 +114,7 @@ public class JaxRsDevice {
     @Path("/attributes/{attr}")
     @RequiresTangoAttribute
     public JaxRsDeviceAttribute deviceAttribute(@Context
-                                                        ResourceContext rc, @PathParam("attr") String attrName, @Context TangoAttribute tangoAttribute) throws Exception {
+                                                        ResourceContext rc, @PathParam("attr") String attrName) {
         return rc.getResource(JaxRsDeviceAttribute.class);
     }
 
@@ -146,8 +143,8 @@ public class JaxRsDevice {
                         tangoDevice.getName(),
                         tangoDatabase.getTangoHost(),
                         commandInfo,
-                        uriInfo.getAbsolutePathBuilder().path(commandInfo.cmd_name).build(),
-                        null))
+                        uriInfo.getAbsolutePathBuilder().path(commandInfo.cmd_name).build()
+                ))
                 .collect(Collectors.toList());
     }
 

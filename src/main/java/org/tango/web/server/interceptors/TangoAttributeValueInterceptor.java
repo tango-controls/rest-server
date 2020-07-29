@@ -16,11 +16,9 @@
 
 package org.tango.web.server.interceptors;
 
-import fr.esrf.Tango.DevFailed;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.rest.rc4.entities.Failures;
 import org.tango.web.server.binding.RequiresTangoAttribute;
 import org.tango.web.server.binding.TangoAttributeValue;
 import org.tango.web.server.proxy.TangoAttributeProxy;
@@ -31,7 +29,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -46,15 +43,11 @@ public class TangoAttributeValueInterceptor implements ContainerRequestFilter {
     private final Logger logger = LoggerFactory.getLogger(TangoAttributeValueInterceptor.class);
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         TangoAttributeProxy tangoAttributeProxy = ResteasyProviderFactory.getContextData(TangoAttributeProxy.class);
 
-        try {
-            Date lastModified = new Date(tangoAttributeProxy.getTimestamp());
-            Response.ResponseBuilder responseBuilder = requestContext.getRequest().evaluatePreconditions(lastModified);
-            if(responseBuilder != null) requestContext.abortWith(responseBuilder.build());
-        } catch (DevFailed devFailed) {
-            requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).entity(Failures.createInstance(devFailed)).build());
-        }
+        Date lastModified = new Date(tangoAttributeProxy.getLastUpdatedTimestamp());
+        Response.ResponseBuilder responseBuilder = requestContext.getRequest().evaluatePreconditions(lastModified);
+        if (responseBuilder != null) requestContext.abortWith(responseBuilder.build());
     }
 }

@@ -18,9 +18,9 @@ package org.tango.web.server.attribute;
 
 import fr.esrf.Tango.AttrQuality;
 import org.tango.client.ez.proxy.*;
+import org.tango.rest.entities.Failures;
 import org.tango.rest.rc4.entities.AttributeValue;
 import org.tango.rest.rc4.entities.Failure;
-import org.tango.rest.rc4.entities.Failures;
 
 import javax.ws.rs.core.Response;
 import java.util.Comparator;

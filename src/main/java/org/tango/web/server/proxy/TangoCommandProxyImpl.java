@@ -18,7 +18,6 @@ package org.tango.web.server.proxy;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceProxy;
-import fr.soleil.tango.clientapi.TangoCommand;
 import org.tango.client.ez.proxy.ExecuteCommandException;
 import org.tango.client.ez.proxy.NoSuchCommandException;
 import org.tango.client.ez.proxy.TangoProxy;
@@ -59,14 +58,5 @@ public class TangoCommandProxyImpl implements TangoCommandProxy {
     @Override
     public DeviceProxy getDeviceProxy() {
         return proxy.toDeviceProxy();
-    }
-
-    @Override
-    public TangoCommand asTangoCommand() {
-        try {
-            return new TangoCommand(getDeviceProxy(), getCommandName());
-        } catch (DevFailed devFailed) {
-            throw new AssertionError("Must not happen! Kabo-o-ooom!!!");
-        }
     }
 }

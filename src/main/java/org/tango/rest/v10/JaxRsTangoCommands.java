@@ -16,13 +16,14 @@
 
 package org.tango.rest.v10;
 
+import org.javatuples.Pair;
 import org.tango.rest.v10.entities.Command;
 import org.tango.rest.v10.entities.CommandInOut;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.binding.DynamicValue;
 import org.tango.web.server.binding.Partitionable;
 import org.tango.web.server.binding.RequiresTangoSelector;
 import org.tango.web.server.binding.StaticValue;
-import org.tango.web.server.proxy.TangoCommandProxy;
 import org.tango.web.server.util.TangoRestEntityUtils;
 import org.tango.web.server.util.TangoSelector;
 
@@ -47,7 +48,6 @@ public class JaxRsTangoCommands {
     @RequiresTangoSelector
     public List<Command> get(@Context TangoSelector selector, @Context UriInfo uriInfo){
         return selector.selectCommandsStream()
-                .map(TangoCommandProxy::asTangoCommand)
                 .map(tangoCommand -> TangoRestEntityUtils.newTangoCommand(tangoCommand, uriInfo))
                 .collect(Collectors.toList());
     }
@@ -55,9 +55,11 @@ public class JaxRsTangoCommands {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @DynamicValue
-    public List<CommandInOut<Object,Object>> execute(List<CommandInOut<Object,Object>> inputs){
+    public List<CommandInOut<Object, Object>> execute(@Context TangoProxiesCache proxies, List<CommandInOut<Object, Object>> inputs) {
         return inputs.stream()
-                .map(TangoRestEntityUtils::executeCommand)
+                .map(input -> new Pair<>(input, proxies.commands.getUnchecked(String.format("tango://%s/%s/%s", input.host, input.device, input.name))))
+                .filter(pair -> pair.getValue1().isPresent())
+                .map(pair -> TangoRestEntityUtils.executeCommand(pair.getValue1().get(), pair.getValue0()))
                 .collect(Collectors.toList());
     }
 }

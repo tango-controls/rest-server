@@ -3,13 +3,14 @@ language: java
 sudo: false
 
 services:
-- docker
+  - docker
 
 env:
-- DOCKER_IMAGE_NAME=tangocs/rest-server REGISTRY_USER=ingvord
+  - DOCKER_IMAGE_NAME=tangocs/rest-server REGISTRY_USER=ingvord TANGO_HOST_IP=0.0.0.0
 
 #skip mvn install
-install: /bin/true
+install:
+  - mvn package -Ptravis,test-suite
 
 before_script:
   - docker-compose up -d
@@ -20,13 +21,15 @@ before_script:
 script:
   - mvn -B verify -Ptest-suite -Dcustom.build.name=$TRAVIS_BRANCH
 
+after_script: docker rm -f "$DOCKER_IMAGE_NAME"
+
 after_success:
   - sleep 3
   - git fetch --unshallow
   - mvn sonar:sonar -Ptravis -Dsonar.login=$SONAR_TOKEN  -Dsonar.projectKey=org.tango-controls:rest-server
   - docker build --pull --tag "$DOCKER_IMAGE_NAME" --build-arg REST_SERVER_VERSION=$TRAVIS_BRANCH .
 
-jdk: 
+jdk:
   - openjdk11
 
 before_deploy:
@@ -41,7 +44,6 @@ deploy:
   - provider: releases
     api_key: $GITHUB_OAUTH_TOKEN
     file:
-      - "target/$TRAVIS_TAG.jar"
       - "target/$TRAVIS_TAG.zip"
     skip_cleanup: true
     on:

@@ -16,13 +16,14 @@
 
 package org.tango.web.server.providers;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.ApiUtil;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.TangoRestServer;
-import org.tango.rest.rc4.Rc4ApiImpl;
-import org.tango.rest.rc4.entities.Failures;
+import org.tango.rest.entities.Failures;
+import org.tango.web.server.TangoProxiesCache;
 import org.tango.web.server.proxy.Proxies;
 import org.tango.web.server.proxy.TangoDatabaseProxy;
 
@@ -48,10 +49,10 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
     public static final String DEFAULT_TANGO_PORT = "10000";
     private final Logger logger = LoggerFactory.getLogger(TangoDatabaseProvider.class);
 
-    private final TangoRestServer tangoRestServer;
+    private final ThreadLocal<TangoProxiesCache> context;
 
-    public TangoDatabaseProvider(TangoRestServer tangoRestServer) {
-        this.tangoRestServer = tangoRestServer;
+    public TangoDatabaseProvider(ThreadLocal<TangoProxiesCache> context) {
+        this.context = context;
     }
 
 
@@ -71,22 +72,26 @@ public class TangoDatabaseProvider implements ContainerRequestFilter {
         }
 
         TangoHostExtractor tangoHostExtractor =
-                pathSegments.get(1).getPath().equalsIgnoreCase(Rc4ApiImpl.RC_4) ?
-                        uriInfo1 -> new TangoHost(uriInfo1.getPathSegments().get(3).getPath(), uriInfo1.getPathSegments().get(4).getPath()) : //assume rc5
-                        uriInfo12 -> {
-                            PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
-                            return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
-                                    pathSegment.getMatrixParameters().getFirst("port"))
-                                    .orElse(DEFAULT_TANGO_PORT));
-                        };
+                uriInfo12 -> {
+                    PathSegment pathSegment = uriInfo12.getPathSegments().get(3);
+                    return new TangoHost(pathSegment.getPath(), Optional.ofNullable(
+                            pathSegment.getMatrixParameters().getFirst("port"))
+                            .orElse(DEFAULT_TANGO_PORT));
+                };
 
 
         TangoHost tangoHost = tangoHostExtractor.apply(uriInfo);
+        try {
+            ApiUtil.set_db_obj(tangoHost.host, tangoHost.port);
+        } catch (DevFailed ignored) {
+        } catch (UncheckedExecutionException e) {
+            requestContext.abortWith(Response.status(Response.Status.NOT_FOUND).entity(Failures.createInstance(e)).build());
+        }
 
-        TangoDatabaseProxy tangoDb = tangoRestServer.getContext().hosts.
+        TangoDatabaseProxy tangoDb = context.get().hosts.
                 getUnchecked(tangoHost.toString()).orElseGet(() -> {
             try {
-                return Proxies.getDatabase(tangoHost.host, tangoHost.port);
+                return Proxies.newDatabaseProxy(tangoHost.host, tangoHost.port);
             } catch (DevFailed devFailed) {
                 Response.Status status = Response.Status.BAD_REQUEST;
                 if (devFailed.errors.length >= 1 && devFailed.errors[0].reason.equalsIgnoreCase("Api_GetCanonicalHostNameFailed"))

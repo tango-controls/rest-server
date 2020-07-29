@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author ingvord
  * @since 11/25/18
  */
-public class Context {
+public class TangoProxiesCache {
     public final LoadingCache<String, Optional<TangoDatabaseProxy>> hosts = CacheBuilder.newBuilder()
             .expireAfterAccess(30L, TimeUnit.MINUTES)
             //TODO maximumSize or Weight

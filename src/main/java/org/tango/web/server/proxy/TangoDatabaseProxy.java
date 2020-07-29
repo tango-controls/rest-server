@@ -28,8 +28,6 @@ import java.util.List;
 public interface TangoDatabaseProxy {
     Database asEsrfDatabase();
 
-    org.tango.client.database.Database asSoleilDatabase();
-
     String getTangoHost();
 
     String getFullTangoHost();

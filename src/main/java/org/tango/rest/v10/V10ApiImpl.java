@@ -35,7 +35,7 @@ import java.util.Map;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 2/14/17
  */
-@Path("/rc5")
+@Path("/v11")
 @Produces("application/json")
 public class V10ApiImpl {
     private final Logger logger = LoggerFactory.getLogger(V10ApiImpl.class);

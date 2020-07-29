@@ -21,11 +21,6 @@
                              http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
 
-    <!-- Tango device instance to start -->
-    <context-param>
-        <param-name>tango.rest.server.instance</param-name>
-        <param-value>${tango.rest.server.instance.name}</param-value>
-    </context-param>
     <context-param>
         <param-name>resteasy.logger.type</param-name>
         <param-value>SLF4J</param-value>
@@ -33,7 +28,6 @@
     <context-param>
         <param-name>resteasy.providers</param-name>
         <param-value>
-            org.tango.web.server.rc4.readers.CommandInputMessageBodyReader,
             org.tango.web.server.exception.mapper.DevFailedMapper,
             org.tango.web.server.exception.mapper.TangoProxyExceptionMapper,
             org.tango.web.server.exception.mapper.NoSuchAttribute,
@@ -48,10 +42,6 @@
     <listener>
         <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
     </listener>
-    <listener>
-        <listener-class>org.tango.web.server.Launcher</listener-class>
-    </listener>
-
     <servlet>
         <servlet-name>RestTangoService</servlet-name>
         <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>

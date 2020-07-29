@@ -33,7 +33,7 @@ import java.util.Map;
 public class SimpleBinaryCache implements ServerCache {
     private final Logger logger = LoggerFactory.getLogger(SimpleBinaryCache.class);
 
-    private Map<String, CacheEntry> cache;
+    private final Map<String, CacheEntry> cache;
 
 
     public SimpleBinaryCache(int capacity) {

@@ -1,12 +1,12 @@
 version: '2'
 services:
   tango-db:
+    container_name: tango-mysql
     image: tangocs/mysql:9.2.2
-    ports:
-     - "9999:3306"
     environment:
      - MYSQL_ROOT_PASSWORD=root
   tango-cs:
+    container_name: tango-cs
     image: tangocs/tango-cs:9
     ports:
      - "10000:10000"
@@ -16,7 +16,5 @@ services:
      - MYSQL_USER=tango
      - MYSQL_PASSWORD=tango
      - MYSQL_DATABASE=tango
-    links:
-     - "tango-db:localhost"
     depends_on:
      - tango-db
