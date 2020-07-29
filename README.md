@@ -4,6 +4,7 @@
 
 This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
 
+[![time tracker](https://wakatime.com/badge/github/tango-controls/rest-server.svg)](https://wakatime.com/badge/github/tango-controls/rest-server)
 [![Build Status](https://travis-ci.org/tango-controls/rest-server.svg?branch=master)](https://travis-ci.org/tango-controls/rest-server)
 
 [![Download](https://img.shields.io/github/release/tango-controls/rest-server.svg?style=flat)](https://github.com/tango-controls/rest-server/releases/latest)
@@ -29,9 +30,9 @@ This server implements [Tango REST API](https://github.com/tango-controls/rest-a
 
 rest-server supports Java 11 since 1.18
 
-Use maven: `mvn package`
+To build use maven: `mvn package`
 
-This builds .jar and .zip packages.
+This builds .zip package. Extract and deploy to any Servlet compliant application server e.g. [Apache Tomcat](http://tomcat.apache.org/)
 
 # How to use
 
