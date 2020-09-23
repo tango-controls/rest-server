@@ -37,5 +37,9 @@ public interface TangoAttributeProxy {
 
     String getName();
 
+    String getHost();
+
+    String getDevice();
+
     long getLastUpdatedTimestamp();
 }

@@ -47,8 +47,8 @@ public class TangoRestEntityUtils {
 
     public static TangoRestAttribute fromTangoAttribute(TangoAttributeProxy tangoAttribute, UriInfo uriInfo) throws NoSuchAttributeException {
         try {
-            String host = tangoAttribute.getDeviceProxy().getFullTangoHost();
-            String device = tangoAttribute.getDeviceProxy().get_name();
+            String host = tangoAttribute.getHost();
+            String device = tangoAttribute.getDevice();
             String name = tangoAttribute.getName();
 
             URI href = getDeviceURI(uriInfo, host, device)

@@ -89,6 +89,16 @@ public class TangoAttributeProxyImpl implements TangoAttributeProxy {
     }
 
     @Override
+    public String getHost() {
+        return proxy.getHost();
+    }
+
+    @Override
+    public String getDevice() {
+        return proxy.getName();
+    }
+
+    @Override
     public long getLastUpdatedTimestamp() {
         return lastUpdated.get();
     }
