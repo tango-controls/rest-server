@@ -1,3 +1,6 @@
+> **ATTENTION** For latest releases go to [Waltz-Controls](https://github.com/waltz-controls/rest-server)
+
+
 [![logo](http://www.tango-controls.org/static/tango/img/logo_tangocontrols.png)](http://www.tango-controls.org)
 
 # TangoRestServer
