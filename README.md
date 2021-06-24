@@ -9,7 +9,7 @@
 
 # TangoRestServer
 
-This server implements [Tango REST API](https://github.com/tango-controls/rest-api)
+This server implements [Tango REST API](https://tango-rest-api.readthedocs.io/en/latest)
 
 [![time tracker](https://wakatime.com/badge/github/tango-controls/rest-server.svg)](https://wakatime.com/badge/github/tango-controls/rest-server)
 [![Build Status](https://travis-ci.org/tango-controls/rest-server.svg?branch=master)](https://travis-ci.org/tango-controls/rest-server)
